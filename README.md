@@ -3,7 +3,7 @@ Bài tập lớn nhóm 12 - LHP 2526II_UET.CS2043_2
 ## Cấu trúc thư mục dự án:
 ```
 TheAllNewBinance/
-├── .github/workflows/         # Cấu hình CI/CD (GitHub Actions) [cite: 138]
+├── .github/workflows/         # Cấu hình CI/CD (GitHub Actions)
 │   └── main.yml               # Tự động chạy Unit Test khi push code
 ├── core/                      # Module chứa các lớp dùng chung cho Client và Server
 │   └── src/main/java/com/auction/core/
