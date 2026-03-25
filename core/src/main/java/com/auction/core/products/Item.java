@@ -9,10 +9,8 @@ public class Item extends Entity {
     private String description;
     private String category;
     private String imageUrl;
-    private Boolean isActive;
 
-    // Constructor đầy đủ — dùng khi đọc từ DB (ItemDao.findById)
-    public Item(Integer id, Integer sellerId, String name, String description, String category, String imageUrl, Boolean isActive) {
+    public Item(Integer id, Integer sellerId, String name, String description, String category, String imageUrl, Boolean isDeleted) {
         super();
         this.id = id;
         this.sellerId = sellerId;
@@ -20,13 +18,13 @@ public class Item extends Entity {
         this.description = description;
         this.category = category;
         this.imageUrl = imageUrl;
-        this.isActive = isActive;
+        this.isDeleted = isDeleted != null ? isDeleted : false;
     }
-
-    // Constructor ngắn — dùng khi tạo mới (isActive mặc định = true)
+    /**
     public Item(Integer id, Integer sellerId, String name, String description, String category, String imageUrl) {
-        this(id, sellerId, name, description, category, imageUrl, true);
+        this(id, sellerId, name, description, category, imageUrl, false);
     }
+    */
 
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
@@ -44,8 +42,5 @@ public class Item extends Entity {
     public void setCategory(String category) { this.category = category; updateTimestamp(); }
     
     public String getImageUrl() { return imageUrl; }
-    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; }
-    
-    public Boolean getIsActive() { return isActive; }
-    public void setIsActive(Boolean active) { isActive = active; updateTimestamp(); }
+    public void setImageUrl(String imageUrl) { this.imageUrl = imageUrl; updateTimestamp(); }
 }

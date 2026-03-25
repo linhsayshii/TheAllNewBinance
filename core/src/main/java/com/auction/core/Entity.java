@@ -1,7 +1,8 @@
 package com.auction.core;
 
-import com.auction.core.utils.DateFormatter;
 import java.time.LocalDateTime;
+
+import com.auction.core.utils.DateFormatter;
 
 public abstract class Entity {
     protected LocalDateTime createdAt; // thời gian tạo 
@@ -13,25 +14,15 @@ public abstract class Entity {
         this.updatedAt = LocalDateTime.now();
         this.isDeleted = false;
     }
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
 
-    public void markAsDeleted() {
-        this.isDeleted = true;
-        this.updateTimestamp();
-    }
+    protected void updateTimestamp() {this.updatedAt = LocalDateTime.now(); }
 
-    protected void updateTimestamp() {
-        this.updatedAt = LocalDateTime.now();
-    }
-
-    public boolean isDeleted() {
-        return isDeleted;
-    }
-
-    public String getFormattedCreatedAt() {
-        return DateFormatter.format(createdAt);
-    }
-
-    public String getFormattedUpdatedAt() {
-        return DateFormatter.format(updatedAt);
+    public boolean isDeleted() {return isDeleted;}
+    public void setDeleted(boolean deleted) { this.isDeleted = deleted; updateTimestamp(); }
+    
+    public String getFormattedCreatedAt() {return DateFormatter.format(createdAt);}
+    public String getFormattedUpdatedAt() {return DateFormatter.format(updatedAt);
     }
 }
