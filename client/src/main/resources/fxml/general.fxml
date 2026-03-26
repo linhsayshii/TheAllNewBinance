@@ -1,0 +1,271 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.TilePane?>
+<?import javafx.scene.layout.VBox?>
+
+<ScrollPane fitToWidth="true" fx:controller="com.auction.client.controller.GeneralController" hbarPolicy="NEVER" prefHeight="760.0" prefWidth="1024.0" styleClass="app-scroll" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1">
+	<content>
+		<VBox styleClass="page-root">
+			<children>
+				<VBox styleClass="header-wrap">
+					<children>
+						<HBox alignment="CENTER_LEFT" styleClass="top-header">
+							<padding>
+								<Insets bottom="14.0" left="34.0" right="34.0" top="14.0" />
+							</padding>
+							<children>
+								<VBox spacing="2.0" styleClass="brand-wrap">
+									<children>
+										<Label styleClass="brand-main" text="LOGO" />
+										<Label styleClass="brand-main" text="NEWBINANCE" />
+									</children>
+								</VBox>
+								<Region HBox.hgrow="ALWAYS" />
+								<TextField promptText="Search items and sellers" styleClass="search-input" />
+								<Region HBox.hgrow="ALWAYS" />
+								<HBox alignment="CENTER_RIGHT" spacing="24.0" styleClass="action-wrap">
+									<children>
+										<Label styleClass="top-link" text="Notifications" />
+										<Label styleClass="top-link" text="Log in" />
+										<Button mnemonicParsing="false" styleClass="signup-btn" text="Sign Up" />
+										<Label styleClass="top-link" text="Theme" />
+									</children>
+								</HBox>
+							</children>
+						</HBox>
+						<HBox alignment="CENTER_LEFT" spacing="54.0" styleClass="menu-bar">
+							<padding>
+								<Insets bottom="10.0" left="34.0" right="34.0" top="10.0" />
+							</padding>
+							<children>
+								<Label styleClass="menu-item" text="AUCTIONS" />
+								<Label styleClass="menu-item" text="ALL ITEMS" />
+								<Label styleClass="menu-item" text="SELLERS" />
+							</children>
+						</HBox>
+					</children>
+				</VBox>
+
+				<StackPane prefHeight="210.0" styleClass="banner-wrap">
+					<children>
+						<Label styleClass="banner-text" text="Banner" />
+					</children>
+				</StackPane>
+
+				<VBox spacing="46.0" styleClass="section-wrap">
+					<padding>
+						<Insets bottom="46.0" left="96.0" right="96.0" top="46.0" />
+					</padding>
+					<children>
+						<VBox spacing="16.0" styleClass="auction-section">
+							<children>
+								<VBox spacing="6.0" styleClass="section-title-wrap">
+									<children>
+										<Label styleClass="section-title" text="Live Auctions" />
+										<Pane prefHeight="1.0" prefWidth="315.0" styleClass="title-divider" />
+									</children>
+								</VBox>
+
+								<TilePane hgap="28.0" prefColumns="3" prefTileHeight="200.0" prefTileWidth="250.0" vgap="22.0">
+									<children>
+										<VBox spacing="8.0" styleClass="auction-card">
+											<children>
+												<StackPane prefHeight="130.0" styleClass="item-image">
+													<children>
+														<Label styleClass="item-image-text" text="Item Image" />
+													</children>
+												</StackPane>
+												<HBox alignment="CENTER_LEFT" spacing="10.0">
+													<children>
+														<Label styleClass="timer-text" text="End in 00:01:30" />
+														<Pane prefHeight="2.0" prefWidth="132.0" styleClass="progress-line-bg">
+															<children>
+																<Pane prefHeight="2.0" prefWidth="102.0" styleClass="progress-line-fill" />
+															</children>
+														</Pane>
+													</children>
+												</HBox>
+												<Label styleClass="item-name" text="Item name" />
+												<HBox alignment="CENTER_LEFT">
+													<children>
+														<Label styleClass="item-price" text="\$99.09" />
+														<Region HBox.hgrow="ALWAYS" />
+														<Label styleClass="bidder-count" text="36 peoples is bidding" />
+													</children>
+												</HBox>
+											</children>
+										</VBox>
+
+										<VBox spacing="8.0" styleClass="auction-card">
+											<children>
+												<StackPane prefHeight="130.0" styleClass="item-image">
+													<children>
+														<Label styleClass="item-image-text" text="Item Image" />
+													</children>
+												</StackPane>
+												<HBox alignment="CENTER_LEFT" spacing="10.0">
+													<children>
+														<Label styleClass="timer-text" text="End in 00:01:30" />
+														<Pane prefHeight="2.0" prefWidth="132.0" styleClass="progress-line-bg">
+															<children>
+																<Pane prefHeight="2.0" prefWidth="102.0" styleClass="progress-line-fill" />
+															</children>
+														</Pane>
+													</children>
+												</HBox>
+												<Label styleClass="item-name" text="Item name" />
+												<HBox alignment="CENTER_LEFT">
+													<children>
+														<Label styleClass="item-price" text="\$99.09" />
+														<Region HBox.hgrow="ALWAYS" />
+														<Label styleClass="bidder-count" text="36 peoples is bidding" />
+													</children>
+												</HBox>
+											</children>
+										</VBox>
+
+										<VBox spacing="8.0" styleClass="auction-card">
+											<children>
+												<StackPane prefHeight="130.0" styleClass="item-image">
+													<children>
+														<Label styleClass="item-image-text" text="Item Image" />
+													</children>
+												</StackPane>
+												<HBox alignment="CENTER_LEFT" spacing="10.0">
+													<children>
+														<Label styleClass="timer-text" text="End in 00:01:30" />
+														<Pane prefHeight="2.0" prefWidth="132.0" styleClass="progress-line-bg">
+															<children>
+																<Pane prefHeight="2.0" prefWidth="102.0" styleClass="progress-line-fill" />
+															</children>
+														</Pane>
+													</children>
+												</HBox>
+												<Label styleClass="item-name" text="Item name" />
+												<HBox alignment="CENTER_LEFT">
+													<children>
+														<Label styleClass="item-price" text="\$99.09" />
+														<Region HBox.hgrow="ALWAYS" />
+														<Label styleClass="bidder-count" text="36 peoples is bidding" />
+													</children>
+												</HBox>
+											</children>
+										</VBox>
+									</children>
+								</TilePane>
+							</children>
+						</VBox>
+
+						<VBox spacing="16.0" styleClass="auction-section">
+							<children>
+								<VBox spacing="6.0" styleClass="section-title-wrap">
+									<children>
+										<Label styleClass="section-title" text="Upcoming Online Auctions" />
+										<Pane prefHeight="1.0" prefWidth="315.0" styleClass="title-divider" />
+									</children>
+								</VBox>
+
+								<TilePane hgap="28.0" prefColumns="3" prefTileHeight="200.0" prefTileWidth="250.0" vgap="22.0">
+									<children>
+										<VBox spacing="8.0" styleClass="auction-card">
+											<children>
+												<StackPane prefHeight="130.0" styleClass="item-image">
+													<children>
+														<Label styleClass="item-image-text" text="Item Image" />
+													</children>
+												</StackPane>
+												<HBox alignment="CENTER_LEFT" spacing="10.0">
+													<children>
+														<Label styleClass="timer-text" text="End in 00:01:30" />
+														<Pane prefHeight="2.0" prefWidth="132.0" styleClass="progress-line-bg">
+															<children>
+																<Pane prefHeight="2.0" prefWidth="102.0" styleClass="progress-line-fill" />
+															</children>
+														</Pane>
+													</children>
+												</HBox>
+												<Label styleClass="item-name" text="Item name" />
+												<HBox alignment="CENTER_LEFT">
+													<children>
+														<Label styleClass="item-price" text="\$99.09" />
+														<Region HBox.hgrow="ALWAYS" />
+														<Label styleClass="bidder-count" text="36 peoples is bidding" />
+													</children>
+												</HBox>
+											</children>
+										</VBox>
+
+										<VBox spacing="8.0" styleClass="auction-card">
+											<children>
+												<StackPane prefHeight="130.0" styleClass="item-image">
+													<children>
+														<Label styleClass="item-image-text" text="Item Image" />
+													</children>
+												</StackPane>
+												<HBox alignment="CENTER_LEFT" spacing="10.0">
+													<children>
+														<Label styleClass="timer-text" text="End in 00:01:30" />
+														<Pane prefHeight="2.0" prefWidth="132.0" styleClass="progress-line-bg">
+															<children>
+																<Pane prefHeight="2.0" prefWidth="102.0" styleClass="progress-line-fill" />
+															</children>
+														</Pane>
+													</children>
+												</HBox>
+												<Label styleClass="item-name" text="Item name" />
+												<HBox alignment="CENTER_LEFT">
+													<children>
+														<Label styleClass="item-price" text="\$99.09" />
+														<Region HBox.hgrow="ALWAYS" />
+														<Label styleClass="bidder-count" text="36 peoples is bidding" />
+													</children>
+												</HBox>
+											</children>
+										</VBox>
+
+										<VBox spacing="8.0" styleClass="auction-card">
+											<children>
+												<StackPane prefHeight="130.0" styleClass="item-image">
+													<children>
+														<Label styleClass="item-image-text" text="Item Image" />
+													</children>
+												</StackPane>
+												<HBox alignment="CENTER_LEFT" spacing="10.0">
+													<children>
+														<Label styleClass="timer-text" text="End in 00:01:30" />
+														<Pane prefHeight="2.0" prefWidth="132.0" styleClass="progress-line-bg">
+															<children>
+																<Pane prefHeight="2.0" prefWidth="102.0" styleClass="progress-line-fill" />
+															</children>
+														</Pane>
+													</children>
+												</HBox>
+												<Label styleClass="item-name" text="Item name" />
+												<HBox alignment="CENTER_LEFT">
+													<children>
+														<Label styleClass="item-price" text="\$99.09" />
+														<Region HBox.hgrow="ALWAYS" />
+														<Label styleClass="bidder-count" text="36 peoples is bidding" />
+													</children>
+												</HBox>
+											</children>
+										</VBox>
+									</children>
+								</TilePane>
+							</children>
+						</VBox>
+					</children>
+				</VBox>
+			</children>
+		</VBox>
+	</content>
+</ScrollPane>
