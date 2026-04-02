@@ -9,6 +9,7 @@ public class User extends Entity {
     protected String fullName;
     protected String email;
     protected Double balance;
+    protected Double lockedBalance;
     public enum Role { STANDARD, ADMIN }
     protected Role role;
     protected Boolean isActive;
@@ -21,6 +22,7 @@ public class User extends Entity {
         this.fullName = fullName;
         this.email = email;
         this.balance = balance != null ? balance : 0.0;
+        this.lockedBalance = 0.0;
         this.role = role != null ? role : Role.STANDARD;
         this.isActive = isActive != null ? isActive : true;
     }
@@ -42,6 +44,9 @@ public class User extends Entity {
 
     public Double getBalance() { return this.balance; }
     public void setBalance(Double balance) { this.balance = balance; updateTimestamp();}
+
+    public Double getLockedBalance() { return this.lockedBalance; }
+    public void setLockedBalance(Double lockedBalance) { this.lockedBalance = lockedBalance; updateTimestamp(); }
     
     public Role getRole() { return this.role; }
     public void setRole(Role role) { this.role = role; updateTimestamp(); }

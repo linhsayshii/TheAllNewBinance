@@ -10,28 +10,68 @@ public class DBConnection {
     private static final String PASSWORD = "";  // MySQL password
     private static final String URL = "jdbc:mysql://localhost:3306/" + DB_NAME + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
 
-    private static Connection connection;
+    // ThreadLocal for concurrent safe connection
+    private static final ThreadLocal<Connection> connectionHolder = new ThreadLocal<>();
 
     private DBConnection() {}
 
-
-    // Singleton Pattern
     public static Connection getConnection() {
+        Connection connection = connectionHolder.get();
         try {
             if (connection == null || connection.isClosed()) {
-                // Load Driver cho MySQL 8+
                 Class.forName("com.mysql.cj.jdbc.Driver");
                 connection = DriverManager.getConnection(URL, USER, PASSWORD);
-                System.out.println("Connected to DB!");
+                connectionHolder.set(connection);
             }
-        // For Console log purpose
         } catch (ClassNotFoundException e) {
             System.err.println("Error: Cannot find MySQL Driver!");
-            e.printStackTrace();
         } catch (SQLException e) {
             System.err.println("Error: Cannot connect to DB!");
-            e.printStackTrace();
         }
         return connection;
+    }
+
+    public static void beginTransaction() throws SQLException {
+        Connection conn = getConnection();
+        if (conn != null) {
+            conn.setAutoCommit(false);
+        }
+    }
+
+    public static void commitTransaction() throws SQLException {
+        Connection conn = connectionHolder.get();
+        if (conn != null && !conn.isClosed()) {
+            conn.commit();
+            conn.setAutoCommit(true);
+            conn.close();
+            connectionHolder.remove();
+        }
+    }
+
+    public static void rollbackTransaction() {
+        Connection conn = connectionHolder.get();
+        try {
+            if (conn != null && !conn.isClosed()) {
+                conn.rollback();
+                conn.setAutoCommit(true);
+                conn.close();
+                connectionHolder.remove();
+            }
+        } catch (SQLException e) {
+            System.err.println("Rollback error: " + e.getMessage());
+        }
+    }
+
+    public static void closeConnection() {
+        Connection conn = connectionHolder.get();
+        try {
+            if (conn != null && !conn.isClosed()) {
+                conn.close();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            connectionHolder.remove();
+        }
     }
 }
