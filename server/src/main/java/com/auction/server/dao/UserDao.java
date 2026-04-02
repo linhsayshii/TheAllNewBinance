@@ -101,6 +101,7 @@ public class UserDao implements IUserDao {
                         User.Role.valueOf(rs.getString("role")),
                         rs.getBoolean("is_active")
                     );
+                    user.setLockedBalance(rs.getDouble("locked_balance"));
                     return user;
                 }
             }
@@ -128,6 +129,7 @@ public class UserDao implements IUserDao {
                         User.Role.valueOf(rs.getString("role")),
                         rs.getBoolean("is_active")
                     );
+                    user.setLockedBalance(rs.getDouble("locked_balance"));
                     return user;
                 }
             }
@@ -135,5 +137,39 @@ public class UserDao implements IUserDao {
             System.err.println("No user found" + e.getMessage());
         }
         return null;
+    }
+
+    @Override
+    public boolean holdBalance(Integer userId, double amount) {
+        String sql = "UPDATE users SET balance = balance - ?, locked_balance = locked_balance + ?, updated_at = ? WHERE user_id = ? AND balance >= ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setDouble(1, amount);
+            stmt.setDouble(2, amount);
+            stmt.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
+            stmt.setInt(4, userId);
+            stmt.setDouble(5, amount);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error: Cannot hold balance! " + e.getMessage());
+        }
+        return false;
+    }
+
+    @Override
+    public boolean refundBalance(Integer userId, double amount) {
+        String sql = "UPDATE users SET balance = balance + ?, locked_balance = locked_balance - ?, updated_at = ? WHERE user_id = ? AND locked_balance >= ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setDouble(1, amount);
+            stmt.setDouble(2, amount);
+            stmt.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
+            stmt.setInt(4, userId);
+            stmt.setDouble(5, amount);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error: Cannot refund balance! " + e.getMessage());
+        }
+        return false;
     }
 }
