@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+
+<HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="com.auction.client.component.shell.HeaderComponentController"
+      spacing="8.0" styleClass="header-root">
+    <children>
+        <Label text="TheAllNewBinance" styleClass="header-brand" />
+        <Region HBox.hgrow="ALWAYS" />
+        <Label text="Live Auctions" styleClass="header-context" />
+    </children>
+    <padding>
+        <Insets top="14" right="20" bottom="14" left="20" />
+    </padding>
+</HBox>

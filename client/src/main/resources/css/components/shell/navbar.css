@@ -1,0 +1,11 @@
+.navbar-root {
+    -fx-background-color: -panel-bg;
+    -fx-pref-width: 220px;
+}
+
+.navbar-item {
+    -fx-max-width: infinity;
+    -fx-background-color: transparent;
+    -fx-border-color: -border-color;
+    -fx-text-fill: -text-primary;
+}

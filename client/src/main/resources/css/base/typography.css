@@ -1,0 +1,9 @@
+.root {
+    -fx-font-family: "Segoe UI", sans-serif;
+}
+
+.page-title {
+    -fx-font-size: 24px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -text-primary;
+}

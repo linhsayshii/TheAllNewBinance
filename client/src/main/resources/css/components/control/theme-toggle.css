@@ -1,0 +1,4 @@
+.theme-toggle-root .toggle-button {
+    -fx-background-color: -surface-bg;
+    -fx-border-color: -border-color;
+}
