@@ -19,14 +19,11 @@
         </dependency>
 
         <dependency>
-<<<<<<< HEAD
-=======
             <groupId>org.mindrot</groupId>
             <artifactId>jbcrypt</artifactId>
         </dependency>
         
         <dependency>
->>>>>>> 9404f27f2fbd47cb4e85d4b9cf78e3ceb91517ed
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-api</artifactId>
             <scope>test</scope>

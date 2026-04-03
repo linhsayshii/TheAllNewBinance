@@ -1,6 +1,8 @@
 package com.auction.server.services;
 
 import com.auction.core.dao.IUserDao;
+import com.auction.core.dto.userservicedto.LoginRequest;
+import com.auction.core.dto.userservicedto.RegisterRequest;
 import com.auction.core.services.IUserService;
 import com.auction.core.users.StandardUser;
 import com.auction.core.users.User;
@@ -13,16 +15,16 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public User registerUser(String username, String password, String fullName, String email) {
-        User user = new StandardUser(null, username, PasswordHasher.hash(password), fullName, email, 0.0);
+    public User registerUser(RegisterRequest request) {
+        User user = new StandardUser(null, request.getUsername(), PasswordHasher.hash(request.getPassword()), request.getFullname(), request.getEmail(), 0.0);
         userDao.registerUser(user);
         return user;
     }
 
     @Override
-    public User login(String username, String password) {
-        User user = userDao.findByUsername(username);
-        if (user != null && user.getPassword().equals(PasswordHasher.hash(password))) {
+    public User login(LoginRequest request) {
+        User user = userDao.findByUsername(request.getUsername());
+        if (user != null && user.getPassword().equals(PasswordHasher.hash(request.getPassword()))) {
             return user;
         }
         return null;

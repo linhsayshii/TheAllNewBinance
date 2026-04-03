@@ -1,26 +1,32 @@
 package com.auction.core.auction;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 
 import com.auction.core.Entity;
 
 public class Auction extends Entity {
-    private Integer id;               // ID phiên đấu giá
-    private Integer itemId;           // ID của sản phẩm (Item)
-    private Double startingPrice;     // Giá khởi điểm
-    private Double currentPrice;      // Giá hiện tại
-    private Double bidIncrement;      // Bước giá
+    private static final int THRESHOLD_SECONDS = 120;
+    private static final int EXTENSION_SECONDS = 120;
+    private int id;                   // ID phiên đấu giá
+    private int itemId;               // ID của sản phẩm (Item)
+    private double startingPrice;     // Giá khởi điểm
+    private double currentPrice;      // Giá hiện tại
+    private double bidIncrement;      // Bước giá
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private LocalDateTime originalEndTime;
     public enum Status { PENDING, ACTIVE, ENDED, CANCELLED }
     private Status status;
-    private Integer winnerId;
-    private Double finalPrice;
-    //private Integer snipeThreshold;
-    //private Integer snipeExtension;
+    private int winnerId;
+    private double finalPrice;
 
-    public Auction(Integer id, Integer itemId, Double startingPrice, Double bidIncrement, LocalDateTime startTime, LocalDateTime endTime) {
+    
+    public Auction() {
+        super();
+    }
+
+    public Auction(Integer id, Integer itemId, Double startingPrice, Double bidIncrement, LocalDateTime startTime, LocalDateTime originalEndTime) {
         super();
         this.id = id;
         this.itemId = itemId;
@@ -28,20 +34,36 @@ public class Auction extends Entity {
         this.currentPrice = startingPrice;
         this.bidIncrement = bidIncrement != null ? bidIncrement : 1.0;
         this.startTime = startTime;
-        this.endTime = endTime;
-        this.originalEndTime = endTime;
+        this.originalEndTime = originalEndTime;
+        this.endTime = originalEndTime;
         this.status = Status.PENDING;
-        //this.snipeThreshold = 3;
-        //this.snipeExtension = 2;
-        
     }
 
-    // Kiểm tra tính hợp lệ của Bid ngay tại Entity (Bussiness Logic thuần)
-    public boolean isValidBid(Double newBidAmount) {
-        return newBidAmount >= (this.currentPrice + this.bidIncrement) 
-            && this.status == Status.ACTIVE
-            && LocalDateTime.now().isBefore(this.endTime);
+    public boolean applySnipeExtension(LocalDateTime bidTime) {
+        if (bidTime == null || endTime == null) {
+            return false;
+        }
+        if (!bidTime.isBefore(endTime)) {
+            return false;
+        }
+        long secondsRemaining = Duration.between(bidTime, endTime).getSeconds();
+        if (secondsRemaining <= THRESHOLD_SECONDS) {
+            LocalDateTime newEndTime = bidTime.plusSeconds(EXTENSION_SECONDS);
+            if (newEndTime.isAfter(endTime)) {
+                endTime = newEndTime;
+                updateTimestamp();
+                return true;
+            }
+        }
+        return false;
     }
+
+    public Integer[] getSnipeSettings() {
+        return new Integer[] { THRESHOLD_SECONDS, EXTENSION_SECONDS };
+    }
+
+    public Integer getSnipeThreshold() { return THRESHOLD_SECONDS; }
+    public Integer getSnipeExtension() { return EXTENSION_SECONDS; }
     
     public Integer getId() { return id; }
     public void setId(Integer id) { this.id = id; }
@@ -58,8 +80,14 @@ public class Auction extends Entity {
     public Double getBidIncrement() { return bidIncrement; }
     public void setBidIncrement(Double bidIncrement) { this.bidIncrement = bidIncrement; this.updateTimestamp(); }
 
+    public LocalDateTime getStartTime() { return startTime; }
+    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; this.updateTimestamp(); }
+    
     public LocalDateTime getEndTime() { return endTime; }
     public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; this.updateTimestamp(); }
+
+    public LocalDateTime getOriginalEndTime() { return originalEndTime; }
+    public void setOriginalEndTime(LocalDateTime originalEndTime) { this.originalEndTime = originalEndTime; this.updateTimestamp(); }
     
     public Status getStatus() { return status; }
     public void setStatus(Status status) { this.status = status; this.updateTimestamp(); }
