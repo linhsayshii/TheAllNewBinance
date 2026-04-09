@@ -6,6 +6,9 @@ import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
 import com.auction.core.dao.IBidDao;
 import com.auction.core.dao.IUserDao;
+import com.auction.core.dto.BidService.GetBidByAuctionID;
+import com.auction.core.dto.BidService.GetBidByBidderID;
+import com.auction.core.dto.BidService.PlaceBid;
 import com.auction.core.services.IAuctionService;
 import com.auction.core.services.IBidService;
 import com.auction.core.users.User;
@@ -24,8 +27,11 @@ public class BidService implements IBidService {
 
 
     @Override
-    public Bid placeBid(Integer auctionId, Integer bidderId, Double amount) {
-        if (auctionService == null || userDao == null) {
+    public Bid placeBid(PlaceBid request) {
+        if (request == null) {
+            throw new IllegalArgumentException("Request is required");
+        }
+        if (auctionService == null || userDao == null || bidDao == null) {
             throw new IllegalStateException("Services are not initialized");
         }
         
@@ -33,27 +39,29 @@ public class BidService implements IBidService {
             DBConnection.beginTransaction();
 
             // Bước 1: Validate User & Check initial Application-level checks
-            User user = userDao.findById(bidderId);
+            User user = userDao.findById(request.getBidderId());
             if (user == null) {
                 throw new IllegalArgumentException("User not found");
             }
-            Auction auction = auctionService.getAuctionDetails(auctionId);
-            if (auction == null || !amount.equals(amount)) { // just minimal sanity check
+            Auction auction = auctionService.getAuctionDetails(request.getAuctionId());
+            if (auction == null) {
                 throw new IllegalArgumentException("Auction not found");
             }
-
-            double holdAmount = auction.getStartingPrice() * 0.3;
-            boolean balanceHeld = userDao.holdBalance(bidderId, holdAmount);
-            if (!balanceHeld) {
-                throw new IllegalArgumentException("User balance is insufficient for this auction");
+            if (auction.getStatus() != Auction.Status.ACTIVE) {
+                throw new IllegalArgumentException("Auction is not active");
             }
-            if (!auctionService.validateBid(auctionId, amount)) {
+
+            double amount = request.getAmount();
+            if (!Double.isFinite(amount) || amount <= 0) {
+                throw new IllegalArgumentException("Invalid bid amount");
+            }
+
+            if (!auctionService.validateBid(request.getAuctionId(), amount)) {
                 throw new IllegalArgumentException("Invalid bid amount or auction has already ended");
             }
 
             // Bước 2: Cập nhật thông tin Auction với Atomic check
-            Bid bid = new Bid(null, auctionId, bidderId, amount);
-            
+            Bid bid = new Bid(null, request.getAuctionId(), request.getBidderId(), amount);
             auctionService.processBid(bid);
 
             // Bước 3: Save bid vào Database sau khi MỌI thứ ok
@@ -88,12 +96,12 @@ public class BidService implements IBidService {
         //implemention waiting
     }
     @Override
-    public List<Bid> getBidsByAuctionId(Integer auctionId) {
-        return bidDao.findByAuctionId(auctionId);
+    public List<Bid> getBidsByAuctionId(GetBidByAuctionID request) {
+        return bidDao.findByAuctionId(request.getAuctionId());
     }
     @Override
-    public List<Bid> getBidsByBidderId(Integer bidderId) {
-        return bidDao.findByBidderId(bidderId);
+    public List<Bid> getBidsByBidderId(GetBidByBidderID request) {
+        return bidDao.findByBidderId(request.getBidderId());
     }
 
 }

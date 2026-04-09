@@ -1,4 +1,4 @@
-package com.auction.core.dto.userservicedto;
+package com.auction.core.dto.UserService;
 
 public class RegisterRequest {
     private String username;

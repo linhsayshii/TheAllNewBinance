@@ -10,7 +10,7 @@ public class ItemService implements IItemService {
         this.itemDao = item;
     }
     @Override
-    public Item addProduct(Integer sellerId, String name, String description, String category, String imageUrl) {
+    public Item addProduct(int sellerId, String name, String description, String category, String imageUrl) {
         Item item = new Item(null, sellerId, name, description, category, imageUrl, false);
         itemDao.addItem(item);
         return item;
