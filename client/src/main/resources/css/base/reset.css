@@ -1,0 +1,10 @@
+.root {
+    -fx-background-color: -app-bg;
+}
+
+.label,
+.button,
+.text-field,
+.toggle-button {
+    -fx-focus-traversable: false;
+}

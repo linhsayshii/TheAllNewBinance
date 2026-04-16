@@ -1,0 +1,14 @@
+.header-root {
+    -fx-background-color: -surface-bg;
+    -fx-border-color: transparent transparent -border-color transparent;
+}
+
+.header-brand {
+    -fx-font-size: 20px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -brand;
+}
+
+.header-context {
+    -fx-text-fill: -text-secondary;
+}

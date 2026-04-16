@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="com.auction.client.component.shell.NavbarComponentController"
+      spacing="10.0" styleClass="navbar-root">
+    <children>
+        <Button text="General" styleClass="navbar-item" />
+        <Button text="Login" styleClass="navbar-item" />
+        <Button text="Register" styleClass="navbar-item" />
+        <Button text="Product Detail" styleClass="navbar-item" />
+        <Button text="Profile" styleClass="navbar-item" />
+    </children>
+    <padding>
+        <Insets top="16" right="12" bottom="16" left="12" />
+    </padding>
+</VBox>

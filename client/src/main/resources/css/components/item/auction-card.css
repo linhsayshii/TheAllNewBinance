@@ -1,0 +1,17 @@
+.auction-card-root {
+    -fx-background-color: -surface-bg;
+    -fx-border-color: -border-color;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.auction-card-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -text-primary;
+}
+
+.auction-card-meta,
+.auction-card-inline {
+    -fx-text-fill: -text-secondary;
+}

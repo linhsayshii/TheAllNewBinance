@@ -1,3 +1,25 @@
+<<<<<<< HEAD
+# BÀI TẬP LỚN - PHÁT TRIỂN HỆ THỐNG ĐẤU GIÁ TRỰC TUYẾN
+Bài tập lớn nhóm 12 - LHP 2526II_UET.CS2043_2
+
+## Chạy client với hot reload (dev)
+
+Từ thư mục gốc dự án:
+
+```bash
+mvn -Pdev -pl client javafx:run
+```
+
+Hot reload theo dõi:
+- `client/src/main/resources/css/app.css` và các file `@import` bên trong
+- `client/src/main/resources/fxml/**/*.fxml` (reload khi file của scene hiện tại thay đổi)
+
+Lưu ý:
+- Chỉ bật trong profile `dev`.
+- Chế độ mặc định (không `-Pdev`) không bật hot reload.
+
+## Cấu trúc thư mục dự án:
+=======
 # TheAllNewBinance
 
 > Bài tập lớn nhóm 12 - LHP 2526II_UET.CS2043_2  
@@ -24,6 +46,7 @@ TheAllNewBinance được tách thành 3 module:
 | CI | GitHub Actions |
 
 ## Cấu trúc dự án đến hiện tại
+>>>>>>> 9404f27f2fbd47cb4e85d4b9cf78e3ceb91517ed
 ```
 TheAllNewBinance/
 ├── .github/workflows/         # Cấu hình CI/CD (GitHub Actions)
