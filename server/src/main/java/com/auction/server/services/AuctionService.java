@@ -23,21 +23,13 @@ public class AuctionService implements IAuctionService {
     }
 
     @Override
-    public void processBid(Bid bid) {
-        if (bid == null) {
-            throw new IllegalArgumentException("Bid must not be null");
+    public void processBid(Bid bid, Auction auction) {
+        if (bid == null || auction == null) {
+            throw new IllegalArgumentException("Bid and Auction must not be null");
         }
         
-        Auction auction = auctionDao.getAuctionDetails(bid.getAuctionId());
-        if (auction == null) {
-            throw new IllegalArgumentException("Auction not found");
-        }
-        
-        // Compute Snipe Extension on the fly based on current snapshot
-        LocalDateTime bidTime = bid.getCreatedAt() != null ? bid.getCreatedAt() : LocalDateTime.now();
-        auction.applySnipeExtension(bidTime); // this updates auction.getEndTime() locally
-
-        boolean updated = auctionDao.updateAuctionForBid(bid, auction.getBidIncrement(), auction.getEndTime());
+        // Snipe extension logic is now safely handled within the DB lock in AuctionDao
+        boolean updated = auctionDao.updateAuctionForBid(bid, auction);
         if (!updated) {
             throw new IllegalStateException("Failed to update auction bid state, possibly concurrency issue.");
         }
@@ -82,5 +74,10 @@ public class AuctionService implements IAuctionService {
     @Override
     public Auction getAuctionDetails(Integer auctionId) {
         return auctionDao.getAuctionDetails(auctionId);
+    }
+
+    @Override
+    public Integer getSellerId(Integer auctionId) {
+        return auctionDao.getSellerId(auctionId);
     }
 }
