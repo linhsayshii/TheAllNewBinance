@@ -12,5 +12,6 @@ public interface IAuctionDao {
     Auction getAuctionDetails(Integer auctionId);
     double getCurrentPrice(Integer auctionId);
     void updateCurrentPrice(Bid bid);
-    boolean updateAuctionForBid(Bid bid, double bidIncrement, LocalDateTime finalEndTime);
+    boolean updateAuctionForBid(Bid bid, Auction auction);
+    Integer getSellerId(Integer auctionId);
 }

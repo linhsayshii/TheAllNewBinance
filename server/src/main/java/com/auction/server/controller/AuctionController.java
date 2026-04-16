@@ -12,4 +12,6 @@ public class AuctionController {
 		response.put("message", "Feature GET_AUCTION is not implemented yet");
 		return JsonMapper.toJson(response);
 	}
+
+	// Implemention waiting....
 }

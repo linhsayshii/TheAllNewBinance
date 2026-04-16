@@ -85,4 +85,20 @@ public class BidDao implements IBidDao {
         }
         return bids;
     }
+
+    @Override
+    public boolean hasBid(Integer auctionId, Integer bidderId) {
+        String sql = "SELECT 1 FROM bids WHERE auction_id = ? AND bidder_id = ? LIMIT 1";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, auctionId);
+            stmt.setInt(2, bidderId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            System.err.println("Error: Cannot check hasBid!" + e.getMessage());
+        }
+        return false;
+    }
 }

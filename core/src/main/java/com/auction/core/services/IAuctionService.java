@@ -7,10 +7,11 @@ import com.auction.core.auction.Bid;
 import com.auction.core.products.Item;
 
 public interface IAuctionService {
-    void processBid(Bid bid);
+    void processBid(Bid bid, Auction auction);
     Auction createAuction(Item item, Double startingPrice, Double bidIncrement, LocalDateTime startTime, LocalDateTime endTime);
     Auction deleteAuction(Integer auctionId);
     boolean validateBid(Integer auctionId, Double amount);
     boolean applySnipeExtension(Auction auction);
     Auction getAuctionDetails(Integer auctionId);
+    Integer getSellerId(Integer auctionId);
 }

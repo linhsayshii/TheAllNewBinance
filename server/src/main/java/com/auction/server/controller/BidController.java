@@ -22,36 +22,54 @@ public class BidController {
 		if (request == null) {
 			return JsonMapper.toJson(errorResponse("Request payload is required"));
 		}
-		PlaceBid placeBidRequest = JsonMapper.fromJson(request, PlaceBid.class);
-		Bid bid = bidService.placeBid(placeBidRequest);
-		if (bid == null) {
-			return JsonMapper.toJson(errorResponse("Failed to place bid"));
+		try {
+			PlaceBid placeBidRequest = JsonMapper.fromJson(request, PlaceBid.class);
+			Bid bid = bidService.placeBid(placeBidRequest);
+			if (bid == null) {
+				return JsonMapper.toJson(errorResponse("Failed to place bid"));
+			}
+			return JsonMapper.toJson(successResponse(bid));
+		} catch (IllegalArgumentException | IllegalStateException ex) {
+			return JsonMapper.toJson(errorResponse(ex.getMessage()));
+		} catch (Exception ex) {
+			return JsonMapper.toJson(errorResponse("Internal server error while placing bid"));
 		}
-		return JsonMapper.toJson(successResponse(bid));
 	}
 
 	public String getBidsByAuctionId(String request) {
 		if (request == null) {
 			return JsonMapper.toJson(errorResponse("Request payload is required"));
 		}
-		GetBidByAuctionID getBidByAuctionIDRequest = JsonMapper.fromJson(request, GetBidByAuctionID.class);
-		List<Bid> bids = bidService.getBidsByAuctionId(getBidByAuctionIDRequest);
-		if (bids == null) {
-			return JsonMapper.toJson(errorResponse("Failed to get bids by auction id"));
+		try {
+			GetBidByAuctionID getBidByAuctionIDRequest = JsonMapper.fromJson(request, GetBidByAuctionID.class);
+			List<Bid> bids = bidService.getBidsByAuctionId(getBidByAuctionIDRequest);
+			if (bids == null) {
+				return JsonMapper.toJson(errorResponse("Failed to get bids by auction id"));
+			}
+			return JsonMapper.toJson(successResponse(bids));
+		} catch (IllegalArgumentException ex) {
+			return JsonMapper.toJson(errorResponse(ex.getMessage()));
+		} catch (Exception ex) {
+			return JsonMapper.toJson(errorResponse("Internal server error"));
 		}
-		return JsonMapper.toJson(successResponse(bids));
 	}
 
 	public String getBidsByBidderId(String request) {
 		if (request == null) {
 			return JsonMapper.toJson(errorResponse("Request payload is required"));
 		}
-		GetBidByBidderID getBidByBidderIDRequest = JsonMapper.fromJson(request, GetBidByBidderID.class);
-		List<Bid> bids = bidService.getBidsByBidderId(getBidByBidderIDRequest);
-		if (bids == null) {
-			return JsonMapper.toJson(errorResponse("Failed to get bids by bidder id"));
+		try {
+			GetBidByBidderID getBidByBidderIDRequest = JsonMapper.fromJson(request, GetBidByBidderID.class);
+			List<Bid> bids = bidService.getBidsByBidderId(getBidByBidderIDRequest);
+			if (bids == null) {
+				return JsonMapper.toJson(errorResponse("Failed to get bids by bidder id"));
+			}
+			return JsonMapper.toJson(successResponse(bids));
+		} catch (IllegalArgumentException ex) {
+			return JsonMapper.toJson(errorResponse(ex.getMessage()));
+		} catch (Exception ex) {
+			return JsonMapper.toJson(errorResponse("Internal server error"));
 		}
-		return JsonMapper.toJson(successResponse(bids));
 	}
 
 	private Map<String, Object> successResponse(Bid bid) {

@@ -16,12 +16,18 @@ public class RequestDispatcher {
         this.bidCtrl = bidCtrl;
     }
 
-    public String dispatch(String rawJson) {
+    public String dispatch(Integer sessionUserId, String rawJson) {
         if (rawJson == null || rawJson.isBlank()) {
             return error("Request body is empty");
         }
 
-        Object parsed = JsonMapper.fromJson(rawJson, Object.class);
+        Object parsed;
+        try {
+            parsed = JsonMapper.fromJson(rawJson, Object.class);
+        } catch (Exception e) {
+            return error("Malformed JSON Syntax: " + e.getMessage());
+        }
+
         if (!(parsed instanceof Map<?, ?> node)) {
             return error("Invalid JSON format");
         }
@@ -32,6 +38,26 @@ public class RequestDispatcher {
         }
 
         String type = String.valueOf(typeNode);
+        
+        // Cấp quyền bảo mật: Chặn đứng truy cập nặc danh và tự động đè ID
+        if (sessionUserId == null) {
+            if (!type.equals("LOGIN") && !type.equals("REGISTER") && !type.equals("GET_AUCTION") && !type.equals("GET_BIDS_BY_AUCTION_ID")) {
+                return error("Unauthorized: Please login first!");
+            }
+        } else {
+            Object payloadObj = node.get("payload");
+            if (payloadObj instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> p = (Map<String, Object>) payloadObj;
+                // Sang chấn áp đè ID thật từ phiên Socket
+                if (type.equals("PLACE_BID") || type.equals("GET_BIDS_BY_BIDDER_ID")) {
+                    p.put("bidderId", sessionUserId);
+                } else if (type.equals("UPDATE_PROFILE") || type.equals("CHANGE_PASSWORD")) {
+                    p.put("userId", sessionUserId);
+                }
+            }
+        }
+
         String payload = extractPayload(node.get("payload"));
 
         return switch (type) {

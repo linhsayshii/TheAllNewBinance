@@ -51,18 +51,35 @@ public class BidService implements IBidService {
                 throw new IllegalArgumentException("Auction is not active");
             }
 
+            // Kiểm tra Shill Bidding (người bán không được tự mua)
+            Integer sellerId = auctionService.getSellerId(request.getAuctionId());
+            if (sellerId != null && sellerId.equals(request.getBidderId())) {
+                throw new IllegalArgumentException("Seller cannot bid on their own auction");
+            }
+
             double amount = request.getAmount();
             if (!Double.isFinite(amount) || amount <= 0) {
                 throw new IllegalArgumentException("Invalid bid amount");
             }
 
-            if (!auctionService.validateBid(request.getAuctionId(), amount)) {
-                throw new IllegalArgumentException("Invalid bid amount or auction has already ended");
+            // Fail-fast logic
+            if (java.time.LocalDateTime.now().isAfter(auction.getEndTime())) {
+                throw new IllegalArgumentException("Auction has already ended");
+            }
+
+            // Xử lý cọc (Hold Balance) chỉ khi user chưa đặt bid nào trong phiên này
+            boolean hasBidBefore = bidDao.hasBid(request.getAuctionId(), request.getBidderId());
+            if (!hasBidBefore) {
+                double depositAmount = auction.getStartingPrice() * 0.3;
+                boolean held = userDao.holdBalance(user.getId(), depositAmount);
+                if (!held) {
+                    throw new IllegalArgumentException("Insufficient balance for deposit");
+                }
             }
 
             // Bước 2: Cập nhật thông tin Auction với Atomic check
             Bid bid = new Bid(null, request.getAuctionId(), request.getBidderId(), amount);
-            auctionService.processBid(bid);
+            auctionService.processBid(bid, auction);
 
             // Bước 3: Save bid vào Database sau khi MỌI thứ ok
             boolean saved = bidDao.saveBid(bid);

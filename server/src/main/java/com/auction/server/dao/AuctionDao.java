@@ -203,22 +203,36 @@ public class AuctionDao implements IAuctionDao {
         }
     }
     @Override
-    public boolean updateAuctionForBid(Bid bid, double bidIncrement, LocalDateTime finalEndTime) {
+    public boolean updateAuctionForBid(Bid bid, Auction auction) {
         // Only lock, updates, NO commit and NO setAutoCommit here. The Service layer handles it.
-        String selectForUpdate = "SELECT current_price FROM auctions WHERE auction_id = ? FOR UPDATE";
+        String selectForUpdate = "SELECT current_price, end_time FROM auctions WHERE auction_id = ? FOR UPDATE";
         String updateSql = "UPDATE auctions SET current_price = ?, end_time = ?, updated_at = ? WHERE auction_id = ?";
         
         Connection conn = DBConnection.getConnection();
         try {
-            // 1. Khóa row auction
+            // 1. Khóa row auction và lấy thông tin mới nhất
             try (PreparedStatement selectStmt = conn.prepareStatement(selectForUpdate)) {
                 selectStmt.setInt(1, bid.getAuctionId());
                 try (ResultSet rs = selectStmt.executeQuery()) {
                     if (rs.next()) {
                         double dbCurrentPrice = rs.getDouble("current_price");
-                        if (dbCurrentPrice + bidIncrement > bid.getAmount()) {
+                        LocalDateTime dbEndTime = rs.getTimestamp("end_time").toLocalDateTime();
+                        
+                        // Check price
+                        if (dbCurrentPrice + auction.getBidIncrement() > bid.getAmount()) {
                             throw new IllegalStateException("Phiên đấu giá đã có người đặt giá cao hơn hoặc không đủ bước giá!");
                         }
+                        
+                        // Check time
+                        LocalDateTime bidTime = bid.getCreatedAt() != null ? bid.getCreatedAt() : LocalDateTime.now();
+                        if (!bidTime.isBefore(dbEndTime)) {
+                            throw new IllegalStateException("Phiên đấu giá đã kết thúc!");
+                        }
+                        
+                        // Apply Snipe Extension safely using DB value
+                        auction.setEndTime(dbEndTime);
+                        auction.applySnipeExtension(bidTime);
+                        
                     } else {
                         throw new IllegalStateException("Không tìm thấy phiên đấu giá!");
                     }
@@ -228,7 +242,7 @@ public class AuctionDao implements IAuctionDao {
             // 2. An toàn cập nhật giá mới và thời gian mới
             try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
                 updateStmt.setDouble(1, bid.getAmount());
-                updateStmt.setTimestamp(2, Timestamp.valueOf(finalEndTime));
+                updateStmt.setTimestamp(2, Timestamp.valueOf(auction.getEndTime()));
                 updateStmt.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
                 updateStmt.setInt(4, bid.getAuctionId());
                 int rows = updateStmt.executeUpdate();
@@ -238,5 +252,22 @@ public class AuctionDao implements IAuctionDao {
             System.err.println("Error: Locked update failed! " + e.getMessage());
             throw new RuntimeException("Database error during bid update", e);
         }
+    }
+
+    @Override
+    public Integer getSellerId(Integer auctionId) {
+        String sql = "SELECT i.seller_id FROM auctions a JOIN items i ON a.item_id = i.id WHERE a.auction_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, auctionId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("seller_id");
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error: Cannot get seller ID! " + e.getMessage());
+        }
+        return null;
     }
 }
