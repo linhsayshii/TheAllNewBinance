@@ -7,6 +7,8 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
@@ -15,10 +17,11 @@ import com.auction.core.dao.IAuctionDao;
 public class AuctionDao implements IAuctionDao {
     @Override
     public boolean createAuction(Auction auction) {
-        String sql = "INSERT INTO auctions (item_id, starting_price, bid_increment, start_time, original_end_time, extended_end_time, status, is_deleted, created_at, snipe_threshold, snipe_extension) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT INTO auctions (item_id, starting_price, bid_increment, start_time, original_end_time, extended_end_time, status, is_deleted, created_at, snipe_threshold, snipe_extension) "
+                +
+                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, auction.getItemId());
             stmt.setDouble(2, auction.getStartingPrice());
             stmt.setDouble(3, auction.getBidIncrement());
@@ -44,11 +47,12 @@ public class AuctionDao implements IAuctionDao {
         }
         return false;
     }
+
     @Override
     public boolean updateAuctionInformation(Auction auction) {
         String sql = "UPDATE auctions SET item_id = ?, starting_price = ?, current_price = ?, bid_increment = ?, start_time = ?, original_end_time = ?, end_time = ?, status = ?, winner_id = ?, updated_at = ?, snipe_threshold = ?, snipe_extension = ? WHERE auction_id = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, auction.getItemId());
             stmt.setDouble(2, auction.getStartingPrice());
             stmt.setDouble(3, auction.getCurrentPrice());
@@ -73,11 +77,12 @@ public class AuctionDao implements IAuctionDao {
         }
         return false;
     }
+
     @Override
     public boolean deleteAuction(Auction auction) {
         String sql = "UPDATE auctions SET is_deleted = ?, updated_at = ? WHERE auction_id = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setBoolean(1, true);
             stmt.setTimestamp(2, Timestamp.valueOf(auction.getUpdatedAt()));
             stmt.setInt(3, auction.getId());
@@ -88,11 +93,12 @@ public class AuctionDao implements IAuctionDao {
         }
         return false;
     }
+
     @Override
     public boolean extendAuction(Auction auction) {
         String sql = "UPDATE auctions SET end_time = ? WHERE auction_id = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setTimestamp(1, Timestamp.valueOf(auction.getEndTime()));
             stmt.setInt(2, auction.getId());
             int rowsUpdated = stmt.executeUpdate();
@@ -107,7 +113,7 @@ public class AuctionDao implements IAuctionDao {
     public Auction getAuctionDetails(Integer auctionId) {
         String sql = "SELECT * FROM auctions WHERE auction_id = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, auctionId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -120,7 +126,8 @@ public class AuctionDao implements IAuctionDao {
                     auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
                     auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
                     auction.setOriginalEndTime(rs.getTimestamp("original_end_time").toLocalDateTime());
-                    auction.setStatus(rs.getString("status").equals("ACTIVE") ? Auction.Status.ACTIVE : Auction.Status.PENDING);
+                    auction.setStatus(
+                            rs.getString("status").equals("ACTIVE") ? Auction.Status.ACTIVE : Auction.Status.PENDING);
                     auction.setWinnerId(rs.getInt("winner_id"));
                     auction.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                     return auction;
@@ -138,7 +145,7 @@ public class AuctionDao implements IAuctionDao {
     public double getCurrentPrice(Integer auctionId) {
         String sql = "SELECT current_price FROM auctions WHERE auction_id = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, auctionId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -156,12 +163,12 @@ public class AuctionDao implements IAuctionDao {
         // Tái sử dụng connection nhưng với Transaction
         String selectForUpdate = "SELECT current_price FROM auctions WHERE auction_id = ? FOR UPDATE";
         String updateSql = "UPDATE auctions SET current_price = ?, updated_at = ? WHERE auction_id = ?";
-        
+
         Connection conn = DBConnection.getConnection();
         try {
             // Tắt auto commit để bắt đầu Transaction
             conn.setAutoCommit(false);
-            
+
             // 1. Khóa row auction này lại bằng FOR UPDATE
             try (PreparedStatement selectStmt = conn.prepareStatement(selectForUpdate)) {
                 selectStmt.setInt(1, bid.getAuctionId());
@@ -176,7 +183,7 @@ public class AuctionDao implements IAuctionDao {
                     }
                 }
             }
-            
+
             // 2. An toàn cập nhật giá mới
             try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
                 updateStmt.setDouble(1, bid.getAmount());
@@ -184,30 +191,34 @@ public class AuctionDao implements IAuctionDao {
                 updateStmt.setInt(3, bid.getAuctionId());
                 updateStmt.executeUpdate();
             }
-            
+
             // Commit transaction, chính thức lưu và giải phóng khóa FOR UPDATE
             conn.commit();
         } catch (SQLException e) {
             System.err.println("Error: Locked update failed! " + e.getMessage());
             try {
-                if (conn != null) conn.rollback();
+                if (conn != null)
+                    conn.rollback();
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
         } finally {
             try {
-                if (conn != null) conn.setAutoCommit(true);
+                if (conn != null)
+                    conn.setAutoCommit(true);
             } catch (SQLException ex) {
                 ex.printStackTrace();
             }
         }
     }
+
     @Override
     public boolean updateAuctionForBid(Bid bid, Auction auction) {
-        // Only lock, updates, NO commit and NO setAutoCommit here. The Service layer handles it.
+        // Only lock, updates, NO commit and NO setAutoCommit here. The Service layer
+        // handles it.
         String selectForUpdate = "SELECT current_price, end_time FROM auctions WHERE auction_id = ? FOR UPDATE";
         String updateSql = "UPDATE auctions SET current_price = ?, end_time = ?, updated_at = ? WHERE auction_id = ?";
-        
+
         Connection conn = DBConnection.getConnection();
         try {
             // 1. Khóa row auction và lấy thông tin mới nhất
@@ -217,28 +228,29 @@ public class AuctionDao implements IAuctionDao {
                     if (rs.next()) {
                         double dbCurrentPrice = rs.getDouble("current_price");
                         LocalDateTime dbEndTime = rs.getTimestamp("end_time").toLocalDateTime();
-                        
+
                         // Check price
                         if (dbCurrentPrice + auction.getBidIncrement() > bid.getAmount()) {
-                            throw new IllegalStateException("Phiên đấu giá đã có người đặt giá cao hơn hoặc không đủ bước giá!");
+                            throw new IllegalStateException(
+                                    "Phiên đấu giá đã có người đặt giá cao hơn hoặc không đủ bước giá!");
                         }
-                        
+
                         // Check time
                         LocalDateTime bidTime = bid.getCreatedAt() != null ? bid.getCreatedAt() : LocalDateTime.now();
                         if (!bidTime.isBefore(dbEndTime)) {
                             throw new IllegalStateException("Phiên đấu giá đã kết thúc!");
                         }
-                        
+
                         // Apply Snipe Extension safely using DB value
                         auction.setEndTime(dbEndTime);
                         auction.applySnipeExtension(bidTime);
-                        
+
                     } else {
                         throw new IllegalStateException("Không tìm thấy phiên đấu giá!");
                     }
                 }
             }
-            
+
             // 2. An toàn cập nhật giá mới và thời gian mới
             try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
                 updateStmt.setDouble(1, bid.getAmount());
@@ -258,7 +270,7 @@ public class AuctionDao implements IAuctionDao {
     public Integer getSellerId(Integer auctionId) {
         String sql = "SELECT i.seller_id FROM auctions a JOIN items i ON a.item_id = i.id WHERE a.auction_id = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, auctionId);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
@@ -269,5 +281,30 @@ public class AuctionDao implements IAuctionDao {
             System.err.println("Error: Cannot get seller ID! " + e.getMessage());
         }
         return null;
+    }
+
+    @Override
+    public List<Auction> getAuctionsBySellerId(Integer sellerId) {
+        String sql = "SELECT * FROM auctions WHERE seller_id = ?";
+        List<Auction> auctions = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, sellerId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Auction auction = new Auction();
+                    auction.setId(rs.getInt("auction_id"));
+                    auction.setItemId(rs.getInt("item_id"));
+                    auction.setStartingPrice(rs.getDouble("starting_price"));
+                    auction.setBidIncrement(rs.getDouble("bid_increment"));
+                    auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+                    auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+                    auctions.add(auction);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error: Cannot get auctions by seller ID! " + e.getMessage());
+        }
+        return auctions;
     }
 }

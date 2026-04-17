@@ -1,11 +1,13 @@
 package com.auction.server.services;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
 import com.auction.core.dao.IAuctionDao;
-import com.auction.core.products.Item;
+import com.auction.core.dto.AuctionService.CreateAuctionRequest;
+import com.auction.core.dto.AuctionService.GetAuctionBySellerIdRequest;
 import com.auction.core.services.IAuctionService;
 
 public class AuctionService implements IAuctionService {
@@ -16,8 +18,9 @@ public class AuctionService implements IAuctionService {
     }
 
     @Override
-    public Auction createAuction(Item item, Double startingPrice, Double bidIncrement, LocalDateTime startTime, LocalDateTime endTime) {
-        Auction auction = new Auction(null, item.getId(), startingPrice, bidIncrement, startTime, endTime);
+    public Auction createAuction(CreateAuctionRequest request) {
+        Auction auction = new Auction(null, request.getItemId(), request.getStartingPrice(), request.getBidIncrement(),
+                request.getStartTime(), request.getEndTime());
         auctionDao.createAuction(auction);
         return auction;
     }
@@ -27,7 +30,7 @@ public class AuctionService implements IAuctionService {
         if (bid == null || auction == null) {
             throw new IllegalArgumentException("Bid and Auction must not be null");
         }
-        
+
         // Snipe extension logic is now safely handled within the DB lock in AuctionDao
         boolean updated = auctionDao.updateAuctionForBid(bid, auction);
         if (!updated) {
@@ -68,7 +71,13 @@ public class AuctionService implements IAuctionService {
             throw new IllegalArgumentException("Auction not found");
         }
         double currentPrice = auctionDao.getCurrentPrice(auctionId);
-        return amount >= (currentPrice + auction.getBidIncrement()) && LocalDateTime.now().isBefore(auction.getEndTime());
+        return amount >= (currentPrice + auction.getBidIncrement())
+                && LocalDateTime.now().isBefore(auction.getEndTime());
+    }
+
+    @Override
+    public List<Auction> getAuctionsBySellerId(GetAuctionBySellerIdRequest request) {
+        return auctionDao.getAuctionsBySellerId(request.getSellerId());
     }
 
     @Override

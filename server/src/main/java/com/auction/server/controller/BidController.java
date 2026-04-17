@@ -5,15 +5,15 @@ import java.util.List;
 import java.util.Map;
 
 import com.auction.core.auction.Bid;
-import com.auction.core.dto.BidService.GetBidByAuctionID;
-import com.auction.core.dto.BidService.GetBidByBidderID;
+import com.auction.core.dto.BidService.GetBidByAuctionIdRequest;
+import com.auction.core.dto.BidService.GetBidByBidderIdRequest;
 import com.auction.core.dto.BidService.PlaceBid;
 import com.auction.core.services.IBidService;
 import com.auction.core.utils.JsonMapper;
 
 public class BidController {
 	private final IBidService bidService;
-	
+
 	public BidController(IBidService bidService) {
 		this.bidService = bidService;
 	}
@@ -41,7 +41,7 @@ public class BidController {
 			return JsonMapper.toJson(errorResponse("Request payload is required"));
 		}
 		try {
-			GetBidByAuctionID getBidByAuctionIDRequest = JsonMapper.fromJson(request, GetBidByAuctionID.class);
+			GetBidByAuctionIdRequest getBidByAuctionIDRequest = JsonMapper.fromJson(request, GetBidByAuctionIdRequest.class);
 			List<Bid> bids = bidService.getBidsByAuctionId(getBidByAuctionIDRequest);
 			if (bids == null) {
 				return JsonMapper.toJson(errorResponse("Failed to get bids by auction id"));
@@ -59,7 +59,7 @@ public class BidController {
 			return JsonMapper.toJson(errorResponse("Request payload is required"));
 		}
 		try {
-			GetBidByBidderID getBidByBidderIDRequest = JsonMapper.fromJson(request, GetBidByBidderID.class);
+			GetBidByBidderIdRequest getBidByBidderIDRequest = JsonMapper.fromJson(request, GetBidByBidderIdRequest.class);
 			List<Bid> bids = bidService.getBidsByBidderId(getBidByBidderIDRequest);
 			if (bids == null) {
 				return JsonMapper.toJson(errorResponse("Failed to get bids by bidder id"));
@@ -78,12 +78,14 @@ public class BidController {
 		response.put("data", bid);
 		return response;
 	}
+
 	private Map<String, Object> successResponse(List<Bid> bids) {
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
 		response.put("data", bids);
 		return response;
 	}
+
 	private Map<String, Object> errorResponse(String message) {
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", false);
