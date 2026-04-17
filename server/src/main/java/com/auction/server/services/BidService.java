@@ -6,8 +6,8 @@ import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
 import com.auction.core.dao.IBidDao;
 import com.auction.core.dao.IUserDao;
-import com.auction.core.dto.BidService.GetBidByAuctionID;
-import com.auction.core.dto.BidService.GetBidByBidderID;
+import com.auction.core.dto.BidService.GetBidByAuctionIdRequest;
+import com.auction.core.dto.BidService.GetBidByBidderIdRequest;
 import com.auction.core.dto.BidService.PlaceBid;
 import com.auction.core.services.IAuctionService;
 import com.auction.core.services.IBidService;
@@ -25,7 +25,6 @@ public class BidService implements IBidService {
         this.userDao = userDao;
     }
 
-
     @Override
     public Bid placeBid(PlaceBid request) {
         if (request == null) {
@@ -34,7 +33,7 @@ public class BidService implements IBidService {
         if (auctionService == null || userDao == null || bidDao == null) {
             throw new IllegalStateException("Services are not initialized");
         }
-        
+
         try {
             DBConnection.beginTransaction();
 
@@ -106,18 +105,21 @@ public class BidService implements IBidService {
         if (auction == null) {
             return false;
         }
-        return user.getBalance() >= (auction.getStartingPrice() * 0.3); //giá cọc
+        return user.getBalance() >= (auction.getStartingPrice() * 0.3); // giá cọc
     }
+
     @Override
     public void automaticallyPlaceBid(Integer auctionId, double increment, double maxAmount) {
-        //implemention waiting
+        // implemention waiting
     }
+
     @Override
-    public List<Bid> getBidsByAuctionId(GetBidByAuctionID request) {
+    public List<Bid> getBidsByAuctionId(GetBidByAuctionIdRequest request) {
         return bidDao.findByAuctionId(request.getAuctionId());
     }
+
     @Override
-    public List<Bid> getBidsByBidderId(GetBidByBidderID request) {
+    public List<Bid> getBidsByBidderId(GetBidByBidderIdRequest request) {
         return bidDao.findByBidderId(request.getBidderId());
     }
 

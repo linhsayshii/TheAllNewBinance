@@ -38,10 +38,11 @@ public class RequestDispatcher {
         }
 
         String type = String.valueOf(typeNode);
-        
+
         // Cấp quyền bảo mật: Chặn đứng truy cập nặc danh và tự động đè ID
         if (sessionUserId == null) {
-            if (!type.equals("LOGIN") && !type.equals("REGISTER") && !type.equals("GET_AUCTION") && !type.equals("GET_BIDS_BY_AUCTION_ID")) {
+            if (!type.equals("LOGIN") && !type.equals("REGISTER") && !type.equals("GET_AUCTION_DETAILS")
+                    && !type.equals("GET_BIDS_BY_AUCTION_ID")) {
                 return error("Unauthorized: Please login first!");
             }
         } else {
@@ -54,6 +55,8 @@ public class RequestDispatcher {
                     p.put("bidderId", sessionUserId);
                 } else if (type.equals("UPDATE_PROFILE") || type.equals("CHANGE_PASSWORD")) {
                     p.put("userId", sessionUserId);
+                } else if (type.equals("CREATE_AUCTION") || type.equals("GET_AUCTIONS_BY_SELLER")) {
+                    p.put("sellerId", sessionUserId);
                 }
             }
         }
@@ -76,9 +79,15 @@ public class RequestDispatcher {
             case "PLACE_BID" -> bidCtrl == null
                     ? error("Bid controller is not configured")
                     : bidCtrl.placeBid(payload);
-            case "GET_AUCTION" -> auctionCtrl == null
+            case "CREATE_AUCTION" -> auctionCtrl == null
                     ? error("Auction controller is not configured")
-                    : auctionCtrl.getAuction(payload);
+                    : auctionCtrl.createAuction(payload);
+            case "GET_AUCTION_DETAILS" -> auctionCtrl == null
+                    ? error("Auction controller is not configured")
+                    : auctionCtrl.getAuctionDetails(payload);
+            case "GET_AUCTIONS_BY_SELLER" -> auctionCtrl == null
+                    ? error("Auction controller is not configured")
+                    : auctionCtrl.getAuctionsBySellerId(payload);
             case "GET_BIDS_BY_AUCTION_ID" -> bidCtrl == null
                     ? error("Bid controller is not configured")
                     : bidCtrl.getBidsByAuctionId(payload);

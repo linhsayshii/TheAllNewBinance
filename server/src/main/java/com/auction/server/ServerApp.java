@@ -32,7 +32,7 @@ public class ServerApp {
 
         // 3. Dependency Injection - Instantiating Controllers
         UserController userCtrl = new UserController(userService);
-        AuctionController auctionCtrl = new AuctionController();
+        AuctionController auctionCtrl = new AuctionController(auctionService);
         BidController bidCtrl = new BidController(bidService);
 
         // 4. Instantiating RequestDispatcher
