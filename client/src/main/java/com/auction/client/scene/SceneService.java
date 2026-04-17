@@ -21,6 +21,7 @@ public class SceneService {
     private final List<String> stylesheets;
     private SceneRegistry currentSceneRegistry;
     private final List<Scene> activeScenes = new ArrayList<>();
+    private Object currentController;
 
     public SceneService(Stage stage, List<String> stylesheets) {
         this.stage = stage;
@@ -32,6 +33,15 @@ public class SceneService {
         try {
             FXMLLoader loader = new FXMLLoader(resourceLoader.requireUrl(sceneRegistry.fxmlPath()));
             Parent root = loader.load();
+            
+            // Clean up old controller
+            if (currentController instanceof LifecycleAwareController) {
+                ((LifecycleAwareController) currentController).onUnload();
+            }
+            
+            // Keep reference to new controller
+            currentController = loader.getController();
+            
             Scene scene = new Scene(root);
             applyStylesheets(scene, false);
             stage.setTitle(sceneRegistry.title());
