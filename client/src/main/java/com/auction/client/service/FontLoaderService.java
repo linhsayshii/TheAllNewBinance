@@ -24,7 +24,7 @@ public final class FontLoaderService {
                 if (stream == null) {
                     System.out.println("[Fonts] Missing font resource: " + fontPath);
                     continue;
-                }
+                }   
 
                 Font loaded = Font.loadFont(stream, 12);
                 if (loaded == null) {
