@@ -5,9 +5,9 @@ import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBConnection {
-    private static final String DB_NAME = "";   // Database name
-    private static final String USER = "";      // MySQL username
-    private static final String PASSWORD = "";  // MySQL password
+    private static final String DB_NAME = "theallnewbinance";   // Database name
+    private static final String USER = "binance";      // MySQL username
+    private static final String PASSWORD = "PasswordCucManh!";  // MySQL password
     private static final String URL = "jdbc:mysql://localhost:3306/" + DB_NAME + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
 
     // ThreadLocal for concurrent safe connection
