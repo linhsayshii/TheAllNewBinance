@@ -3,10 +3,10 @@ package com.auction.server.controller;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.auction.core.dto.UserService.LoginRequest;
-import com.auction.core.dto.UserService.RegisterRequest;
-import com.auction.core.dto.UserService.UpdatePasswordRequest;
-import com.auction.core.dto.UserService.UpdateProfileRequest;
+import com.auction.core.dto.user.LoginRequest;
+import com.auction.core.dto.user.RegisterRequest;
+import com.auction.core.dto.user.UpdatePasswordRequest;
+import com.auction.core.dto.user.UpdateProfileRequest;
 import com.auction.core.services.IUserService;
 import com.auction.core.users.User;
 import com.auction.core.utils.JsonMapper;
@@ -29,7 +29,7 @@ public class UserController {
                 return JsonMapper.toJson(errorResponse("Invalid login payload"));
             }
 
-            User user = userService.login(loginRequest);
+            User user = userService.login(loginRequest).join();
             if (user == null) {
                 return JsonMapper.toJson(errorResponse("Invalid username or password"));
             }
@@ -53,7 +53,7 @@ public class UserController {
                 return JsonMapper.toJson(errorResponse("Invalid register payload"));
             }
 
-            User user = userService.registerUser(registerRequest);
+            User user = userService.registerUser(registerRequest).join();
             return JsonMapper.toJson(successResponse(user));
         } catch (IllegalArgumentException ex) {
             return JsonMapper.toJson(errorResponse(ex.getMessage()));
@@ -73,7 +73,7 @@ public class UserController {
                 return JsonMapper.toJson(errorResponse("Invalid update profile payload"));
             }
 
-            userService.updateProfile(updateProfileRequest);
+            userService.updateProfile(updateProfileRequest).join();
             return JsonMapper.toJson(successResponse(updateProfileRequest));
         } catch (IllegalArgumentException ex) {
             return JsonMapper.toJson(errorResponse(ex.getMessage()));
@@ -93,7 +93,7 @@ public class UserController {
                 return JsonMapper.toJson(errorResponse("Invalid change password payload"));
             }
 
-            userService.changePassword(updatePasswordRequest);
+            userService.changePassword(updatePasswordRequest).join();
             return JsonMapper.toJson(successResponse(updatePasswordRequest));
         } catch (IllegalArgumentException ex) {
             return JsonMapper.toJson(errorResponse(ex.getMessage()));

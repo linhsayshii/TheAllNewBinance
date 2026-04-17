@@ -1,4 +1,4 @@
-package com.auction.core.dto.BidService;
+package com.auction.core.dto.bid;
 
 import java.util.ArrayList;
 import java.util.List;

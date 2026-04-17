@@ -1,4 +1,4 @@
-package com.auction.core.dto.BidService;
+package com.auction.core.dto.bid;
 
 public class PlaceBid {
     private int auctionId;

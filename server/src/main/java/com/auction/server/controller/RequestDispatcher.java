@@ -63,7 +63,7 @@ public class RequestDispatcher {
 
         String payload = extractPayload(node.get("payload"));
 
-        return switch (type) {
+        String responseRaw = switch (type) {
             case "LOGIN" -> userCtrl == null
                     ? error("User controller is not configured")
                     : userCtrl.login(payload);
@@ -96,6 +96,15 @@ public class RequestDispatcher {
                     : bidCtrl.getBidsByBidderId(payload);
             default -> error("Unknown type: " + type);
         };
+        
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> responseMap = JsonMapper.fromJson(responseRaw, Map.class);
+            responseMap.put("type", type);
+            return JsonMapper.toJson(responseMap);
+        } catch (Exception e) {
+            return responseRaw;
+        }
     }
 
     private String extractPayload(Object payloadNode) {

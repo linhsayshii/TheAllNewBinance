@@ -1,9 +1,11 @@
 package com.auction.core.services;
 
+import java.util.concurrent.CompletableFuture;
+
 import com.auction.core.products.Item;
 
 public interface IItemService {
-    Item addProduct(int sellerId, String name, String description, String category, String imageUrl);
-    void updateProduct(Item item);
-    void removeProduct(Item item);
+    CompletableFuture<Item> addProduct(int sellerId, String name, String description, String category, String imageUrl);
+    CompletableFuture<Void> updateProduct(Item item);
+    CompletableFuture<Void> removeProduct(Item item);
 }

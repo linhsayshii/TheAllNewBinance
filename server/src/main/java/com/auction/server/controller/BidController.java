@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.auction.core.auction.Bid;
-import com.auction.core.dto.BidService.GetBidByAuctionIdRequest;
-import com.auction.core.dto.BidService.GetBidByBidderIdRequest;
-import com.auction.core.dto.BidService.PlaceBid;
+import com.auction.core.dto.bid.GetBidByAuctionIdRequest;
+import com.auction.core.dto.bid.GetBidByBidderIdRequest;
+import com.auction.core.dto.bid.PlaceBid;
 import com.auction.core.services.IBidService;
 import com.auction.core.utils.JsonMapper;
 
@@ -24,7 +24,7 @@ public class BidController {
 		}
 		try {
 			PlaceBid placeBidRequest = JsonMapper.fromJson(request, PlaceBid.class);
-			Bid bid = bidService.placeBid(placeBidRequest);
+			Bid bid = bidService.placeBid(placeBidRequest).join();
 			if (bid == null) {
 				return JsonMapper.toJson(errorResponse("Failed to place bid"));
 			}
@@ -42,7 +42,7 @@ public class BidController {
 		}
 		try {
 			GetBidByAuctionIdRequest getBidByAuctionIDRequest = JsonMapper.fromJson(request, GetBidByAuctionIdRequest.class);
-			List<Bid> bids = bidService.getBidsByAuctionId(getBidByAuctionIDRequest);
+			List<Bid> bids = bidService.getBidsByAuctionId(getBidByAuctionIDRequest).join();
 			if (bids == null) {
 				return JsonMapper.toJson(errorResponse("Failed to get bids by auction id"));
 			}
@@ -60,7 +60,7 @@ public class BidController {
 		}
 		try {
 			GetBidByBidderIdRequest getBidByBidderIDRequest = JsonMapper.fromJson(request, GetBidByBidderIdRequest.class);
-			List<Bid> bids = bidService.getBidsByBidderId(getBidByBidderIDRequest);
+			List<Bid> bids = bidService.getBidsByBidderId(getBidByBidderIDRequest).join();
 			if (bids == null) {
 				return JsonMapper.toJson(errorResponse("Failed to get bids by bidder id"));
 			}
