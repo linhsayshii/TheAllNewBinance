@@ -1,11 +1,14 @@
 package com.auction.server.services;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
 import com.auction.core.dao.IAuctionDao;
-import com.auction.core.products.Item;
+import com.auction.core.dto.auction.CreateAuctionRequest;
+import com.auction.core.dto.auction.GetAuctionBySellerIdRequest;
 import com.auction.core.services.IAuctionService;
 
 public class AuctionService implements IAuctionService {
@@ -16,52 +19,46 @@ public class AuctionService implements IAuctionService {
     }
 
     @Override
-    public Auction createAuction(Item item, Double startingPrice, Double bidIncrement, LocalDateTime startTime, LocalDateTime endTime) {
-        Auction auction = new Auction(null, item.getId(), startingPrice, bidIncrement, startTime, endTime);
-        auctionDao.createAuction(auction);
-        return auction;
+    public CompletableFuture<Auction> createAuction(CreateAuctionRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            Auction auction = new Auction(null, request.getItemId(), request.getStartingPrice(), request.getBidIncrement(),
+                    request.getStartTime(), request.getEndTime());
+            auctionDao.createAuction(auction);
+            return auction;
+        });
     }
 
     @Override
-    public void processBid(Bid bid) {
-        if (bid == null) {
-            throw new IllegalArgumentException("Bid must not be null");
-        }
-        
-        Auction auction = auctionDao.getAuctionDetails(bid.getAuctionId());
-        if (auction == null) {
-            throw new IllegalArgumentException("Auction not found");
-        }
-        
-        // Compute Snipe Extension on the fly based on current snapshot
-        LocalDateTime bidTime = bid.getCreatedAt() != null ? bid.getCreatedAt() : LocalDateTime.now();
-        auction.applySnipeExtension(bidTime); // this updates auction.getEndTime() locally
-
-        boolean updated = auctionDao.updateAuctionForBid(bid, auction.getBidIncrement(), auction.getEndTime());
-        if (!updated) {
-            throw new IllegalStateException("Failed to update auction bid state, possibly concurrency issue.");
-        }
+    public CompletableFuture<Void> processBid(Bid bid, Auction auction) {
+        return CompletableFuture.runAsync(() -> {
+            if (bid == null || auction == null) {
+                throw new IllegalArgumentException("Bid and Auction must not be null");
+            }
+            boolean updated = auctionDao.updateAuctionForBid(bid, auction);
+            if (!updated) {
+                throw new IllegalStateException("Failed to update auction bid state, possibly concurrency issue.");
+            }
+        });
     }
 
     @Override
-    public Auction deleteAuction(Integer auctionId) {
-        Auction auction = auctionDao.getAuctionDetails(auctionId);
-        if (auction != null) {
-            auctionDao.deleteAuction(auction);
-        }
-        return auction;
+    public CompletableFuture<Auction> deleteAuction(Integer auctionId) {
+        return CompletableFuture.supplyAsync(() -> {
+            Auction auction = auctionDao.getAuctionDetails(auctionId);
+            if (auction != null) {
+                auctionDao.deleteAuction(auction);
+            }
+            return auction;
+        });
     }
 
     @Override
-    public boolean applySnipeExtension(Auction auction) {
-        return applySnipeExtension(auction, LocalDateTime.now());
+    public CompletableFuture<Boolean> applySnipeExtension(Auction auction) {
+        return CompletableFuture.supplyAsync(() -> applySnipeExtensionSync(auction, LocalDateTime.now()));
     }
 
-    private boolean applySnipeExtension(Auction auction, LocalDateTime bidTime) {
-        if (auction == null) {
-            return false;
-        }
-
+    private boolean applySnipeExtensionSync(Auction auction, LocalDateTime bidTime) {
+        if (auction == null) return false;
         boolean isExtended = auction.applySnipeExtension(bidTime);
         if (isExtended) {
             auctionDao.extendAuction(auction);
@@ -70,17 +67,30 @@ public class AuctionService implements IAuctionService {
     }
 
     @Override
-    public boolean validateBid(Integer auctionId, Double amount) {
-        Auction auction = auctionDao.getAuctionDetails(auctionId);
-        if (auction == null) {
-            throw new IllegalArgumentException("Auction not found");
-        }
-        double currentPrice = auctionDao.getCurrentPrice(auctionId);
-        return amount >= (currentPrice + auction.getBidIncrement()) && LocalDateTime.now().isBefore(auction.getEndTime());
+    public CompletableFuture<Boolean> validateBid(Integer auctionId, Double amount) {
+        return CompletableFuture.supplyAsync(() -> {
+            Auction auction = auctionDao.getAuctionDetails(auctionId);
+            if (auction == null) {
+                throw new IllegalArgumentException("Auction not found");
+            }
+            double currentPrice = auctionDao.getCurrentPrice(auctionId);
+            return amount >= (currentPrice + auction.getBidIncrement())
+                    && LocalDateTime.now().isBefore(auction.getEndTime());
+        });
     }
 
     @Override
-    public Auction getAuctionDetails(Integer auctionId) {
-        return auctionDao.getAuctionDetails(auctionId);
+    public CompletableFuture<List<Auction>> getAuctionsBySellerId(GetAuctionBySellerIdRequest request) {
+        return CompletableFuture.supplyAsync(() -> auctionDao.getAuctionsBySellerId(request.getSellerId()));
+    }
+
+    @Override
+    public CompletableFuture<Auction> getAuctionDetails(Integer auctionId) {
+        return CompletableFuture.supplyAsync(() -> auctionDao.getAuctionDetails(auctionId));
+    }
+
+    @Override
+    public CompletableFuture<Integer> getSellerId(Integer auctionId) {
+        return CompletableFuture.supplyAsync(() -> auctionDao.getSellerId(auctionId));
     }
 }

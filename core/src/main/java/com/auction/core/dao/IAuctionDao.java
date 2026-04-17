@@ -1,8 +1,9 @@
 package com.auction.core.dao;
 
+import java.util.List;
+
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
-import java.time.LocalDateTime;
 
 public interface IAuctionDao {
     boolean createAuction(Auction auction);
@@ -12,5 +13,7 @@ public interface IAuctionDao {
     Auction getAuctionDetails(Integer auctionId);
     double getCurrentPrice(Integer auctionId);
     void updateCurrentPrice(Bid bid);
-    boolean updateAuctionForBid(Bid bid, double bidIncrement, LocalDateTime finalEndTime);
+    boolean updateAuctionForBid(Bid bid, Auction auction);
+    Integer getSellerId(Integer auctionId);
+    List<Auction> getAuctionsBySellerId(Integer sellerId);
 }

@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # BÀI TẬP LỚN - PHÁT TRIỂN HỆ THỐNG ĐẤU GIÁ TRỰC TUYẾN
 Bài tập lớn nhóm 12 - LHP 2526II_UET.CS2043_2
 
@@ -18,8 +17,7 @@ Lưu ý:
 - Chỉ bật trong profile `dev`.
 - Chế độ mặc định (không `-Pdev`) không bật hot reload.
 
-## Cấu trúc thư mục dự án:
-=======
+
 # TheAllNewBinance
 
 > Bài tập lớn nhóm 12 - LHP 2526II_UET.CS2043_2  
@@ -46,7 +44,6 @@ TheAllNewBinance được tách thành 3 module:
 | CI | GitHub Actions |
 
 ## Cấu trúc dự án đến hiện tại
->>>>>>> 9404f27f2fbd47cb4e85d4b9cf78e3ceb91517ed
 ```
 TheAllNewBinance/
 ├── .github/workflows/         # Cấu hình CI/CD (GitHub Actions)

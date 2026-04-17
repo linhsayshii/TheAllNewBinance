@@ -1,12 +1,16 @@
 package com.auction.core.services;
 
-import com.auction.core.dto.userservicedto.LoginRequest;
-import com.auction.core.dto.userservicedto.RegisterRequest;
+import java.util.concurrent.CompletableFuture;
+
+import com.auction.core.dto.user.LoginRequest;
+import com.auction.core.dto.user.RegisterRequest;
+import com.auction.core.dto.user.UpdatePasswordRequest;
+import com.auction.core.dto.user.UpdateProfileRequest;
 import com.auction.core.users.User;
 
 public interface IUserService {
-    User registerUser(RegisterRequest request);
-    User login(LoginRequest request);
-    void updateProfile(Integer userId, String username, String fullName, String email);
-    void changePassword(Integer userId, String oldPassword, String newPassword);
+    CompletableFuture<User> registerUser(RegisterRequest request);
+    CompletableFuture<User> login(LoginRequest request);
+    CompletableFuture<Void> updateProfile(UpdateProfileRequest request);
+    CompletableFuture<Void> changePassword(UpdatePasswordRequest request);
 }
