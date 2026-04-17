@@ -1,17 +1,59 @@
 .auction-card-root {
+    -fx-pref-width: 300;
+    -fx-max-width: 300;
     -fx-background-color: -surface-bg;
-    -fx-border-color: -border-color;
-    -fx-border-radius: 8;
+    -fx-border-width: 1;
     -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 10;
 }
 
-.auction-card-title {
-    -fx-font-size: 16px;
+.auction-card-image {
+    -fx-background-color: -panel-bg;
+    -fx-pref-height: 190;
+}
+
+.auction-card-image-label {
+    -fx-font-family: "Inria Serif";
+    -fx-font-size: 20px;
     -fx-font-weight: 700;
     -fx-text-fill: -text-primary;
 }
 
-.auction-card-meta,
-.auction-card-inline {
+.auction-card-time-left {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
     -fx-text-fill: -text-secondary;
 }
+
+.auction-card-progress-track {
+    -fx-pref-height: 2;
+    -fx-background-color: -text-primary;
+}
+
+.auction-card-progress-fill {
+    -fx-pref-height: 2;
+    -fx-background-color: -brand;
+}
+
+.auction-card-item-name {
+    -fx-font-family: "Inria Serif";
+    -fx-font-size: 24px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -text-primary;
+    -fx-padding: 0 0 15 0;
+}
+
+.auction-card-price {
+    -fx-font-family: "Montserrat SemiBold";
+    -fx-font-size: 20px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -text-primary;
+}
+
+.auction-card-bidders {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-text-fill: -text-secondary;
+}
+

@@ -1,3 +1,98 @@
 .general-page-root {
     -fx-background-color: -app-bg;
 }
+
+.gp-top-bar {
+    -fx-background-color: -surface-bg;
+    -fx-border-color: transparent transparent -brand transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.gp-logo-line {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 20px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -brand;
+}
+
+.gp-search-field {
+    -fx-background-color: transparent;
+    -fx-border-color: -brand;
+    -fx-border-width: 1;
+    -fx-font-family: "Inria Serif";
+    -fx-font-size: 14px;
+    -fx-text-fill: -text-primary;
+    -fx-prompt-text-fill: rgba(93, 45, 57, 0.9);
+    -fx-padding: 10 14 10 14;
+}
+
+.gp-top-link {
+    -fx-font-family: "Inria Serif";
+    -fx-font-size: 16px;
+    -fx-text-fill: -text-primary;
+    -fx-border-color: transparent;
+    -fx-underline: false;
+}
+
+.gp-signup-btn {
+    -fx-background-color: -brand;
+    -fx-text-fill: white;
+    -fx-font-family: "Inria Serif";
+    -fx-font-size: 16px;
+    -fx-padding: 8 14 8 14;
+    -fx-background-radius: 0;
+}
+
+.gp-nav-bar {
+    -fx-background-color: -surface-bg;
+    -fx-border-color: transparent transparent -brand transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.gp-nav-item {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 16px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -brand;
+}
+
+.gp-scroll {
+    -fx-background-color: -app-bg;
+    -fx-background: -app-bg;
+}
+
+.gp-scroll > .viewport {
+    -fx-background-color: -app-bg;
+}
+
+.gp-content-root {
+    -fx-background-color: -app-bg;
+}
+
+.gp-banner-pane {
+    -fx-background-color: -panel-bg;
+}
+
+.gp-banner-title {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 42px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -text-primary;
+}
+
+.gp-section-wrap {
+    -fx-padding: 0 0 0 120;
+}
+
+.gp-section-title {
+    -fx-font-family: "Inria Serif";
+    -fx-font-size: 32px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -text-primary;
+    -fx-padding: 40 0 0 0;
+}
+
+.gp-section-divider {
+    -fx-background-color: -text-primary;
+    -fx-padding: 0 0 0 0;
+}

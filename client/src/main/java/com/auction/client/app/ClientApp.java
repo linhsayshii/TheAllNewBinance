@@ -4,6 +4,7 @@ import com.auction.client.config.AppConfig;
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.scene.NavigationService;
 import com.auction.client.scene.SceneService;
+import com.auction.client.service.FontLoaderService;
 import com.auction.client.service.HotReloadService;
 
 import javafx.application.Application;
@@ -15,6 +16,8 @@ public class ClientApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        FontLoaderService.preloadProjectFonts();
+
         SceneService sceneService = new SceneService(primaryStage, AppConfig.stylesheets());
         NavigationService navigationService = new NavigationService(sceneService);
         hotReloadService = new HotReloadService(sceneService);
