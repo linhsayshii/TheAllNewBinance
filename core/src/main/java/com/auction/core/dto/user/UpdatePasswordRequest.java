@@ -1,4 +1,4 @@
-package com.auction.core.dto.UserService;
+package com.auction.core.dto.user;
 
 public class UpdatePasswordRequest {
     private int userId;

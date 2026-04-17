@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.Map;
 
 import com.auction.core.auction.Auction;
-import com.auction.core.dto.AuctionService.CreateAuctionRequest;
-import com.auction.core.dto.AuctionService.GetAuctionBySellerIdRequest;
-import com.auction.core.dto.AuctionService.GetAuctionDetailsRequest;
+import com.auction.core.dto.auction.CreateAuctionRequest;
+import com.auction.core.dto.auction.GetAuctionBySellerIdRequest;
+import com.auction.core.dto.auction.GetAuctionDetailsRequest;
 import com.auction.core.services.IAuctionService;
 import com.auction.core.utils.JsonMapper;
 
@@ -21,7 +21,7 @@ public class AuctionController {
 	public String createAuction(String payload) {
 		try {
 			CreateAuctionRequest createAuctionRequest = JsonMapper.fromJson(payload, CreateAuctionRequest.class);
-			Auction auction = auctionService.createAuction(createAuctionRequest);
+			Auction auction = auctionService.createAuction(createAuctionRequest).join();
 			return JsonMapper.toJson(successResponse(auction));
 		} catch (IllegalArgumentException ex) {
 			return JsonMapper.toJson(errorResponse(ex.getMessage()));
@@ -34,7 +34,7 @@ public class AuctionController {
 		try {
 			GetAuctionDetailsRequest getAuctionDetailsRequest = JsonMapper.fromJson(payload,
 					GetAuctionDetailsRequest.class);
-			Auction auction = auctionService.getAuctionDetails(getAuctionDetailsRequest.getAuctionId());
+			Auction auction = auctionService.getAuctionDetails(getAuctionDetailsRequest.getAuctionId()).join();
 			if (auction == null) {
 				return JsonMapper.toJson(errorResponse("Auction not found"));
 			}
@@ -50,7 +50,7 @@ public class AuctionController {
 		try {
 			GetAuctionBySellerIdRequest getAuctionBySellerIdRequest = JsonMapper.fromJson(payload,
 					GetAuctionBySellerIdRequest.class);
-			List<Auction> auctions = auctionService.getAuctionsBySellerId(getAuctionBySellerIdRequest);
+			List<Auction> auctions = auctionService.getAuctionsBySellerId(getAuctionBySellerIdRequest).join();
 			if (auctions == null) {
 				return JsonMapper.toJson(errorResponse("Failed to get auctions by seller id"));
 			}

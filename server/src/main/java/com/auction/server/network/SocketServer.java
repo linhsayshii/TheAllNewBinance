@@ -8,6 +8,7 @@ import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
+import com.auction.core.protocol.EventType;
 import com.auction.core.utils.JsonMapper;
 import com.auction.server.controller.RequestDispatcher;
 
@@ -41,8 +42,8 @@ public class SocketServer extends WebSocketServer {
         try {
             if (userId == null) {
                 Map<?, ?> reqNode = JsonMapper.fromJson(message, Map.class);
-                String type = String.valueOf(reqNode.get("type"));
-                if ("LOGIN".equals(type) || "REGISTER".equals(type)) {
+                EventType type = EventType.fromWireValue(reqNode.get("type"));
+                if (type == EventType.LOGIN || type == EventType.REGISTER) {
                     Map<?, ?> respNode = JsonMapper.fromJson(response, Map.class);
                     if (Boolean.TRUE.equals(respNode.get("success"))) {
                         Map<?, ?> data = (Map<?, ?>) respNode.get("data");

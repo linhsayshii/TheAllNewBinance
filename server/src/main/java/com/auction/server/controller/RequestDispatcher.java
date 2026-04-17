@@ -3,6 +3,7 @@ package com.auction.server.controller;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.auction.core.protocol.EventType;
 import com.auction.core.utils.JsonMapper;
 
 public class RequestDispatcher {
@@ -37,12 +38,16 @@ public class RequestDispatcher {
             return error("Missing type");
         }
 
-        String type = String.valueOf(typeNode);
+        EventType type = EventType.fromWireValue(typeNode);
+        if (type == null) {
+            return error("Unknown type: " + typeNode);
+        }
+
+        Object correlationId = node.get("correlationId");
 
         // Cấp quyền bảo mật: Chặn đứng truy cập nặc danh và tự động đè ID
         if (sessionUserId == null) {
-            if (!type.equals("LOGIN") && !type.equals("REGISTER") && !type.equals("GET_AUCTION_DETAILS")
-                    && !type.equals("GET_BIDS_BY_AUCTION_ID")) {
+            if (!isAnonymousAllowed(type)) {
                 return error("Unauthorized: Please login first!");
             }
         } else {
@@ -51,51 +56,74 @@ public class RequestDispatcher {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> p = (Map<String, Object>) payloadObj;
                 // Sang chấn áp đè ID thật từ phiên Socket
-                if (type.equals("PLACE_BID") || type.equals("GET_BIDS_BY_BIDDER_ID")) {
-                    p.put("bidderId", sessionUserId);
-                } else if (type.equals("UPDATE_PROFILE") || type.equals("CHANGE_PASSWORD")) {
-                    p.put("userId", sessionUserId);
-                } else if (type.equals("CREATE_AUCTION") || type.equals("GET_AUCTIONS_BY_SELLER")) {
-                    p.put("sellerId", sessionUserId);
-                }
+                overridePayloadIdentity(type, p, sessionUserId);
             }
         }
 
         String payload = extractPayload(node.get("payload"));
 
-        return switch (type) {
-            case "LOGIN" -> userCtrl == null
+        String responseRaw = switch (type) {
+            case EventType.LOGIN -> userCtrl == null
                     ? error("User controller is not configured")
                     : userCtrl.login(payload);
-            case "REGISTER" -> userCtrl == null
+            case EventType.REGISTER -> userCtrl == null
                     ? error("User controller is not configured")
                     : userCtrl.register(payload);
-            case "UPDATE_PROFILE" -> userCtrl == null
+            case EventType.UPDATE_PROFILE -> userCtrl == null
                     ? error("User controller is not configured")
                     : userCtrl.updateProfile(payload);
-            case "CHANGE_PASSWORD" -> userCtrl == null
+            case EventType.CHANGE_PASSWORD -> userCtrl == null
                     ? error("User controller is not configured")
                     : userCtrl.changePassword(payload);
-            case "PLACE_BID" -> bidCtrl == null
+            case EventType.PLACE_BID -> bidCtrl == null
                     ? error("Bid controller is not configured")
                     : bidCtrl.placeBid(payload);
-            case "CREATE_AUCTION" -> auctionCtrl == null
+            case EventType.CREATE_AUCTION -> auctionCtrl == null
                     ? error("Auction controller is not configured")
                     : auctionCtrl.createAuction(payload);
-            case "GET_AUCTION_DETAILS" -> auctionCtrl == null
+            case EventType.GET_AUCTION_DETAILS -> auctionCtrl == null
                     ? error("Auction controller is not configured")
                     : auctionCtrl.getAuctionDetails(payload);
-            case "GET_AUCTIONS_BY_SELLER" -> auctionCtrl == null
+            case EventType.GET_AUCTIONS_BY_SELLER -> auctionCtrl == null
                     ? error("Auction controller is not configured")
                     : auctionCtrl.getAuctionsBySellerId(payload);
-            case "GET_BIDS_BY_AUCTION_ID" -> bidCtrl == null
+            case EventType.GET_BIDS_BY_AUCTION_ID -> bidCtrl == null
                     ? error("Bid controller is not configured")
                     : bidCtrl.getBidsByAuctionId(payload);
-            case "GET_BIDS_BY_BIDDER_ID" -> bidCtrl == null
+            case EventType.GET_BIDS_BY_BIDDER_ID -> bidCtrl == null
                     ? error("Bid controller is not configured")
                     : bidCtrl.getBidsByBidderId(payload);
-            default -> error("Unknown type: " + type);
         };
+        
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> responseMap = JsonMapper.fromJson(responseRaw, Map.class);
+            responseMap.put("type", type.wireValue());
+            if (correlationId != null) {
+                responseMap.put("correlationId", correlationId);
+            }
+            return JsonMapper.toJson(responseMap);
+        } catch (Exception e) {
+            return responseRaw;
+        }
+    }
+
+    private boolean isAnonymousAllowed(EventType type) {
+        return switch (type) {
+            case LOGIN, REGISTER, GET_AUCTION_DETAILS, GET_BIDS_BY_AUCTION_ID -> true;
+            default -> false;
+        };
+    }
+
+    private void overridePayloadIdentity(EventType type, Map<String, Object> payload, Integer sessionUserId) {
+        switch (type) {
+            case PLACE_BID, GET_BIDS_BY_BIDDER_ID -> payload.put("bidderId", sessionUserId);
+            case UPDATE_PROFILE, CHANGE_PASSWORD -> payload.put("userId", sessionUserId);
+            case CREATE_AUCTION, GET_AUCTIONS_BY_SELLER -> payload.put("sellerId", sessionUserId);
+            default -> {
+                // No identity override required for this event type.
+            }
+        }
     }
 
     private String extractPayload(Object payloadNode) {

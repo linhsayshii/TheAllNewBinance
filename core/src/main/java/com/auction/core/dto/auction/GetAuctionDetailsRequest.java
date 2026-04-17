@@ -1,4 +1,4 @@
-package com.auction.core.dto.AuctionService;
+package com.auction.core.dto.auction;
 
 public class GetAuctionDetailsRequest {
     private Integer auctionId;
