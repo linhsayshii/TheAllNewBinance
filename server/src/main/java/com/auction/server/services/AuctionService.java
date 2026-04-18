@@ -6,7 +6,7 @@ import java.util.concurrent.CompletableFuture;
 
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
-import com.auction.core.dao.IAuctionDao;
+import com.auction.server.dao.IAuctionDao;
 import com.auction.core.dto.auction.CreateAuctionRequest;
 import com.auction.core.dto.auction.GetAuctionBySellerIdRequest;
 import com.auction.core.services.IAuctionService;

@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
-import com.auction.core.dao.IUserDao;
 import com.auction.core.users.User;
 
 public class UserDao implements IUserDao {

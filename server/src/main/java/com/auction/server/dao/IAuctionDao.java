@@ -1,4 +1,4 @@
-package com.auction.core.dao;
+package com.auction.server.dao;
 
 import java.util.List;
 

@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.auction.core.auction.Bid;
-import com.auction.core.dao.IBidDao;
 
 public class BidDao implements IBidDao {
     @Override

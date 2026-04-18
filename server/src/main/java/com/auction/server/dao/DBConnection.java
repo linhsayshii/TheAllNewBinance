@@ -69,7 +69,7 @@ public class DBConnection {
                 conn.close();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Close connection error: " + e.getMessage());
         } finally {
             connectionHolder.remove();
         }

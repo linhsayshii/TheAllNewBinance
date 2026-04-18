@@ -12,7 +12,6 @@ import java.util.List;
 
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
-import com.auction.core.dao.IAuctionDao;
 
 public class AuctionDao implements IAuctionDao {
     @Override
@@ -200,14 +199,14 @@ public class AuctionDao implements IAuctionDao {
                 if (conn != null)
                     conn.rollback();
             } catch (SQLException ex) {
-                ex.printStackTrace();
+                System.err.println("Error: Cannot rollback! " + ex.getMessage());
             }
         } finally {
             try {
                 if (conn != null)
                     conn.setAutoCommit(true);
             } catch (SQLException ex) {
-                ex.printStackTrace();
+                System.err.println("Error: Cannot set auto commit! " + ex.getMessage());
             }
         }
     }

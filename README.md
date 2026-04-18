@@ -27,8 +27,8 @@ Lưu ý:
 
 TheAllNewBinance được tách thành 3 module:
 
-- core: Domain model, interface DAO, interface Service và các tiện ích dùng chung.
-- server: Triển khai DAO/Service và tầng xử lý phía máy chủ.
+- core: Domain model, DTO và các tiện ích dùng chung (Shared).
+- server: Triển khai Service, Interface & Implementation DAO và tầng xử lý phía máy chủ.
 - client: Module client (hiện đang ở giai đoạn khởi tạo cấu trúc).
 
 ## Công nghệ sử dụng
@@ -53,8 +53,7 @@ TheAllNewBinance/
 │   │   ├── users/             # Entity: User, Item, Auction, Bid
 │   │   ├── products/          # Quản lý sản phẩm đấu giá
 │   │   ├── auction/           # Xử lý quá trình đấu giá
-│   │   ├── dao/               # Interface DAO
-│   │   ├── service/           # Interface Service
+│   │   ├── service/           # Interface Service dùng chung (nếu có)
 │   │   ├── dto/               # Data Transfer Objects (Dữ liệu gửi qua JSON)
 │   │   └── utils/             # Các lớp tiện ích (JSON Mapper, DateFormatter, PasswordHasher, ...)
 │   └── src/test/java/
@@ -62,7 +61,7 @@ TheAllNewBinance/
 │   ├── src/main/java/com/auction/server/
 │   │   ├── controller/        # Tiếp nhận và điều hướng request
 │   │   ├── service/           # Logic nghiệp vụ (Auto-bid, Anti-sniping)
-│   │   ├── dao/               # Data Access Object (Chỉ Server truy cập DB)
+│   │   ├── dao/               # Data Access Object (Interface & Implementation)
 │   │   ├── network/           # Xử lý Socket/REST API
 │   │   └── ServerApp.java     # Lớp chạy Server chính (Singleton)
 │   └── src/main/resources/

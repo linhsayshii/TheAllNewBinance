@@ -1,8 +1,8 @@
 package com.auction.server;
 
-import com.auction.core.dao.IAuctionDao;
-import com.auction.core.dao.IBidDao;
-import com.auction.core.dao.IUserDao;
+import com.auction.server.dao.IAuctionDao;
+import com.auction.server.dao.IBidDao;
+import com.auction.server.dao.IUserDao;
 import com.auction.core.services.IAuctionService;
 import com.auction.core.services.IBidService;
 import com.auction.core.services.IUserService;
@@ -42,7 +42,7 @@ public class ServerApp {
         int port = 8080;
         SocketServer server = new SocketServer(port, dispatcher);
         server.start();
-        
+
         System.out.println("TheAllNewBinance Auction Server is warming up and binding to port " + port);
     }
 }
