@@ -3,13 +3,19 @@ package com.auction.client.component.item;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
+import com.auction.client.config.SceneRegistry;
 import com.auction.client.dto.ProductCardUiModel;
+import com.auction.client.scene.NavigationService;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.input.MouseButton;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Region;
 
 public class AuctionCardComponentController {
+
+	private static final long MAX_CLICK_DURATION_MILLIS = 250;
 
 	private static final List<AuctionCardViewData> FAKE_DATA = List.of(
 		new AuctionCardViewData("Item Image", "Vintage Rolex Submariner", "$12,600", "End in 02h 31m", "36 people bidding", 0.62),
@@ -36,6 +42,31 @@ public class AuctionCardComponentController {
 	private Region progressFill;
 
 	private boolean hasExternalData;
+	private long pressStartedAtNanos;
+
+	@FXML
+	private void handleMousePressed(MouseEvent event) {
+		if (event != null && event.getButton() == MouseButton.PRIMARY) {
+			pressStartedAtNanos = System.nanoTime();
+		}
+	}
+
+	@FXML
+	private void handleOpenProductDetail(MouseEvent event) {
+		if (!isPrimaryClickOnly(event)) {
+			return;
+		}
+
+		NavigationService.getInstance().navigateTo(SceneRegistry.PRODUCT_DETAIL_PAGE);
+	}
+
+	private boolean isPrimaryClickOnly(MouseEvent event) {
+		long pressDurationMillis = (System.nanoTime() - pressStartedAtNanos) / 1_000_000L;
+		return event != null
+			&& event.getButton() == MouseButton.PRIMARY
+			&& event.isStillSincePress()
+			&& pressDurationMillis <= MAX_CLICK_DURATION_MILLIS;
+	}
 
 	@FXML
 	private void initialize() {

@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.auction.client.component.item.AuctionCardComponentController"
+      fx:controller="com.auction.client.component.item.UpcomingAuctionCardComponentController"
     onMousePressed="#handleMousePressed"
     onMouseClicked="#handleOpenProductDetail"
       spacing="10.0" styleClass="auction-card-root">
@@ -22,13 +22,8 @@
 
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <children>
-                <Label fx:id="timeLeftLabel" text="End in 02h 31m" styleClass="auction-card-time-left" />
+                <Label fx:id="timeStartLabel" text="Starts at 02h 31m" styleClass="auction-card-time-start" />
                 <Region HBox.hgrow="ALWAYS" />
-                <StackPane prefHeight="2.0" prefWidth="190.0" styleClass="auction-card-progress-track">
-                    <children>
-                        <Region fx:id="progressFill" prefHeight="2.0" prefWidth="120.0" styleClass="auction-card-progress-fill" StackPane.alignment="CENTER_LEFT" />
-                    </children>
-                </StackPane>
             </children>
         </HBox>
 
@@ -38,12 +33,12 @@
             <children>
                 <VBox alignment="CENTER_LEFT" spacing="2.0">
                     <children>
-                        <Label text="Current bid" styleClass="auction-card-price-caption" />
+                        <Label text="Opening bid" styleClass="auction-card-price-caption" />
                         <Label fx:id="priceLabel" text="\$12,600" styleClass="auction-card-price" />
                     </children>
                 </VBox>
                 <Region HBox.hgrow="ALWAYS" />
-                <Label fx:id="biddersLabel" text="36 people bidding" styleClass="auction-card-bidders" />
+                <Label fx:id="watchersLabel" text="36 people are watching" styleClass="auction-card-bidders" />
             </children>
         </HBox>
     </children>

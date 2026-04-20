@@ -38,4 +38,7 @@
             </children>
         </VBox>
     </center>
+      <bottom>
+        <fx:include source="../components/shell/footer.fxml" />
+      </bottom>
 </BorderPane>

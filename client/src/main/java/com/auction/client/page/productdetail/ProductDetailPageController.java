@@ -1,6 +1,15 @@
 package com.auction.client.page.productdetail;
 
+import java.net.URL;
+import java.time.format.DateTimeFormatter;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
+
+import com.auction.client.config.SceneRegistry;
 import com.auction.client.scene.LifecycleAwareController;
+import com.auction.client.scene.NavigationService;
 import com.auction.client.service.NetworkService;
 import com.auction.core.auction.Bid;
 import com.auction.core.protocol.EventType;
@@ -14,13 +23,6 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
 
-import java.net.URL;
-import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
-
 public class ProductDetailPageController implements Initializable, LifecycleAwareController {
 
     private static final String HANDLER_ID = "PRODUCT_DETAIL_PAGE";
@@ -28,6 +30,26 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
     @FXML private LineChart<String, Number> bidHistoryChart;
     @FXML private CategoryAxis xAxisTime;
     @FXML private NumberAxis yAxisPrice;
+
+    @FXML
+    private void handleGoToGeneral() {
+        NavigationService.getInstance().navigateTo(SceneRegistry.GENERAL_PAGE);
+    }
+
+    @FXML
+    private void handleGoToLogin() {
+        NavigationService.getInstance().openPopup(SceneRegistry.LOGIN_PAGE);
+    }
+
+    @FXML
+    private void handleGoToRegister() {
+        NavigationService.getInstance().openPopup(SceneRegistry.REGISTER_PAGE);
+    }
+
+    @FXML
+    private void handleGoToProfile() {
+        NavigationService.getInstance().navigateTo(SceneRegistry.PROFILE_PAGE);
+    }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {

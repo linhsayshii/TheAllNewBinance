@@ -1,6 +1,8 @@
 .auction-card-root {
+    -fx-min-width: 300;
     -fx-pref-width: 300;
     -fx-max-width: 300;
+    -fx-cursor: hand;
     -fx-background-color: -surface-bg;
     -fx-border-width: 1;
     -fx-background-radius: 8;
@@ -21,6 +23,12 @@
 }
 
 .auction-card-time-left {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-text-fill: -text-secondary;
+}
+
+.auction-card-time-start {
     -fx-font-family: "Montserrat";
     -fx-font-size: 14px;
     -fx-text-fill: -text-secondary;
@@ -49,6 +57,12 @@
     -fx-font-size: 20px;
     -fx-font-weight: 400;
     -fx-text-fill: -text-primary;
+}
+
+.auction-card-price-caption {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-text-fill: -text-secondary;
 }
 
 .auction-card-bidders {

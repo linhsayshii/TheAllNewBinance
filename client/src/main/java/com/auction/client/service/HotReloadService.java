@@ -35,7 +35,7 @@ public class HotReloadService {
 
     public HotReloadService(SceneService sceneService) {
         this.sceneService = sceneService;
-        this.themeService = new ThemeService();
+        this.themeService = ThemeService.getInstance();
     }
 
     public void start() {

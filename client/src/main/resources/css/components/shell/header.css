@@ -7,6 +7,11 @@
     -fx-font-size: 14px;
     -fx-font-weight: 700;
     -fx-text-fill: -brand;
+    -fx-cursor: hand;
+}
+
+.header-brand:hover {
+    -fx-underline: true;
 }
 
 .header-context {

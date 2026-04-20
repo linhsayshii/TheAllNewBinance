@@ -5,22 +5,30 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="com.auction.client.page.register.RegisterPageController"
-      alignment="CENTER" spacing="16" styleClass="register-page-root">
-    <padding><Insets top="64" right="64" bottom="64" left="64"/></padding>
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+                     fx:controller="com.auction.client.page.register.RegisterPageController"
+                     styleClass="register-page-root">
+       <center>
+              <VBox alignment="CENTER" spacing="16">
+                     <padding><Insets top="64" right="64" bottom="64" left="64"/></padding>
 
-    <Label text="Đăng ký tài khoản" styleClass="page-title"/>
+                     <Label text="Đăng ký tài khoản" styleClass="page-title"/>
 
-    <TextField fx:id="txtUsername" promptText="Tên đăng nhập" styleClass="input-field"/>
-    <TextField fx:id="txtEmail"    promptText="Email"           styleClass="input-field"/>
-    <PasswordField fx:id="txtPassword" promptText="Mật khẩu (≥ 6 ký tự)" styleClass="input-field"/>
+                     <TextField fx:id="txtUsername" promptText="Tên đăng nhập" styleClass="input-field"/>
+                     <TextField fx:id="txtEmail"    promptText="Email"           styleClass="input-field"/>
+                     <PasswordField fx:id="txtPassword" promptText="Mật khẩu (≥ 6 ký tự)" styleClass="input-field"/>
 
-    <Label fx:id="lblError" styleClass="error-label" visible="false" managed="false"
-           wrapText="true"/>
+                     <Label fx:id="lblError" styleClass="error-label" visible="false" managed="false"
+                               wrapText="true"/>
 
-    <Button text="Tạo tài khoản"   onAction="#handleRegister"   styleClass="btn-primary" maxWidth="Infinity"/>
-    <Button text="Đã có tài khoản? Đăng nhập" onAction="#handleGoToLogin" styleClass="btn-link"/>
-</VBox>
+                     <Button text="Tạo tài khoản"   onAction="#handleRegister"   styleClass="btn-primary" maxWidth="Infinity"/>
+                     <Button text="Đã có tài khoản? Đăng nhập" onAction="#handleGoToLogin" styleClass="btn-link"/>
+              </VBox>
+       </center>
+       <bottom>
+              <fx:include source="../components/shell/footer.fxml" />
+       </bottom>
+</BorderPane>

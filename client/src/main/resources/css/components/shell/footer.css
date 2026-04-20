@@ -1,0 +1,12 @@
+.app-footer {
+    -fx-background-color: -surface-bg;
+    -fx-border-color: -brand transparent transparent transparent;
+    -fx-border-width: 0 0 0 0;
+    -fx-padding: 40 32 40 32;
+}
+
+.app-footer-text {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-text-fill: -text-secondary;
+}

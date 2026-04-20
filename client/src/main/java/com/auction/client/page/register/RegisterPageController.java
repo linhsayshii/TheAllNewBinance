@@ -1,5 +1,8 @@
 package com.auction.client.page.register;
 
+import java.net.URL;
+import java.util.ResourceBundle;
+
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.scene.LifecycleAwareController;
 import com.auction.client.scene.NavigationService;
@@ -15,9 +18,6 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
-
-import java.net.URL;
-import java.util.ResourceBundle;
 
 public class RegisterPageController implements Initializable, LifecycleAwareController {
 
@@ -55,6 +55,10 @@ public class RegisterPageController implements Initializable, LifecycleAwareCont
 
     @FXML
     private void handleGoToLogin() {
+        if (NavigationService.getInstance().isPopupOpen()) {
+            NavigationService.getInstance().openPopup(SceneRegistry.LOGIN_PAGE);
+            return;
+        }
         NavigationService.getInstance().navigateTo(SceneRegistry.LOGIN_PAGE);
     }
 
@@ -63,6 +67,10 @@ public class RegisterPageController implements Initializable, LifecycleAwareCont
         Platform.runLater(() -> {
             if (user != null) {
                 UserSessionService.getInstance().login(user);
+                if (NavigationService.getInstance().isPopupOpen()) {
+                    NavigationService.getInstance().closePopup();
+                    return;
+                }
                 NavigationService.getInstance().navigateTo(SceneRegistry.GENERAL_PAGE);
             } else {
                 lblError.setText(viewModel.parseErrorMessage(rawJson));

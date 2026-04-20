@@ -19,4 +19,24 @@ public class NavigationService {
     public void navigateTo(SceneRegistry sceneRegistry) {
         sceneService.switchTo(sceneRegistry);
     }
+
+    public void openPopup(SceneRegistry sceneRegistry) {
+        sceneService.openPopup(sceneRegistry);
+    }
+
+    public void closePopup() {
+        sceneService.closePopup();
+    }
+
+    public boolean isPopupOpen() {
+        return sceneService.isPopupOpen();
+    }
+
+    public void toggleTheme() {
+        sceneService.toggleTheme();
+    }
+
+    public boolean isDarkTheme() {
+        return sceneService.isDarkTheme();
+    }
 }

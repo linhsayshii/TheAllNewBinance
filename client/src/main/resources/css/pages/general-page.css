@@ -43,6 +43,18 @@
     -fx-background-radius: 0;
 }
 
+.gp-theme-icon-btn {
+    -fx-background-color: transparent;
+    -fx-border-color: -brand;
+    -fx-border-width: 1;
+    -fx-padding: 7 10 7 10;
+    -fx-cursor: hand;
+}
+
+.gp-theme-mode-icon {
+    -fx-icon-color: -brand;
+}
+
 .gp-nav-bar {
     -fx-background-color: -surface-bg;
     -fx-border-color: transparent transparent -brand transparent;
@@ -95,4 +107,61 @@
 .gp-section-divider {
     -fx-background-color: -text-primary;
     -fx-padding: 0 0 0 0;
+}
+
+.gp-cards-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 0 16 0;
+    -fx-fit-to-height: true;
+    -fx-pannable: true;
+}
+
+.gp-cards-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.gp-cards-carousel-wrap {
+    -fx-alignment: center;
+}
+
+.gp-cards-nav-btn {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+}
+
+.gp-cards-nav-icon {
+    -fx-icon-color: -brand;
+}
+
+.gp-cards-nav-btn:disabled {
+    -fx-opacity: 0.28;
+}
+
+.gp-block-indicators {
+    -fx-padding: 4 0 8 0;
+}
+
+.gp-block-indicator {
+    -fx-min-width: 38;
+    -fx-pref-width: 38;
+    -fx-max-width: 38;
+    -fx-min-height: 6;
+    -fx-pref-height: 6;
+    -fx-max-height: 6;
+    -fx-background-color: rgba(93, 45, 57, 0.25);
+    -fx-background-radius: 999;
+    -fx-cursor: hand;
+}
+
+.gp-block-indicator-active {
+    -fx-background-color: -brand;
 }

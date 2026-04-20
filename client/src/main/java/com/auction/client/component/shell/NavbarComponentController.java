@@ -1,8 +1,9 @@
 package com.auction.client.component.shell;
 
 import com.auction.client.config.SceneRegistry;
-import com.auction.client.scene.NavigationService;
 import com.auction.client.scene.LifecycleAwareController;
+import com.auction.client.scene.NavigationService;
+
 import javafx.fxml.FXML;
 
 public class NavbarComponentController implements LifecycleAwareController {
@@ -14,12 +15,12 @@ public class NavbarComponentController implements LifecycleAwareController {
 
     @FXML
     private void handleGoToLogin() {
-        NavigationService.getInstance().navigateTo(SceneRegistry.LOGIN_PAGE);
+        NavigationService.getInstance().openPopup(SceneRegistry.LOGIN_PAGE);
     }
 
     @FXML
     private void handleGoToRegister() {
-        NavigationService.getInstance().navigateTo(SceneRegistry.REGISTER_PAGE);
+        NavigationService.getInstance().openPopup(SceneRegistry.REGISTER_PAGE);
     }
 
     @FXML
