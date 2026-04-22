@@ -10,9 +10,11 @@ import com.auction.client.exception.SceneLoadException;
 import com.auction.client.service.ResourceLoader;
 import com.auction.client.service.ThemeService;
 
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
@@ -126,9 +128,12 @@ public class SceneService {
             if (modalDialog == null) {
                 modalDialog = new StackPane();
                 modalDialog.getStyleClass().add("app-modal-dialog");
-                modalDialog.setPrefWidth(500);
-                modalDialog.setMinWidth(500);
-                modalDialog.setMaxWidth(500);
+                modalDialog.setMinWidth(Region.USE_COMPUTED_SIZE);
+                modalDialog.setPrefWidth(Region.USE_COMPUTED_SIZE);
+                modalDialog.setMaxWidth(Region.USE_COMPUTED_SIZE);
+                modalDialog.setMinHeight(Region.USE_COMPUTED_SIZE);
+                modalDialog.setPrefHeight(Region.USE_COMPUTED_SIZE);
+                modalDialog.setMaxHeight(Region.USE_COMPUTED_SIZE);
                 modalDialog.setOnMouseClicked(event -> event.consume());
             }
 
@@ -137,6 +142,10 @@ public class SceneService {
             if (!sceneHost.getChildren().contains(modalOverlay)) {
                 sceneHost.getChildren().add(modalOverlay);
             }
+
+            // Let popup content CSS dictate dialog size (e.g. login-card/register-card).
+            syncModalSizeWithContent(popupRoot);
+            Platform.runLater(() -> syncModalSizeWithContent(popupRoot));
 
             modalController = nextModalController;
         } catch (IOException e) {
@@ -195,5 +204,32 @@ public class SceneService {
             return;
         }
         activeScenes.add(scene);
+    }
+
+    private void syncModalSizeWithContent(Parent popupRoot) {
+        popupRoot.applyCss();
+        popupRoot.autosize();
+
+        double width = popupRoot.prefWidth(-1);
+        double height = popupRoot.prefHeight(-1);
+
+        if (width <= 0 || Double.isNaN(width)) {
+            width = popupRoot.getLayoutBounds().getWidth();
+        }
+        if (height <= 0 || Double.isNaN(height)) {
+            height = popupRoot.getLayoutBounds().getHeight();
+        }
+
+        if (width > 0) {
+            modalDialog.setMinWidth(width);
+            modalDialog.setPrefWidth(width);
+            modalDialog.setMaxWidth(width);
+        }
+
+        if (height > 0) {
+            modalDialog.setMinHeight(height);
+            modalDialog.setPrefHeight(height);
+            modalDialog.setMaxHeight(height);
+        }
     }
 }

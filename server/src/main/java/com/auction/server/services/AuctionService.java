@@ -1,19 +1,19 @@
 package com.auction.server.services;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
-import com.auction.server.dao.IAuctionDao;
-import com.auction.core.dto.auction.PublicAuctionDto;
 import com.auction.core.dto.auction.CreateAuctionRequest;
 import com.auction.core.dto.auction.GetAuctionBySellerIdRequest;
+import com.auction.core.dto.auction.PublicAuctionDto;
 import com.auction.core.services.IAuctionService;
-
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import com.auction.server.dao.IAuctionDao;
 
 public class AuctionService implements IAuctionService {
     private final IAuctionDao auctionDao;
@@ -116,8 +116,10 @@ public class AuctionService implements IAuctionService {
     public CompletableFuture<List<PublicAuctionDto>> getPublicAuctions(
             com.auction.core.dto.auction.GetPublicAuctionsRequest request) {
         return CompletableFuture.supplyAsync(() -> {
+            List<String> statuses = normalizeStatuses(request.getStatus());
+
             String cacheKey = String.format("%d-%d-%s-%b-%b",
-                    request.getPage(), request.getSize(), request.getStatus(),
+                request.getPage(), request.getSize(), String.join(",", statuses),
                     request.isIncludeEndingSoon(), request.isIncludeTrending());
 
             CacheEntry entry = publicAuctionsCache.get(cacheKey);
@@ -125,10 +127,32 @@ public class AuctionService implements IAuctionService {
 
             int offset = (request.getPage() - 1) * request.getSize();
             List<PublicAuctionDto> data = auctionDao.getPublicAuctions(
-                    offset, request.getSize(), request.isIncludeEndingSoon(), request.isIncludeTrending());
+                    offset,
+                    request.getSize(),
+                    statuses,
+                    request.isIncludeEndingSoon(),
+                    request.isIncludeTrending());
 
             publicAuctionsCache.put(cacheKey, new CacheEntry(data, LocalDateTime.now().plusSeconds(30)));
             return data;
         });
+    }
+
+    private List<String> normalizeStatuses(String status) {
+        if (status == null || status.isBlank()) {
+            return List.of("ACTIVE", "PENDING");
+        }
+
+        List<String> statuses = Arrays.stream(status.split(","))
+                .map(String::trim)
+                .map(String::toUpperCase)
+                .filter(s -> !s.isBlank())
+                .distinct()
+                .toList();
+
+        if (statuses.isEmpty()) {
+            return List.of("ACTIVE", "PENDING");
+        }
+        return statuses;
     }
 }

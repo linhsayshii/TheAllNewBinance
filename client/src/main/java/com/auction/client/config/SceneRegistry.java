@@ -2,8 +2,8 @@ package com.auction.client.config;
 
 public enum SceneRegistry {
     GENERAL_PAGE("/fxml/pages/general-page.fxml", "General"),
-    LOGIN_PAGE("/fxml/pages/login-page.fxml", "Login"),
-    REGISTER_PAGE("/fxml/pages/register-page.fxml", "Register"),
+    LOGIN_CARD("/fxml/components/auth/login-card.fxml", "Login"),
+    REGISTER_CARD("/fxml/components/auth/register-card.fxml", "Register"),
     PRODUCT_DETAIL_PAGE("/fxml/pages/product-detail-page.fxml", "Product Detail"),
     PROFILE_PAGE("/fxml/pages/profile-page.fxml", "Profile");
 

@@ -4,13 +4,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.kordamp.ikonli.javafx.FontIcon;
-
 import com.auction.client.component.item.AuctionCardComponentController;
 import com.auction.client.component.item.UpcomingAuctionCardComponentController;
-import com.auction.client.config.SceneRegistry;
 import com.auction.client.dto.ProductCardUiModel;
-import com.auction.client.scene.NavigationService;
 
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
@@ -27,7 +23,7 @@ public class GeneralPageController {
 
     private static final String AUCTION_CARD_FXML = "/fxml/components/item/auction-card.fxml";
     private static final String UPCOMING_AUCTION_CARD_FXML = "/fxml/components/item/upcoming-auction-card.fxml";
-    private static final double TARGET_CARD_WIDTH = 240.0;
+    private static final double TARGET_CARD_WIDTH = 300.0;
 
     @FXML
     private HBox liveAuctionCards;
@@ -47,42 +43,23 @@ public class GeneralPageController {
     @FXML
     private HBox upcomingBlockIndicators;
 
-    @FXML
-    private FontIcon themeModeIcon;
-
     private final GeneralPageViewModel viewModel = new GeneralPageViewModel();
     private final CarouselState liveCarousel = new CarouselState();
     private final CarouselState upcomingCarousel = new CarouselState();
 
     @FXML
-    private void handleGoToLogin() {
-        NavigationService.getInstance().openPopup(SceneRegistry.LOGIN_PAGE);
-    }
-
-    @FXML
-    private void handleGoToRegister() {
-        NavigationService.getInstance().openPopup(SceneRegistry.REGISTER_PAGE);
-    }
-
-    @FXML
-    private void handleToggleTheme() {
-        NavigationService.getInstance().toggleTheme();
-        refreshThemeModeIcon();
-    }
-
-    @FXML
     private void initialize() {
         liveAuctionCards.getChildren().clear();
         upcomingAuctionCards.getChildren().clear();
-        refreshThemeModeIcon();
 
-        List<ProductCardUiModel> cards = viewModel.loadFeaturedAuctions();
-        int renderCount = 10;
+        List<ProductCardUiModel> liveCards = viewModel.loadLiveFeaturedAuctions();
+        for (ProductCardUiModel card : liveCards) {
+            liveAuctionCards.getChildren().add(loadAuctionCard(card));
+        }
 
-        for (int i = 0; i < renderCount; i++) {
-            ProductCardUiModel card = i < cards.size() ? cards.get(i) : null;
-            liveAuctionCards.getChildren().add(loadAuctionCard(card, i));
-            upcomingAuctionCards.getChildren().add(loadUpcomingAuctionCard(card, i));
+        List<ProductCardUiModel> upcomingCards = viewModel.loadUpcomingFeaturedAuctions();
+        for (ProductCardUiModel card : upcomingCards) {
+            upcomingAuctionCards.getChildren().add(loadUpcomingAuctionCard(card));
         }
 
         setupCarousel(liveCarousel, liveCardsScrollPane, liveAuctionCards, liveBlockIndicators);
@@ -151,8 +128,8 @@ public class GeneralPageController {
     }
 
     private void updateCarouselLayout(CarouselState state) {
-        double viewportWidth = state.scrollPane.getViewportBounds().getWidth();
-        if (viewportWidth <= 0) {
+        double carouselWidth = resolveVisibleCarouselWidth(state.scrollPane);
+        if (carouselWidth <= 0) {
             return;
         }
 
@@ -162,15 +139,16 @@ public class GeneralPageController {
             return;
         }
 
-        int itemsPerBlock = Math.max(1, (int) Math.floor((viewportWidth + spacing) / (TARGET_CARD_WIDTH + spacing)));
-        state.itemsPerBlock = Math.min(itemsPerBlock, totalItems);
+        int itemsPerView = Math.max(1, (int) Math.floor((carouselWidth + spacing) / (TARGET_CARD_WIDTH + spacing)));
+        state.itemsPerBlock = itemsPerView;
 
-        double cardWidth = (viewportWidth - (state.itemsPerBlock - 1) * spacing) / state.itemsPerBlock;
-        for (Node node : state.cardsContainer.getChildren()) {
-            if (node instanceof Region region) {
-                region.setMinWidth(cardWidth);
-                region.setPrefWidth(cardWidth);
-                region.setMaxWidth(cardWidth);
+        double actualCardWidth = (carouselWidth - spacing * (itemsPerView - 1)) / itemsPerView;
+
+        for (Node card : state.cardsContainer.getChildren()) {
+            if (card instanceof Region regionCard) {
+                regionCard.setPrefWidth(actualCardWidth);
+                regionCard.setMinWidth(actualCardWidth);
+                regionCard.setMaxWidth(actualCardWidth);
             }
         }
 
@@ -178,6 +156,34 @@ public class GeneralPageController {
         rebuildBlockIndicators(state);
         state.currentBlockIndex = Math.min(state.currentBlockIndex, Math.max(0, state.blockStarts.size() - 1));
         updateIndicatorState(state);
+    }
+
+    private double resolveVisibleCarouselWidth(ScrollPane scrollPane) {
+        Node viewport = scrollPane.lookup(".viewport");
+        if (viewport instanceof Region viewportRegion) {
+            double width = viewportRegion.getWidth()
+                    - viewportRegion.getInsets().getLeft()
+                    - viewportRegion.getInsets().getRight();
+            if (width > 0) {
+                return width;
+            }
+        }
+
+        if (viewport != null) {
+            double width = viewport.getLayoutBounds().getWidth();
+            if (width > 0) {
+                return width;
+            }
+        }
+
+        double viewportBoundsWidth = scrollPane.getViewportBounds().getWidth();
+        if (viewportBoundsWidth > 0) {
+            return viewportBoundsWidth;
+        }
+
+        return scrollPane.getWidth()
+                - scrollPane.getInsets().getLeft()
+                - scrollPane.getInsets().getRight();
     }
 
     private void rebuildBlockStarts(CarouselState state, int totalItems) {
@@ -281,30 +287,13 @@ public class GeneralPageController {
         private boolean programmaticScroll;
     }
 
-    private void refreshThemeModeIcon() {
-        if (themeModeIcon == null) {
-            return;
-        }
-
-        if (NavigationService.getInstance().isDarkTheme()) {
-            themeModeIcon.setIconLiteral("fas-moon");
-        } else {
-            themeModeIcon.setIconLiteral("fas-sun");
-        }
-    }
-
-    private VBox loadAuctionCard(ProductCardUiModel card, int index) {
+    private VBox loadAuctionCard(ProductCardUiModel card) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource(AUCTION_CARD_FXML));
 
         try {
             VBox cardRoot = loader.load();
             AuctionCardComponentController controller = loader.getController();
-
-            if (card != null) {
-                controller.setData(card);
-            } else {
-                controller.useFakeData(index);
-            }
+            controller.setData(card);
 
             return cardRoot;
         } catch (IOException e) {
@@ -312,18 +301,13 @@ public class GeneralPageController {
         }
     }
 
-    private VBox loadUpcomingAuctionCard(ProductCardUiModel card, int index) {
+    private VBox loadUpcomingAuctionCard(ProductCardUiModel card) {
         FXMLLoader loader = new FXMLLoader(getClass().getResource(UPCOMING_AUCTION_CARD_FXML));
 
         try {
             VBox cardRoot = loader.load();
             UpcomingAuctionCardComponentController controller = loader.getController();
-
-            if (card != null) {
-                controller.setData(card);
-            } else {
-                controller.useFakeData(index);
-            }
+            controller.setData(card);
 
             return cardRoot;
         } catch (IOException e) {

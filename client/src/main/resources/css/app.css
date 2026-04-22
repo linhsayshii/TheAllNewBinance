@@ -10,8 +10,8 @@
 @import url("components/item/auction-card.css");
 @import url("components/control/search-bar.css");
 @import url("components/control/theme-toggle.css");
+@import url("components/auth/login-card.css");
+@import url("components/auth/register-card.css");
 @import url("pages/general-page.css");
-@import url("pages/login-page.css");
-@import url("pages/register-page.css");
 @import url("pages/product-detail-page.css");
 @import url("pages/profile-page.css");

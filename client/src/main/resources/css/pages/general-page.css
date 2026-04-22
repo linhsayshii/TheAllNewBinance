@@ -2,72 +2,6 @@
     -fx-background-color: -app-bg;
 }
 
-.gp-top-bar {
-    -fx-background-color: -surface-bg;
-    -fx-border-color: transparent transparent -brand transparent;
-    -fx-border-width: 0 0 1 0;
-}
-
-.gp-logo-line {
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 20px;
-    -fx-font-weight: 800;
-    -fx-text-fill: -brand;
-}
-
-.gp-search-field {
-    -fx-background-color: transparent;
-    -fx-border-color: -brand;
-    -fx-border-width: 1;
-    -fx-font-family: "Inria Serif";
-    -fx-font-size: 14px;
-    -fx-text-fill: -text-primary;
-    -fx-prompt-text-fill: rgba(93, 45, 57, 0.9);
-    -fx-padding: 10 14 10 14;
-}
-
-.gp-top-link {
-    -fx-font-family: "Inria Serif";
-    -fx-font-size: 16px;
-    -fx-text-fill: -text-primary;
-    -fx-border-color: transparent;
-    -fx-underline: false;
-}
-
-.gp-signup-btn {
-    -fx-background-color: -brand;
-    -fx-text-fill: white;
-    -fx-font-family: "Inria Serif";
-    -fx-font-size: 16px;
-    -fx-padding: 8 14 8 14;
-    -fx-background-radius: 0;
-}
-
-.gp-theme-icon-btn {
-    -fx-background-color: transparent;
-    -fx-border-color: -brand;
-    -fx-border-width: 1;
-    -fx-padding: 7 10 7 10;
-    -fx-cursor: hand;
-}
-
-.gp-theme-mode-icon {
-    -fx-icon-color: -brand;
-}
-
-.gp-nav-bar {
-    -fx-background-color: -surface-bg;
-    -fx-border-color: transparent transparent -brand transparent;
-    -fx-border-width: 0 0 1 0;
-}
-
-.gp-nav-item {
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 16px;
-    -fx-font-weight: 600;
-    -fx-text-fill: -brand;
-}
-
 .gp-scroll {
     -fx-background-color: -app-bg;
     -fx-background: -app-bg;
@@ -82,7 +16,7 @@
 }
 
 .gp-banner-pane {
-    -fx-background-color: -panel-bg;
+    -fx-background-color: #FFD3DB;
 }
 
 .gp-banner-title {
@@ -93,12 +27,12 @@
 }
 
 .gp-section-wrap {
-    -fx-padding: 0 0 0 120;
+    -fx-padding: 0 0 0 0;
 }
 
 .gp-section-title {
     -fx-font-family: "Inria Serif";
-    -fx-font-size: 32px;
+    -fx-font-size: 40px;
     -fx-font-weight: 700;
     -fx-text-fill: -text-primary;
     -fx-padding: 40 0 0 0;
@@ -113,7 +47,7 @@
     -fx-background-color: transparent;
     -fx-background: transparent;
     -fx-border-color: transparent;
-    -fx-padding: 0 0 16 0;
+    -fx-padding: 0 0 40 0;
     -fx-fit-to-height: true;
     -fx-pannable: true;
 }

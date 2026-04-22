@@ -1,3 +1,4 @@
 .profile-page-root {
     -fx-background-color: -app-bg;
+    -fx-padding: 0 24 0 24;
 }

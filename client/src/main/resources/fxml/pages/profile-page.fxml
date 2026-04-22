@@ -4,12 +4,21 @@
 <?import javafx.scene.layout.BorderPane?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="com.auction.client.page.profile.ProfilePageController"
             styleClass="profile-page-root">
+    <top>
+        <VBox>
+            <children>
+                <fx:include source="../components/shell/header.fxml" />
+                <fx:include source="../components/shell/navbar.fxml" />
+            </children>
+        </VBox>
+    </top>
     <center>
-        <StackPane>
+        <StackPane styleClass="page-content-inset">
             <children>
                 <Label text="Profile Page" styleClass="page-title" />
             </children>

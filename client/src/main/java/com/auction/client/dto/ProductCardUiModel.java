@@ -1,4 +1,25 @@
 package com.auction.client.dto;
 
-public record ProductCardUiModel(String title, String seller, String currentBid, String timeLeft) {
+import java.time.LocalDateTime;
+
+public record ProductCardUiModel(
+		Integer auctionId,
+		String status,
+		String title,
+		String seller,
+		String currentBid,
+		String timeLeft,
+		LocalDateTime sortTime) {
+
+	public ProductCardUiModel(String title, String seller, String currentBid, String timeLeft) {
+		this(null, null, title, seller, currentBid, timeLeft, null);
+	}
+
+	public boolean isLive() {
+		return "ACTIVE".equalsIgnoreCase(status);
+	}
+
+	public boolean isUpcoming() {
+		return "PENDING".equalsIgnoreCase(status);
+	}
 }

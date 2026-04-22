@@ -1,3 +1,7 @@
 .general-page-center {
     -fx-spacing: 12px;
 }
+
+.page-content-inset {
+    -fx-padding: 0 150 40 150;
+}
