@@ -76,6 +76,7 @@ public class AuctionController {
 		} catch (IllegalArgumentException ex) {
 			return JsonMapper.toJson(errorResponse(ex.getMessage()));
 		} catch (Exception ex) {
+			ex.printStackTrace();
 			return JsonMapper.toJson(errorResponse("Internal server error"));
 		}
 	}
