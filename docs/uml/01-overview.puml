@@ -1,10 +1,13 @@
 @startuml TheAllNewBinance_Overview
 title TheAllNewBinance - Module Overview
+!include _theme.puml
 
-skinparam shadowing false
-skinparam linetype ortho
-skinparam packageStyle rectangle
-skinparam componentStyle rectangle
+left to right direction
+
+legend left
+  Read this first.
+  Only the high-level module dependency direction is shown here.
+endlegend
 
 [client] as clientModule
 [core] as coreModule
@@ -41,5 +44,8 @@ note right of serverModule
   - services
   - DAO implementations
 end note
+
+clientModule -[hidden]-> coreModule
+coreModule -[hidden]-> serverModule
 
 @enduml

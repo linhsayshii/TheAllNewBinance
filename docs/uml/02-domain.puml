@@ -1,9 +1,15 @@
 @startuml TheAllNewBinance_Domain
 title TheAllNewBinance - Domain Model
+!include _theme.puml
 
-skinparam shadowing false
-skinparam linetype ortho
-skinparam classAttributeIconSize 0
+left to right direction
+
+legend left
+  Focus:
+  - inheritance from Entity
+  - main business entities
+  - core domain relationships
+endlegend
 
 abstract class Entity {
   # createdAt : LocalDateTime
@@ -94,5 +100,9 @@ Item "1" --> "0..1" Auction : listed in
 Auction "1" --> "0..*" Bid : receives
 User "1" --> "0..*" Bid : places
 Auction "0..1" --> "1" User : winner
+
+User -[hidden]-> Item
+Item -[hidden]-> Auction
+Auction -[hidden]-> Bid
 
 @enduml

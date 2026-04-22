@@ -1,10 +1,13 @@
 @startuml TheAllNewBinance_Client
 title TheAllNewBinance - Client Class Diagram
+!include _theme.puml
 
-skinparam shadowing false
-skinparam linetype ortho
-skinparam packageStyle rectangle
-skinparam classAttributeIconSize 0
+top to bottom direction
+
+legend left
+  Flow is arranged top-down:
+  app/config -> scene -> page/viewmodel -> service/mapper/dto.
+endlegend
 
 package "app" {
   class ClientApp {
@@ -17,13 +20,13 @@ package "app" {
 
 package "config" {
   class AppConfig {
-    + stylesheets() : List~String~
+    + stylesheets() : List<String>
     + defaultWidth() : double
     + defaultHeight() : double
     + minWidth() : double
     + minHeight() : double
     + isHotReloadEnabled() : boolean
-    + sourceResourceRoot() : Optional~Path~
+    + sourceResourceRoot() : Optional<Path>
   }
 
   enum SceneRegistry {
@@ -42,13 +45,13 @@ package "scene" {
   class SceneService {
     - stage : Stage
     - resourceLoader : ResourceLoader
-    - stylesheets : List~String~
+    - stylesheets : List<String>
     - currentSceneRegistry : SceneRegistry
-    - activeScenes : List~Scene~
+    - activeScenes : List<Scene>
     + switchTo(sceneRegistry : SceneRegistry)
     + currentSceneRegistry() : SceneRegistry
     + currentScene() : Scene
-    + activeScenes() : List~Scene~
+    + activeScenes() : List<Scene>
     + reloadStylesheets()
     + reloadCurrentScene()
   }
@@ -68,7 +71,7 @@ package "page.general" {
 
   class GeneralPageViewModel {
     - auctionQueryService : AuctionQueryService
-    + loadFeaturedAuctions() : List~ProductCardUiModel~
+    + loadFeaturedAuctions() : List<ProductCardUiModel>
   }
 }
 
@@ -94,7 +97,7 @@ package "component" {
 package "service" {
   class AuctionQueryService {
     - mapper : ProductCardMapper
-    + getFeaturedAuctions() : List~ProductCardUiModel~
+    + getFeaturedAuctions() : List<ProductCardUiModel>
   }
 
   class HotReloadService {
@@ -180,5 +183,20 @@ note bottom of AuctionQueryService
   placeholder UI data instead of
   calling the backend.
 end note
+
+ClientApp -[hidden]-> SceneService
+SceneService -[hidden]-> GeneralPageController
+GeneralPageController -[hidden]-> GeneralPageViewModel
+GeneralPageViewModel -[hidden]-> AuctionQueryService
+AuctionQueryService -[hidden]-> ProductCardMapper
+ProductCardMapper -[hidden]-> ProductCardUiModel
+GeneralPageController -[hidden]-> LoginPageController
+LoginPageController -[hidden]-> ProductDetailPageController
+ProductDetailPageController -[hidden]-> ProfilePageController
+ProfilePageController -[hidden]-> RegisterPageController
+GeneralPageViewModel -[hidden]-> LoginPageViewModel
+LoginPageViewModel -[hidden]-> ProductDetailPageViewModel
+ProductDetailPageViewModel -[hidden]-> ProfilePageViewModel
+ProfilePageViewModel -[hidden]-> RegisterPageViewModel
 
 @enduml

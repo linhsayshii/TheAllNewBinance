@@ -1,10 +1,13 @@
 @startuml TheAllNewBinance_Core_Contracts
 title TheAllNewBinance - Core Contracts
+!include _theme.puml
 
-skinparam shadowing false
-skinparam linetype ortho
-skinparam packageStyle rectangle
-skinparam classAttributeIconSize 0
+left to right direction
+
+legend left
+  Shared contracts between client and server.
+  DTO groups are separated from interfaces to keep arrows readable.
+endlegend
 
 package "dto.user" {
   class LoginRequest {
@@ -83,13 +86,13 @@ package "dao" {
     + updateCurrentPrice(bid : Bid)
     + updateAuctionForBid(bid : Bid, auction : Auction) : boolean
     + getSellerId(auctionId : Integer) : Integer
-    + getAuctionsBySellerId(sellerId : Integer) : List~Auction~
+    + getAuctionsBySellerId(sellerId : Integer) : List<Auction>
   }
 
   interface IBidDao {
     + saveBid(bid : Bid) : boolean
-    + findByAuctionId(auctionId : Integer) : List~Bid~
-    + findByBidderId(bidderId : Integer) : List~Bid~
+    + findByAuctionId(auctionId : Integer) : List<Bid>
+    + findByBidderId(bidderId : Integer) : List<Bid>
     + hasBid(auctionId : Integer, bidderId : Integer) : boolean
   }
 
@@ -98,29 +101,29 @@ package "dao" {
 
 package "services" {
   interface IUserService {
-    + registerUser(request : RegisterRequest) : CompletableFuture~User~
-    + login(request : LoginRequest) : CompletableFuture~User~
-    + updateProfile(request : UpdateProfileRequest) : CompletableFuture~Void~
-    + changePassword(request : UpdatePasswordRequest) : CompletableFuture~Void~
+    + registerUser(request : RegisterRequest) : Future<User>
+    + login(request : LoginRequest) : Future<User>
+    + updateProfile(request : UpdateProfileRequest) : Future<Void>
+    + changePassword(request : UpdatePasswordRequest) : Future<Void>
   }
 
   interface IAuctionService {
-    + processBid(bid : Bid, auction : Auction) : CompletableFuture~Void~
-    + createAuction(request : CreateAuctionRequest) : CompletableFuture~Auction~
-    + deleteAuction(auctionId : Integer) : CompletableFuture~Auction~
-    + validateBid(auctionId : Integer, amount : Double) : CompletableFuture~Boolean~
-    + applySnipeExtension(auction : Auction) : CompletableFuture~Boolean~
-    + getAuctionDetails(auctionId : Integer) : CompletableFuture~Auction~
-    + getSellerId(auctionId : Integer) : CompletableFuture~Integer~
-    + getAuctionsBySellerId(request : GetAuctionBySellerIdRequest) : CompletableFuture~List~Auction~~
+    + processBid(bid : Bid, auction : Auction) : Future<Void>
+    + createAuction(request : CreateAuctionRequest) : Future<Auction>
+    + deleteAuction(auctionId : Integer) : Future<Auction>
+    + validateBid(auctionId : Integer, amount : Double) : Future<Boolean>
+    + applySnipeExtension(auction : Auction) : Future<Boolean>
+    + getAuctionDetails(auctionId : Integer) : Future<Auction>
+    + getSellerId(auctionId : Integer) : Future<Integer>
+    + getAuctionsBySellerId(request : GetAuctionBySellerIdRequest) : Future<List<Auction>>
   }
 
   interface IBidService {
-    + placeBid(request : PlaceBid) : CompletableFuture~Bid~
-    + validateUserBid(auctionId : Integer, user : User) : CompletableFuture~Boolean~
-    + automaticallyPlaceBid(auctionId : Integer, increment : double, maxAmount : double) : CompletableFuture~Void~
-    + getBidsByAuctionId(request : GetBidByAuctionIdRequest) : CompletableFuture~List~Bid~~
-    + getBidsByBidderId(request : GetBidByBidderIdRequest) : CompletableFuture~List~Bid~~
+    + placeBid(request : PlaceBid) : Future<Bid>
+    + validateUserBid(auctionId : Integer, user : User) : Future<Boolean>
+    + automaticallyPlaceBid(auctionId : Integer, increment : double, maxAmount : double) : Future<Void>
+    + getBidsByAuctionId(request : GetBidByAuctionIdRequest) : Future<List<Bid>>
+    + getBidsByBidderId(request : GetBidByBidderIdRequest) : Future<List<Bid>>
   }
 
   interface IItemService
@@ -144,7 +147,7 @@ package "protocol" {
 package "utils" {
   class JsonMapper {
     + toJson(object : Object) : String
-    + fromJson(json : String, clazz : Class~T~) : T
+    + fromJson(json : String, clazz : Class) : Object
   }
   class PasswordHasher {
     + hash(plainPassword : String) : String
@@ -179,5 +182,19 @@ IAuctionDao ..> Bid
 IBidDao ..> Bid
 
 JsonMapper ..> EventType
+
+User -[hidden]-> Auction
+Auction -[hidden]-> Bid
+IUserDao -[hidden]-> IAuctionDao
+IAuctionDao -[hidden]-> IBidDao
+IUserService -[hidden]-> IAuctionService
+IAuctionService -[hidden]-> IBidService
+LoginRequest -[hidden]-> RegisterRequest
+RegisterRequest -[hidden]-> UpdateProfileRequest
+UpdateProfileRequest -[hidden]-> UpdatePasswordRequest
+CreateAuctionRequest -[hidden]-> GetAuctionBySellerIdRequest
+GetAuctionBySellerIdRequest -[hidden]-> GetAuctionDetailsRequest
+PlaceBid -[hidden]-> GetBidByAuctionIdRequest
+GetBidByAuctionIdRequest -[hidden]-> GetBidByBidderIdRequest
 
 @enduml

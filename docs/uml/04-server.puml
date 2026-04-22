@@ -1,10 +1,14 @@
 @startuml TheAllNewBinance_Server
 title TheAllNewBinance - Server Class Diagram
+!include _theme.puml
 
-skinparam shadowing false
-skinparam linetype ortho
-skinparam packageStyle rectangle
-skinparam classAttributeIconSize 0
+top to bottom direction
+
+legend left
+  Flow is arranged top-down:
+  bootstrap -> network/controller -> services -> DAO.
+  Arrow labels were reduced to avoid text sticking to lines.
+endlegend
 
 package "bootstrap" {
   class ServerApp {
@@ -15,7 +19,7 @@ package "bootstrap" {
 package "network" {
   class SocketServer {
     - dispatcher : RequestDispatcher
-    - userSessions : Map~WebSocket,Integer~
+    - userSessions : Map<WebSocket,Integer>
     + onOpen(conn, handshake)
     + onClose(conn, code, reason, remote)
     + onMessage(conn, message)
@@ -31,7 +35,7 @@ package "controller" {
     - bidCtrl : BidController
     + dispatch(sessionUserId : Integer, rawJson : String) : String
     - isAnonymousAllowed(type : EventType) : boolean
-    - overridePayloadIdentity(type : EventType, payload : Map~String,Object~, sessionUserId : Integer)
+    - overridePayloadIdentity(type : EventType, payload : Map<String,Object>, sessionUserId : Integer)
   }
 
   class UserController {
@@ -60,32 +64,32 @@ package "controller" {
 package "services" {
   class UserService {
     - userDao : IUserDao
-    + registerUser(request : RegisterRequest) : CompletableFuture~User~
-    + login(request : LoginRequest) : CompletableFuture~User~
-    + updateProfile(request : UpdateProfileRequest) : CompletableFuture~Void~
-    + changePassword(request : UpdatePasswordRequest) : CompletableFuture~Void~
+    + registerUser(request : RegisterRequest) : Future<User>
+    + login(request : LoginRequest) : Future<User>
+    + updateProfile(request : UpdateProfileRequest) : Future<Void>
+    + changePassword(request : UpdatePasswordRequest) : Future<Void>
   }
 
   class AuctionService {
     - auctionDao : IAuctionDao
-    + createAuction(request : CreateAuctionRequest) : CompletableFuture~Auction~
-    + processBid(bid : Bid, auction : Auction) : CompletableFuture~Void~
-    + deleteAuction(auctionId : Integer) : CompletableFuture~Auction~
-    + applySnipeExtension(auction : Auction) : CompletableFuture~Boolean~
-    + validateBid(auctionId : Integer, amount : Double) : CompletableFuture~Boolean~
-    + getAuctionDetails(auctionId : Integer) : CompletableFuture~Auction~
-    + getSellerId(auctionId : Integer) : CompletableFuture~Integer~
+    + createAuction(request : CreateAuctionRequest) : Future<Auction>
+    + processBid(bid : Bid, auction : Auction) : Future<Void>
+    + deleteAuction(auctionId : Integer) : Future<Auction>
+    + applySnipeExtension(auction : Auction) : Future<Boolean>
+    + validateBid(auctionId : Integer, amount : Double) : Future<Boolean>
+    + getAuctionDetails(auctionId : Integer) : Future<Auction>
+    + getSellerId(auctionId : Integer) : Future<Integer>
   }
 
   class BidService {
     - bidDao : IBidDao
     - auctionService : IAuctionService
     - userDao : IUserDao
-    + placeBid(request : PlaceBid) : CompletableFuture~Bid~
-    + validateUserBid(auctionId : Integer, user : User) : CompletableFuture~Boolean~
-    + automaticallyPlaceBid(auctionId : Integer, increment : double, maxAmount : double) : CompletableFuture~Void~
-    + getBidsByAuctionId(request : GetBidByAuctionIdRequest) : CompletableFuture~List~Bid~~
-    + getBidsByBidderId(request : GetBidByBidderIdRequest) : CompletableFuture~List~Bid~~
+    + placeBid(request : PlaceBid) : Future<Bid>
+    + validateUserBid(auctionId : Integer, user : User) : Future<Boolean>
+    + automaticallyPlaceBid(auctionId : Integer, increment : double, maxAmount : double) : Future<Void>
+    + getBidsByAuctionId(request : GetBidByAuctionIdRequest) : Future<List<Bid>>
+    + getBidsByBidderId(request : GetBidByBidderIdRequest) : Future<List<Bid>>
   }
 
   class ItemService
@@ -124,8 +128,8 @@ package "dao" {
 
   class BidDao {
     + saveBid(bid : Bid) : boolean
-    + findByBidderId(bidderId : Integer) : List~Bid~
-    + findByAuctionId(auctionId : Integer) : List~Bid~
+    + findByBidderId(bidderId : Integer) : List<Bid>
+    + findByAuctionId(auctionId : Integer) : List<Bid>
     + hasBid(auctionId : Integer, bidderId : Integer) : boolean
   }
 
@@ -154,17 +158,17 @@ enum EventType
 class JsonMapper
 class PasswordHasher
 
-ServerApp --> UserDao : create
-ServerApp --> AuctionDao : create
-ServerApp --> BidDao : create
-ServerApp --> UserService : inject
-ServerApp --> AuctionService : inject
-ServerApp --> BidService : inject
-ServerApp --> UserController : inject
-ServerApp --> AuctionController : inject
-ServerApp --> BidController : inject
-ServerApp --> RequestDispatcher : inject
-ServerApp --> SocketServer : start
+ServerApp --> UserDao
+ServerApp --> AuctionDao
+ServerApp --> BidDao
+ServerApp --> UserService
+ServerApp --> AuctionService
+ServerApp --> BidService
+ServerApp --> UserController
+ServerApp --> AuctionController
+ServerApp --> BidController
+ServerApp --> RequestDispatcher
+ServerApp --> SocketServer
 
 SocketServer --> RequestDispatcher
 SocketServer --> JsonMapper
@@ -202,5 +206,14 @@ BidService --> DBConnection
 UserDao --> DBConnection
 AuctionDao --> DBConnection
 BidDao --> DBConnection
+
+ServerApp -[hidden]-> SocketServer
+RequestDispatcher -[hidden]-> UserController
+UserController -[hidden]-> AuctionController
+AuctionController -[hidden]-> BidController
+UserService -[hidden]-> AuctionService
+AuctionService -[hidden]-> BidService
+UserDao -[hidden]-> AuctionDao
+AuctionDao -[hidden]-> BidDao
 
 @enduml
