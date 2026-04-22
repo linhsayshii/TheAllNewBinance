@@ -17,4 +17,5 @@ public interface IAuctionService {
     CompletableFuture<Auction> getAuctionDetails(Integer auctionId);
     CompletableFuture<Integer> getSellerId(Integer auctionId);
     CompletableFuture<List<Auction>> getAuctionsBySellerId(GetAuctionBySellerIdRequest request);
+    CompletableFuture<List<com.auction.core.dto.auction.PublicAuctionDto>> getPublicAuctions(com.auction.core.dto.auction.GetPublicAuctionsRequest request);
 }

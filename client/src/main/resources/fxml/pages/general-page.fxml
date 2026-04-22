@@ -1,27 +1,157 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
-<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 
-<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.auction.client.page.general.GeneralPageController"
-            styleClass="general-page-root">
-    <top>
-        <fx:include source="../components/shell/header.fxml" />
-    </top>
-    <left>
-        <fx:include source="../components/shell/navbar.fxml" />
-    </left>
-    <center>
-        <VBox spacing="12.0" styleClass="general-page-center" BorderPane.alignment="CENTER" fx:id="cardsContainer">
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.auction.client.page.general.GeneralPageController"
+      styleClass="general-page-root">
+    <children>
+        <HBox alignment="CENTER_LEFT" spacing="20.0" styleClass="gp-top-bar">
             <padding>
-                <Insets top="20" right="20" bottom="20" left="20" />
+                <Insets top="18.0" right="52.0" bottom="18.0" left="52.0" />
             </padding>
             <children>
-                <fx:include source="../components/control/search-bar.fxml" />
-                <fx:include source="../components/control/theme-toggle.fxml" />
+                <VBox alignment="CENTER_LEFT" spacing="0.0">
+                    <children>
+                        <Label text="LOGO" styleClass="gp-logo-line" />
+                        <Label text="NEWBINANCE" styleClass="gp-logo-line" />
+                    </children>
+                </VBox>
+                <TextField fx:id="searchField"
+                           promptText="Search items and sellers"
+                           prefWidth="520.0"
+                           styleClass="gp-search-field" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label text="Notifications" styleClass="gp-top-link" />
+                <Hyperlink text="Log in" onAction="#handleGoToLogin" styleClass="gp-top-link" />
+                <Button text="Sign Up" onAction="#handleGoToRegister" styleClass="gp-signup-btn" />
+                <Button onAction="#handleToggleTheme" styleClass="gp-theme-icon-btn">
+                    <graphic>
+                        <FontIcon fx:id="themeModeIcon" iconLiteral="fas-sun" iconSize="18" styleClass="gp-theme-mode-icon" />
+                    </graphic>
+                </Button>
             </children>
-        </VBox>
-    </center>
-</BorderPane>
+        </HBox>
+
+        <HBox alignment="CENTER_LEFT" spacing="72.0" styleClass="gp-nav-bar">
+            <padding>
+                <Insets top="14.0" right="52.0" bottom="14.0" left="52.0" />
+            </padding>
+            <children>
+                <Label text="AUCTIONS" styleClass="gp-nav-item" />
+                <Label text="ALL ITEMS" styleClass="gp-nav-item" />
+                <Label text="SELLERS" styleClass="gp-nav-item" />
+            </children>
+        </HBox>
+
+        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="gp-scroll">
+            <content>
+                <VBox styleClass="gp-content-root">
+                    <children>
+                        <StackPane prefHeight="280.0" styleClass="gp-banner-pane">
+                            <children>
+                                <Label text="Banner" styleClass="gp-banner-title" />
+                            </children>
+                        </StackPane>
+
+                        <VBox spacing="18.0" styleClass="gp-section-wrap">
+                            <padding>
+                                <Insets top="56.0" right="0.0" bottom="20.0" left="0.0" />
+                            </padding>
+                            <children>
+                                <Label text="Live Auctions" styleClass="gp-section-title" />
+                                <Region prefHeight="1.0" prefWidth="470.0" styleClass="gp-section-divider" />
+                                <HBox alignment="CENTER" spacing="16.0" styleClass="gp-cards-carousel-wrap">
+                                    <children>
+                                        <Button onAction="#handlePrevLiveBlock" styleClass="gp-cards-nav-btn" focusTraversable="false">
+                                            <graphic>
+                                                <FontIcon iconLiteral="fas-arrow-alt-circle-left" iconSize="26" styleClass="gp-cards-nav-icon" />
+                                            </graphic>
+                                        </Button>
+                                        <ScrollPane fx:id="liveCardsScrollPane"
+                                                    fitToHeight="true"
+                                                    fitToWidth="false"
+                                                    hbarPolicy="NEVER"
+                                                    vbarPolicy="NEVER"
+                                                    pannable="true"
+                                                    styleClass="gp-cards-scroll">
+                                            <HBox.hgrow>
+                                                <Priority fx:constant="ALWAYS" />
+                                            </HBox.hgrow>
+                                            <content>
+                                                <HBox fx:id="liveAuctionCards" spacing="40.0" alignment="TOP_LEFT" />
+                                            </content>
+                                        </ScrollPane>
+                                        <Button onAction="#handleNextLiveBlock" styleClass="gp-cards-nav-btn" focusTraversable="false">
+                                            <graphic>
+                                                <FontIcon iconLiteral="fas-arrow-alt-circle-right" iconSize="26" styleClass="gp-cards-nav-icon" />
+                                            </graphic>
+                                        </Button>
+                                    </children>
+                                </HBox>
+                                <HBox fx:id="liveBlockIndicators" alignment="CENTER" spacing="8.0" styleClass="gp-block-indicators" />
+                            </children>
+                        </VBox>
+
+                        <VBox spacing="18.0" styleClass="gp-section-wrap">
+                            <padding>
+                                <Insets top="24.0" right="0.0" bottom="80.0" left="0.0" />
+                            </padding>
+                            <children>
+                                <Label text="Upcoming Online Auctions" styleClass="gp-section-title" />
+                                <Region prefHeight="1.0" prefWidth="470.0" styleClass="gp-section-divider" />
+                                <HBox alignment="CENTER" spacing="16.0" styleClass="gp-cards-carousel-wrap">
+                                    <children>
+                                        <Button onAction="#handlePrevUpcomingBlock" styleClass="gp-cards-nav-btn" focusTraversable="false">
+                                            <graphic>
+                                                <FontIcon iconLiteral="fas-arrow-alt-circle-left" iconSize="26" styleClass="gp-cards-nav-icon" />
+                                            </graphic>
+                                        </Button>
+                                        <ScrollPane fx:id="upcomingCardsScrollPane"
+                                                    fitToHeight="true"
+                                                    fitToWidth="false"
+                                                    hbarPolicy="NEVER"
+                                                    vbarPolicy="NEVER"
+                                                    pannable="true"
+                                                    styleClass="gp-cards-scroll">
+                                            <HBox.hgrow>
+                                                <Priority fx:constant="ALWAYS" />
+                                            </HBox.hgrow>
+                                            <content>
+                                                <HBox fx:id="upcomingAuctionCards" spacing="40.0" alignment="TOP_LEFT" />
+                                            </content>
+                                        </ScrollPane>
+                                        <Button onAction="#handleNextUpcomingBlock" styleClass="gp-cards-nav-btn" focusTraversable="false">
+                                            <graphic>
+                                                <FontIcon iconLiteral="fas-arrow-alt-circle-right" iconSize="26" styleClass="gp-cards-nav-icon" />
+                                            </graphic>
+                                        </Button>
+                                    </children>
+                                </HBox>
+                                <HBox fx:id="upcomingBlockIndicators" alignment="CENTER" spacing="8.0" styleClass="gp-block-indicators" />
+                            </children>
+                        </VBox>
+
+                        <fx:include source="../components/shell/footer.fxml" />
+
+                    </children>
+                </VBox>
+            </content>
+            <VBox.vgrow>
+                <Priority fx:constant="ALWAYS" />
+            </VBox.vgrow>
+        </ScrollPane>
+
+    </children>
+</VBox>

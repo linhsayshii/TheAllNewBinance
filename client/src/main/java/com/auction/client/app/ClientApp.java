@@ -4,7 +4,9 @@ import com.auction.client.config.AppConfig;
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.scene.NavigationService;
 import com.auction.client.scene.SceneService;
+import com.auction.client.service.FontLoaderService;
 import com.auction.client.service.HotReloadService;
+import com.auction.client.service.NetworkService;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -15,6 +17,11 @@ public class ClientApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        // Init socket FIRST — controllers may register handlers on initialize()
+        NetworkService.init("ws://172.27.1.45:8080");
+
+        FontLoaderService.preloadProjectFonts();
+
         SceneService sceneService = new SceneService(primaryStage, AppConfig.stylesheets());
         NavigationService navigationService = new NavigationService(sceneService);
         hotReloadService = new HotReloadService(sceneService);
@@ -34,6 +41,7 @@ public class ClientApp extends Application {
         if (hotReloadService != null) {
             hotReloadService.stop();
         }
+        NetworkService.getInstance().shutdown();
     }
 
     public static void main(String[] args) {

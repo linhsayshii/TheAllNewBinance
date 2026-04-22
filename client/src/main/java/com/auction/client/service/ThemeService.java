@@ -6,6 +6,8 @@ import javafx.scene.Scene;
 
 public class ThemeService {
 
+    private static final ThemeService INSTANCE = new ThemeService();
+
     public enum Theme {
         LIGHT("/css/themes/light.css"),
         DARK("/css/themes/dark.css");
@@ -24,16 +26,29 @@ public class ThemeService {
     private final ResourceLoader resourceLoader = new ResourceLoader();
     private Theme currentTheme = Theme.LIGHT;
 
+    private ThemeService() {
+    }
+
+    public static ThemeService getInstance() {
+        return INSTANCE;
+    }
+
     public Theme currentTheme() {
         return currentTheme;
     }
 
     public void apply(Scene scene, Theme theme) {
+        if (scene == null || theme == null) {
+            return;
+        }
+
         String lightCss = resourceLoader.requireUrl(Theme.LIGHT.stylesheet()).toExternalForm();
         String darkCss = resourceLoader.requireUrl(Theme.DARK.stylesheet()).toExternalForm();
         removeStylesheet(scene, lightCss);
         removeStylesheet(scene, darkCss);
-        scene.getStylesheets().add(withCacheBusting(resourceLoader.requireUrl(theme.stylesheet()).toExternalForm()));
+
+        String themeCss = resourceLoader.requireUrl(theme.stylesheet()).toExternalForm();
+        scene.getStylesheets().add(withCacheBusting(themeCss));
         currentTheme = theme;
     }
 

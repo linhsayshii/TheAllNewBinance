@@ -10,7 +10,7 @@
     fx:controller="com.auction.client.component.shell.HeaderComponentController"
       spacing="8.0" styleClass="header-root">
     <children>
-        <Label text="TheAllNewBinance" styleClass="header-brand" />
+                <Label text="TheAllNewBinance" styleClass="header-brand" onMouseClicked="#handleGoToGeneral" />
         <Region HBox.hgrow="ALWAYS" />
         <Label text="Live Auctions" styleClass="header-context" />
     </children>

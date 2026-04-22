@@ -10,7 +10,7 @@ public class ThemeToggleComponentController {
     @FXML
     private ToggleButton themeToggle;
 
-    private final ThemeService themeService = new ThemeService();
+    private final ThemeService themeService = ThemeService.getInstance();
 
     @FXML
     private void onThemeToggle() {

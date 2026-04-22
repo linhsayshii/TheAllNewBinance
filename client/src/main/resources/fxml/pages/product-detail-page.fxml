@@ -2,15 +2,43 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
 
-<StackPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="com.auction.client.page.productdetail.ProductDetailPageController"
-           styleClass="product-detail-page-root">
-    <children>
-        <Label text="Product Detail Page" styleClass="page-title" />
-    </children>
-    <padding>
-        <Insets top="32" right="32" bottom="32" left="32" />
-    </padding>
-</StackPane>
+<BorderPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.auction.client.page.productdetail.ProductDetailPageController"
+            styleClass="product-detail-page-root">
+    <top>
+        <fx:include source="../components/shell/header.fxml" />
+    </top>
+    <left>
+        <fx:include source="../components/shell/navbar.fxml" />
+    </left>
+    <center>
+        <VBox spacing="20" alignment="TOP_CENTER">
+             <padding>
+                <Insets top="20" right="20" bottom="20" left="20" />
+            </padding>
+            <children>
+                <Label text="Lịch sử phiên đấu giá" styleClass="section-title" style="-fx-font-size: 24; -fx-font-weight: bold;"/>
+                
+                <!-- Biểu đồ Bid History -->
+                <LineChart fx:id="bidHistoryChart" title="Mức giá / Thời gian" prefHeight="500.0" prefWidth="800.0" animated="false">
+                  <xAxis>
+                    <CategoryAxis fx:id="xAxisTime" label="Thời gian" />
+                  </xAxis>
+                  <yAxis>
+                    <NumberAxis fx:id="yAxisPrice" label="Mức giá (VND)" />
+                  </yAxis>
+                </LineChart>
+
+            </children>
+        </VBox>
+    </center>
+      <bottom>
+        <fx:include source="../components/shell/footer.fxml" />
+      </bottom>
+</BorderPane>

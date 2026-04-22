@@ -8,11 +8,11 @@
     fx:controller="com.auction.client.component.shell.NavbarComponentController"
       spacing="10.0" styleClass="navbar-root">
     <children>
-        <Button text="General" styleClass="navbar-item" />
-        <Button text="Login" styleClass="navbar-item" />
-        <Button text="Register" styleClass="navbar-item" />
-        <Button text="Product Detail" styleClass="navbar-item" />
-        <Button text="Profile" styleClass="navbar-item" />
+        <Button text="General" styleClass="navbar-item" onAction="#handleGoToGeneral" maxWidth="Infinity" />
+        <Button text="Login" styleClass="navbar-item" onAction="#handleGoToLogin" maxWidth="Infinity" />
+        <Button text="Register" styleClass="navbar-item" onAction="#handleGoToRegister" maxWidth="Infinity" />
+        <Button text="Product Detail" styleClass="navbar-item" onAction="#handleGoToProductDetail" maxWidth="Infinity" />
+        <Button text="Profile" styleClass="navbar-item" onAction="#handleGoToProfile" maxWidth="Infinity" />
     </children>
     <padding>
         <Insets top="16" right="12" bottom="16" left="12" />

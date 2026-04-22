@@ -35,16 +35,22 @@ public class HotReloadService {
 
     public HotReloadService(SceneService sceneService) {
         this.sceneService = sceneService;
-        this.themeService = new ThemeService();
+        this.themeService = ThemeService.getInstance();
     }
 
     public void start() {
-        if (!AppConfig.isHotReloadEnabled() || running) {
+        if (running) {
+            return;
+        }
+
+        if (!AppConfig.isHotReloadEnabled()) {
+            System.out.println("[HotReload] Disabled. Set app.devMode=true and app.hotReload=true to enable.");
             return;
         }
 
         Path resourceRoot = AppConfig.sourceResourceRoot().orElse(null);
         if (resourceRoot == null) {
+            System.out.println("[HotReload] Source resource root was not found. Expected src/main/resources.");
             return;
         }
 
@@ -65,6 +71,7 @@ public class HotReloadService {
         watcherThread = new Thread(this::watchLoop, "client-hot-reload");
         watcherThread.setDaemon(true);
         watcherThread.start();
+        System.out.println("[HotReload] Watching resources under: " + resourceRoot);
     }
 
     public void stop() {

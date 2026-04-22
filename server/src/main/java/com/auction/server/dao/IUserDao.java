@@ -1,4 +1,4 @@
-package com.auction.core.dao;
+package com.auction.server.dao;
 
 import com.auction.core.users.User;
 

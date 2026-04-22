@@ -6,13 +6,29 @@ import java.util.concurrent.CompletableFuture;
 
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
-import com.auction.core.dao.IAuctionDao;
+import com.auction.server.dao.IAuctionDao;
+import com.auction.core.dto.auction.PublicAuctionDto;
 import com.auction.core.dto.auction.CreateAuctionRequest;
 import com.auction.core.dto.auction.GetAuctionBySellerIdRequest;
 import com.auction.core.services.IAuctionService;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 public class AuctionService implements IAuctionService {
     private final IAuctionDao auctionDao;
+
+    private static class CacheEntry {
+        final List<com.auction.core.dto.auction.PublicAuctionDto> data;
+        final LocalDateTime expiryTime;
+
+        CacheEntry(List<com.auction.core.dto.auction.PublicAuctionDto> data, LocalDateTime expiryTime) {
+            this.data = data;
+            this.expiryTime = expiryTime;
+        }
+    }
+
+    private final Map<String, CacheEntry> publicAuctionsCache = new ConcurrentHashMap<>();
 
     public AuctionService(IAuctionDao auctionDao) {
         this.auctionDao = auctionDao;
@@ -21,7 +37,8 @@ public class AuctionService implements IAuctionService {
     @Override
     public CompletableFuture<Auction> createAuction(CreateAuctionRequest request) {
         return CompletableFuture.supplyAsync(() -> {
-            Auction auction = new Auction(null, request.getItemId(), request.getStartingPrice(), request.getBidIncrement(),
+            Auction auction = new Auction(null, request.getItemId(), request.getStartingPrice(),
+                    request.getBidIncrement(),
                     request.getStartTime(), request.getEndTime());
             auctionDao.createAuction(auction);
             return auction;
@@ -58,7 +75,8 @@ public class AuctionService implements IAuctionService {
     }
 
     private boolean applySnipeExtensionSync(Auction auction, LocalDateTime bidTime) {
-        if (auction == null) return false;
+        if (auction == null)
+            return false;
         boolean isExtended = auction.applySnipeExtension(bidTime);
         if (isExtended) {
             auctionDao.extendAuction(auction);
@@ -92,5 +110,25 @@ public class AuctionService implements IAuctionService {
     @Override
     public CompletableFuture<Integer> getSellerId(Integer auctionId) {
         return CompletableFuture.supplyAsync(() -> auctionDao.getSellerId(auctionId));
+    }
+
+    @Override
+    public CompletableFuture<List<PublicAuctionDto>> getPublicAuctions(
+            com.auction.core.dto.auction.GetPublicAuctionsRequest request) {
+        return CompletableFuture.supplyAsync(() -> {
+            String cacheKey = String.format("%d-%d-%s-%b-%b",
+                    request.getPage(), request.getSize(), request.getStatus(),
+                    request.isIncludeEndingSoon(), request.isIncludeTrending());
+
+            CacheEntry entry = publicAuctionsCache.get(cacheKey);
+            if (entry != null && LocalDateTime.now().isBefore(entry.expiryTime)) {return entry.data; }
+
+            int offset = (request.getPage() - 1) * request.getSize();
+            List<PublicAuctionDto> data = auctionDao.getPublicAuctions(
+                    offset, request.getSize(), request.isIncludeEndingSoon(), request.isIncludeTrending());
+
+            publicAuctionsCache.put(cacheKey, new CacheEntry(data, LocalDateTime.now().plusSeconds(30)));
+            return data;
+        });
     }
 }

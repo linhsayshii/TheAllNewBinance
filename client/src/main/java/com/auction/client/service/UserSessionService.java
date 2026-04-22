@@ -1,25 +1,40 @@
 package com.auction.client.service;
 
+import com.auction.core.users.User;
+
+/**
+ * Holds the authenticated user's data for the current session.
+ * Use login(user) after a successful LOGIN response and logout() on sign-out.
+ */
 public class UserSessionService {
 
-    private boolean authenticated;
-    private String username = "guest";
+    private static UserSessionService instance;
+
+    private User currentUser;
+
+    private UserSessionService() {}
+
+    public static synchronized UserSessionService getInstance() {
+        if (instance == null) {
+            instance = new UserSessionService();
+        }
+        return instance;
+    }
 
     public boolean isAuthenticated() {
-        return authenticated;
+        return currentUser != null;
     }
 
-    public String getUsername() {
-        return username;
+    public User getCurrentUser() {
+        return currentUser;
     }
 
-    public void login(String username) {
-        this.authenticated = true;
-        this.username = username;
+    /** Call after receiving a successful LOGIN/REGISTER response from the server. */
+    public void login(User user) {
+        this.currentUser = user;
     }
 
     public void logout() {
-        this.authenticated = false;
-        this.username = "guest";
+        this.currentUser = null;
     }
 }

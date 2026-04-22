@@ -3,7 +3,7 @@ package com.auction.server.services;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
-import com.auction.core.dao.IUserDao;
+import com.auction.server.dao.IUserDao;
 import com.auction.core.dto.user.LoginRequest;
 import com.auction.core.dto.user.RegisterRequest;
 import com.auction.core.dto.user.UpdatePasswordRequest;

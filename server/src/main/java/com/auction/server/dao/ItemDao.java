@@ -7,7 +7,6 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
-import com.auction.core.dao.IItemDao;
 import com.auction.core.products.Item;
 
 public class ItemDao implements IItemDao {

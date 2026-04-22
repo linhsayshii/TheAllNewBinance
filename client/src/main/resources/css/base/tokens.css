@@ -1,9 +1,9 @@
 .root {
-    -app-bg: #f5f7fb;
-    -surface-bg: #ffffff;
-    -panel-bg: #ebeff6;
-    -brand: #0f6d6d;
-    -text-primary: #1f2937;
-    -text-secondary: #5f6b7a;
-    -border-color: #cdd6e3;
+    -app-bg: #ececec;
+    -surface-bg: #f4f4f4;
+    -panel-bg: #c7c7c9;
+    -brand: #ff3d68;
+    -text-primary: #5d2d39; 
+    -text-secondary: #ff6687;
+    -border-color: #ff3d68;
 }
