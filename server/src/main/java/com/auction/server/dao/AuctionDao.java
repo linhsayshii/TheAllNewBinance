@@ -314,7 +314,7 @@ public class AuctionDao implements IAuctionDao {
             "a.current_price, a.end_time, u.full_name as seller_display_name ");
         
         if (includeTrending) {
-            sql.append(", COUNT(b.id) as bid_count ");
+            sql.append(", COUNT(b.bid_id) as bid_count ");
         }
         
         sql.append("FROM auctions a ")
