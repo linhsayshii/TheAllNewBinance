@@ -1,0 +1,206 @@
+@startuml TheAllNewBinance_Server
+title TheAllNewBinance - Server Class Diagram
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+package "bootstrap" {
+  class ServerApp {
+    + main(args : String[])
+  }
+}
+
+package "network" {
+  class SocketServer {
+    - dispatcher : RequestDispatcher
+    - userSessions : Map~WebSocket,Integer~
+    + onOpen(conn, handshake)
+    + onClose(conn, code, reason, remote)
+    + onMessage(conn, message)
+    + onError(conn, ex)
+    + onStart()
+  }
+}
+
+package "controller" {
+  class RequestDispatcher {
+    - userCtrl : UserController
+    - auctionCtrl : AuctionController
+    - bidCtrl : BidController
+    + dispatch(sessionUserId : Integer, rawJson : String) : String
+    - isAnonymousAllowed(type : EventType) : boolean
+    - overridePayloadIdentity(type : EventType, payload : Map~String,Object~, sessionUserId : Integer)
+  }
+
+  class UserController {
+    - userService : IUserService
+    + login(request : String) : String
+    + register(request : String) : String
+    + updateProfile(request : String) : String
+    + changePassword(request : String) : String
+  }
+
+  class AuctionController {
+    - auctionService : IAuctionService
+    + createAuction(payload : String) : String
+    + getAuctionDetails(payload : String) : String
+    + getAuctionsBySellerId(payload : String) : String
+  }
+
+  class BidController {
+    - bidService : IBidService
+    + placeBid(request : String) : String
+    + getBidsByAuctionId(request : String) : String
+    + getBidsByBidderId(request : String) : String
+  }
+}
+
+package "services" {
+  class UserService {
+    - userDao : IUserDao
+    + registerUser(request : RegisterRequest) : CompletableFuture~User~
+    + login(request : LoginRequest) : CompletableFuture~User~
+    + updateProfile(request : UpdateProfileRequest) : CompletableFuture~Void~
+    + changePassword(request : UpdatePasswordRequest) : CompletableFuture~Void~
+  }
+
+  class AuctionService {
+    - auctionDao : IAuctionDao
+    + createAuction(request : CreateAuctionRequest) : CompletableFuture~Auction~
+    + processBid(bid : Bid, auction : Auction) : CompletableFuture~Void~
+    + deleteAuction(auctionId : Integer) : CompletableFuture~Auction~
+    + applySnipeExtension(auction : Auction) : CompletableFuture~Boolean~
+    + validateBid(auctionId : Integer, amount : Double) : CompletableFuture~Boolean~
+    + getAuctionDetails(auctionId : Integer) : CompletableFuture~Auction~
+    + getSellerId(auctionId : Integer) : CompletableFuture~Integer~
+  }
+
+  class BidService {
+    - bidDao : IBidDao
+    - auctionService : IAuctionService
+    - userDao : IUserDao
+    + placeBid(request : PlaceBid) : CompletableFuture~Bid~
+    + validateUserBid(auctionId : Integer, user : User) : CompletableFuture~Boolean~
+    + automaticallyPlaceBid(auctionId : Integer, increment : double, maxAmount : double) : CompletableFuture~Void~
+    + getBidsByAuctionId(request : GetBidByAuctionIdRequest) : CompletableFuture~List~Bid~~
+    + getBidsByBidderId(request : GetBidByBidderIdRequest) : CompletableFuture~List~Bid~~
+  }
+
+  class ItemService
+}
+
+package "dao" {
+  class DBConnection {
+    + getConnection() : Connection
+    + beginTransaction()
+    + commitTransaction()
+    + rollbackTransaction()
+    + closeConnection()
+  }
+
+  class UserDao {
+    + registerUser(user : User) : boolean
+    + updateUserInformation(user : User) : boolean
+    + changePassword(user : User) : boolean
+    + findById(id : Integer) : User
+    + findByUsername(username : String) : User
+    + holdBalance(userId : Integer, amount : double) : boolean
+    + refundBalance(userId : Integer, amount : double) : boolean
+  }
+
+  class AuctionDao {
+    + createAuction(auction : Auction) : boolean
+    + updateAuctionInformation(auction : Auction) : boolean
+    + deleteAuction(auction : Auction) : boolean
+    + extendAuction(auction : Auction) : boolean
+    + getAuctionDetails(auctionId : Integer) : Auction
+    + getCurrentPrice(auctionId : Integer) : double
+    + updateCurrentPrice(bid : Bid)
+    + updateAuctionForBid(bid : Bid, auction : Auction) : boolean
+    + getSellerId(auctionId : Integer) : Integer
+  }
+
+  class BidDao {
+    + saveBid(bid : Bid) : boolean
+    + findByBidderId(bidderId : Integer) : List~Bid~
+    + findByAuctionId(auctionId : Integer) : List~Bid~
+    + hasBid(auctionId : Integer, bidderId : Integer) : boolean
+  }
+
+  class ItemDao
+}
+
+interface IUserService
+interface IAuctionService
+interface IBidService
+interface IUserDao
+interface IAuctionDao
+interface IBidDao
+
+class User
+class Auction
+class Bid
+class LoginRequest
+class RegisterRequest
+class UpdateProfileRequest
+class UpdatePasswordRequest
+class CreateAuctionRequest
+class PlaceBid
+class GetBidByAuctionIdRequest
+class GetBidByBidderIdRequest
+enum EventType
+class JsonMapper
+class PasswordHasher
+
+ServerApp --> UserDao : create
+ServerApp --> AuctionDao : create
+ServerApp --> BidDao : create
+ServerApp --> UserService : inject
+ServerApp --> AuctionService : inject
+ServerApp --> BidService : inject
+ServerApp --> UserController : inject
+ServerApp --> AuctionController : inject
+ServerApp --> BidController : inject
+ServerApp --> RequestDispatcher : inject
+ServerApp --> SocketServer : start
+
+SocketServer --> RequestDispatcher
+SocketServer --> JsonMapper
+SocketServer --> EventType
+
+RequestDispatcher --> UserController
+RequestDispatcher --> AuctionController
+RequestDispatcher --> BidController
+RequestDispatcher --> EventType
+RequestDispatcher --> JsonMapper
+
+UserController --> IUserService
+UserController --> JsonMapper
+AuctionController --> IAuctionService
+AuctionController --> JsonMapper
+BidController --> IBidService
+BidController --> JsonMapper
+
+UserService ..|> IUserService
+AuctionService ..|> IAuctionService
+BidService ..|> IBidService
+
+UserDao ..|> IUserDao
+AuctionDao ..|> IAuctionDao
+BidDao ..|> IBidDao
+
+UserService --> IUserDao
+UserService --> PasswordHasher
+AuctionService --> IAuctionDao
+BidService --> IBidDao
+BidService --> IAuctionService
+BidService --> IUserDao
+BidService --> DBConnection
+
+UserDao --> DBConnection
+AuctionDao --> DBConnection
+BidDao --> DBConnection
+
+@enduml

@@ -1,0 +1,183 @@
+@startuml TheAllNewBinance_Core_Contracts
+title TheAllNewBinance - Core Contracts
+
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+
+package "dto.user" {
+  class LoginRequest {
+    - username : String
+    - password : String
+  }
+  class RegisterRequest {
+    - username : String
+    - password : String
+    - fullname : String
+    - email : String
+  }
+  class UpdateProfileRequest {
+    - userId : int
+    - username : String
+    - fullName : String
+    - email : String
+  }
+  class UpdatePasswordRequest {
+    - userId : int
+    - oldPassword : String
+    - newPassword : String
+  }
+  class UserInformationReques
+}
+
+package "dto.auction" {
+  class CreateAuctionRequest {
+    - sellerId : Integer
+    - itemId : Integer
+    - startingPrice : Double
+    - bidIncrement : Double
+    - startTime : LocalDateTime
+    - endTime : LocalDateTime
+  }
+  class GetAuctionBySellerIdRequest {
+    - sellerId : Integer
+  }
+  class GetAuctionDetailsRequest {
+    - auctionId : Integer
+  }
+}
+
+package "dto.bid" {
+  class PlaceBid {
+    - auctionId : int
+    - bidderId : int
+    - amount : double
+  }
+  class GetBidByAuctionIdRequest {
+    - auctionId : Integer
+  }
+  class GetBidByBidderIdRequest {
+    - bidderId : Integer
+  }
+}
+
+package "dao" {
+  interface IUserDao {
+    + registerUser(user : User) : boolean
+    + updateUserInformation(user : User) : boolean
+    + changePassword(user : User) : boolean
+    + findById(id : Integer) : User
+    + findByUsername(username : String) : User
+    + holdBalance(userId : Integer, amount : double) : boolean
+    + refundBalance(userId : Integer, amount : double) : boolean
+  }
+
+  interface IAuctionDao {
+    + createAuction(auction : Auction) : boolean
+    + updateAuctionInformation(auction : Auction) : boolean
+    + deleteAuction(auction : Auction) : boolean
+    + extendAuction(auction : Auction) : boolean
+    + getAuctionDetails(auctionId : Integer) : Auction
+    + getCurrentPrice(auctionId : Integer) : double
+    + updateCurrentPrice(bid : Bid)
+    + updateAuctionForBid(bid : Bid, auction : Auction) : boolean
+    + getSellerId(auctionId : Integer) : Integer
+    + getAuctionsBySellerId(sellerId : Integer) : List~Auction~
+  }
+
+  interface IBidDao {
+    + saveBid(bid : Bid) : boolean
+    + findByAuctionId(auctionId : Integer) : List~Bid~
+    + findByBidderId(bidderId : Integer) : List~Bid~
+    + hasBid(auctionId : Integer, bidderId : Integer) : boolean
+  }
+
+  interface IItemDao
+}
+
+package "services" {
+  interface IUserService {
+    + registerUser(request : RegisterRequest) : CompletableFuture~User~
+    + login(request : LoginRequest) : CompletableFuture~User~
+    + updateProfile(request : UpdateProfileRequest) : CompletableFuture~Void~
+    + changePassword(request : UpdatePasswordRequest) : CompletableFuture~Void~
+  }
+
+  interface IAuctionService {
+    + processBid(bid : Bid, auction : Auction) : CompletableFuture~Void~
+    + createAuction(request : CreateAuctionRequest) : CompletableFuture~Auction~
+    + deleteAuction(auctionId : Integer) : CompletableFuture~Auction~
+    + validateBid(auctionId : Integer, amount : Double) : CompletableFuture~Boolean~
+    + applySnipeExtension(auction : Auction) : CompletableFuture~Boolean~
+    + getAuctionDetails(auctionId : Integer) : CompletableFuture~Auction~
+    + getSellerId(auctionId : Integer) : CompletableFuture~Integer~
+    + getAuctionsBySellerId(request : GetAuctionBySellerIdRequest) : CompletableFuture~List~Auction~~
+  }
+
+  interface IBidService {
+    + placeBid(request : PlaceBid) : CompletableFuture~Bid~
+    + validateUserBid(auctionId : Integer, user : User) : CompletableFuture~Boolean~
+    + automaticallyPlaceBid(auctionId : Integer, increment : double, maxAmount : double) : CompletableFuture~Void~
+    + getBidsByAuctionId(request : GetBidByAuctionIdRequest) : CompletableFuture~List~Bid~~
+    + getBidsByBidderId(request : GetBidByBidderIdRequest) : CompletableFuture~List~Bid~~
+  }
+
+  interface IItemService
+}
+
+package "protocol" {
+  enum EventType {
+    LOGIN
+    REGISTER
+    UPDATE_PROFILE
+    CHANGE_PASSWORD
+    GET_AUCTION_DETAILS
+    CREATE_AUCTION
+    GET_AUCTIONS_BY_SELLER
+    PLACE_BID
+    GET_BIDS_BY_AUCTION_ID
+    GET_BIDS_BY_BIDDER_ID
+  }
+}
+
+package "utils" {
+  class JsonMapper {
+    + toJson(object : Object) : String
+    + fromJson(json : String, clazz : Class~T~) : T
+  }
+  class PasswordHasher {
+    + hash(plainPassword : String) : String
+    + verify(plainPassword : String, hashedPassword : String) : boolean
+  }
+  class DateFormatter
+}
+
+class User
+class Auction
+class Bid
+
+IUserService ..> LoginRequest
+IUserService ..> RegisterRequest
+IUserService ..> UpdateProfileRequest
+IUserService ..> UpdatePasswordRequest
+
+IAuctionService ..> CreateAuctionRequest
+IAuctionService ..> GetAuctionBySellerIdRequest
+IAuctionService ..> Auction
+IAuctionService ..> Bid
+
+IBidService ..> PlaceBid
+IBidService ..> GetBidByAuctionIdRequest
+IBidService ..> GetBidByBidderIdRequest
+IBidService ..> Bid
+IBidService ..> User
+
+IUserDao ..> User
+IAuctionDao ..> Auction
+IAuctionDao ..> Bid
+IBidDao ..> Bid
+
+JsonMapper ..> EventType
+
+@enduml
