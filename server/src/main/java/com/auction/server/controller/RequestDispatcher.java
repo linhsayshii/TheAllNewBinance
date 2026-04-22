@@ -93,6 +93,9 @@ public class RequestDispatcher {
             case EventType.GET_BIDS_BY_BIDDER_ID -> bidCtrl == null
                     ? error("Bid controller is not configured")
                     : bidCtrl.getBidsByBidderId(payload);
+            case EventType.GET_PUBLIC_AUCTIONS -> auctionCtrl == null
+                    ? error("Auction controller is not configured")
+                    : auctionCtrl.getPublicAuctions(payload);
         };
         
         try {
@@ -110,7 +113,7 @@ public class RequestDispatcher {
 
     private boolean isAnonymousAllowed(EventType type) {
         return switch (type) {
-            case LOGIN, REGISTER, GET_AUCTION_DETAILS, GET_BIDS_BY_AUCTION_ID -> true;
+            case LOGIN, REGISTER, GET_AUCTION_DETAILS, GET_BIDS_BY_AUCTION_ID, GET_PUBLIC_AUCTIONS -> true;
             default -> false;
         };
     }

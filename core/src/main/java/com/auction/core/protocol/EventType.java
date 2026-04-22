@@ -11,6 +11,7 @@ public enum EventType {
     GET_AUCTION_DETAILS,
     CREATE_AUCTION,
     GET_AUCTIONS_BY_SELLER,
+    GET_PUBLIC_AUCTIONS,
 
     // Bid
     PLACE_BID,

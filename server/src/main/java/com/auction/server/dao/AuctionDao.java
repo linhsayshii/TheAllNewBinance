@@ -306,4 +306,61 @@ public class AuctionDao implements IAuctionDao {
         }
         return auctions;
     }
+
+    @Override
+    public List<com.auction.core.dto.auction.PublicAuctionDto> getPublicAuctions(int offset, int limit, boolean includeEndingSoon, boolean includeTrending) {
+        StringBuilder sql = new StringBuilder(
+            "SELECT a.auction_id, a.item_id, i.name as item_name, i.image_url as thumbnail_url, " +
+            "a.current_price, a.end_time, u.full_name as seller_display_name ");
+        
+        if (includeTrending) {
+            sql.append(", COUNT(b.id) as bid_count ");
+        }
+        
+        sql.append("FROM auctions a ")
+           .append("JOIN items i ON a.item_id = i.item_id ")
+           .append("JOIN users u ON i.seller_id = u.user_id ");
+           
+        if (includeTrending) {
+            sql.append("LEFT JOIN bids b ON a.auction_id = b.auction_id ");
+        }
+        
+        sql.append("WHERE a.status = 'ACTIVE' AND a.is_deleted = false AND a.end_time > NOW() ");
+        
+        if (includeTrending) {
+            sql.append("GROUP BY a.auction_id, a.item_id, i.name, i.image_url, a.current_price, a.end_time, u.full_name ");
+            sql.append("ORDER BY bid_count DESC, a.end_time ASC ");
+        } else if (includeEndingSoon) {
+            sql.append("ORDER BY a.end_time ASC ");
+        } else {
+            sql.append("ORDER BY a.auction_id DESC "); // default fallback
+        }
+        
+        sql.append("LIMIT ? OFFSET ?");
+        
+        List<com.auction.core.dto.auction.PublicAuctionDto> result = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+             
+            stmt.setInt(1, limit);
+            stmt.setInt(2, offset);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    com.auction.core.dto.auction.PublicAuctionDto dto = new com.auction.core.dto.auction.PublicAuctionDto();
+                    dto.setAuctionId(rs.getInt("auction_id"));
+                    dto.setItemId(rs.getInt("item_id"));
+                    dto.setItemName(rs.getString("item_name"));
+                    dto.setThumbnailUrl(rs.getString("thumbnail_url"));
+                    dto.setCurrentPrice(rs.getDouble("current_price"));
+                    dto.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+                    dto.setSellerDisplayName(rs.getString("seller_display_name"));
+                    result.add(dto);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error: Cannot get public auctions! " + e.getMessage());
+        }
+        return result;
+    }
 }

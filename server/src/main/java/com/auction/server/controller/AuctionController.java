@@ -62,6 +62,24 @@ public class AuctionController {
 		}
 	}
 
+	public String getPublicAuctions(String payload) {
+		try {
+			com.auction.core.dto.auction.GetPublicAuctionsRequest request;
+			if (payload == null || payload.isBlank() || payload.equals("null")) {
+				request = new com.auction.core.dto.auction.GetPublicAuctionsRequest();
+			} else {
+				request = JsonMapper.fromJson(payload, com.auction.core.dto.auction.GetPublicAuctionsRequest.class);
+			}
+			List<com.auction.core.dto.auction.PublicAuctionDto> auctions = auctionService.getPublicAuctions(request)
+					.join();
+			return JsonMapper.toJson(successResponse(auctions));
+		} catch (IllegalArgumentException ex) {
+			return JsonMapper.toJson(errorResponse(ex.getMessage()));
+		} catch (Exception ex) {
+			return JsonMapper.toJson(errorResponse("Internal server error"));
+		}
+	}
+
 	private Map<String, Object> successResponse(Auction auction) {
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
@@ -69,10 +87,10 @@ public class AuctionController {
 		return response;
 	}
 
-	private Map<String, Object> successResponse(List<Auction> auctions) {
+	private Map<String, Object> successResponse(List<?> dataList) {
 		Map<String, Object> response = new HashMap<>();
 		response.put("success", true);
-		response.put("data", auctions);
+		response.put("data", dataList);
 		return response;
 	}
 

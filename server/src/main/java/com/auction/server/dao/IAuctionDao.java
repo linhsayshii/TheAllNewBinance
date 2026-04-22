@@ -16,4 +16,5 @@ public interface IAuctionDao {
     boolean updateAuctionForBid(Bid bid, Auction auction);
     Integer getSellerId(Integer auctionId);
     List<Auction> getAuctionsBySellerId(Integer sellerId);
+    List<com.auction.core.dto.auction.PublicAuctionDto> getPublicAuctions(int offset, int limit, boolean includeEndingSoon, boolean includeTrending);
 }
