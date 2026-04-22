@@ -31,6 +31,31 @@ TheAllNewBinance được tách thành 3 module:
 - server: Triển khai Service, Interface & Implementation DAO và tầng xử lý phía máy chủ.
 - client: Module client (hiện đang ở giai đoạn khởi tạo cấu trúc).
 
+## Sơ đồ phân công công việc
+
+```mermaid
+graph TD
+    Linh[Linh]
+    Khanh[Khánh]
+    Minh[Minh]
+    Dang[Đăng]
+
+    Core[Core]
+    Server[Server]
+    ClientController[Client Controller]
+    Client[Client]
+
+    Linh --> Server
+    Linh --> Core
+    Linh --> ClientController
+
+    Khanh --> Client
+    Khanh --> Server
+
+    Minh --> Core
+    Dang --> Core
+```
+
 ## Công nghệ sử dụng
 
 | Thành phần | Công nghệ |
