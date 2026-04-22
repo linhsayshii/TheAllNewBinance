@@ -1,4 +1,4 @@
-package com.auction.server.dao;
+package com.auction.server.dao.impl;
 
 import com.auction.core.products.Item;
 

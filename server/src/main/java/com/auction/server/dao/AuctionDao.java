@@ -12,6 +12,7 @@ import java.util.List;
 
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
+import com.auction.server.dao.impl.IAuctionDao;
 
 public class AuctionDao implements IAuctionDao {
     @Override
@@ -311,7 +312,7 @@ public class AuctionDao implements IAuctionDao {
     public List<com.auction.core.dto.auction.PublicAuctionDto> getPublicAuctions(int offset, int limit, boolean includeEndingSoon, boolean includeTrending) {
         StringBuilder sql = new StringBuilder(
             "SELECT a.auction_id, a.item_id, i.name as item_name, i.image_url as thumbnail_url, " +
-            "a.current_price, a.end_time, u.full_name as seller_display_name ");
+            "a.current_price, a.end_time, u.full_name as seller_display_name, a.status ");
         
         if (includeTrending) {
             sql.append(", COUNT(b.bid_id) as bid_count ");
@@ -325,10 +326,10 @@ public class AuctionDao implements IAuctionDao {
             sql.append("LEFT JOIN bids b ON a.auction_id = b.auction_id ");
         }
         
-        sql.append("WHERE a.status = 'ACTIVE' AND a.is_deleted = false AND a.end_time > NOW() ");
+        sql.append("WHERE a.is_deleted = false ");
         
         if (includeTrending) {
-            sql.append("GROUP BY a.auction_id, a.item_id, i.name, i.image_url, a.current_price, a.end_time, u.full_name ");
+            sql.append("GROUP BY a.auction_id, a.item_id, i.name, i.image_url, a.current_price, a.end_time, u.full_name, a.status ");
             sql.append("ORDER BY bid_count DESC, a.end_time ASC ");
         } else if (includeEndingSoon) {
             sql.append("ORDER BY a.end_time ASC ");
@@ -355,6 +356,7 @@ public class AuctionDao implements IAuctionDao {
                     dto.setCurrentPrice(rs.getDouble("current_price"));
                     dto.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
                     dto.setSellerDisplayName(rs.getString("seller_display_name"));
+                    dto.setStatus(rs.getString("status"));
                     result.add(dto);
                 }
             }

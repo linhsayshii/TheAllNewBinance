@@ -10,10 +10,11 @@ public class PublicAuctionDto {
     private Double currentPrice;
     private LocalDateTime endTime;
     private String sellerDisplayName;
+    private String status;
 
     public PublicAuctionDto() {}
 
-    public PublicAuctionDto(Integer auctionId, Integer itemId, String itemName, String thumbnailUrl, Double currentPrice, LocalDateTime endTime, String sellerDisplayName) {
+    public PublicAuctionDto(Integer auctionId, Integer itemId, String itemName, String thumbnailUrl, Double currentPrice, LocalDateTime endTime, String sellerDisplayName, String status) {
         this.auctionId = auctionId;
         this.itemId = itemId;
         this.itemName = itemName;
@@ -21,6 +22,7 @@ public class PublicAuctionDto {
         this.currentPrice = currentPrice;
         this.endTime = endTime;
         this.sellerDisplayName = sellerDisplayName;
+        this.status = status;
     }
 
     public Integer getAuctionId() {return auctionId; }
@@ -43,4 +45,7 @@ public class PublicAuctionDto {
 
     public String getSellerDisplayName() {return sellerDisplayName; }
     public void setSellerDisplayName(String sellerDisplayName) {this.sellerDisplayName = sellerDisplayName; }
+
+    public String getStatus() {return status;}
+    public void setStatus(String status) {this.status = status;}
 }
