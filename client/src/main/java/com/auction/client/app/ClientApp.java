@@ -18,7 +18,7 @@ public class ClientApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         // Init socket FIRST — controllers may register handlers on initialize()
-        NetworkService.init("ws://172.27.1.45:8080");
+        NetworkService.init("wss://binance.hvlsv.uk");
 
         FontLoaderService.preloadProjectFonts();
 

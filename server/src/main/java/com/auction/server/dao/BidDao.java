@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.auction.core.auction.Bid;
+import com.auction.server.dao.impl.IBidDao;
 
 public class BidDao implements IBidDao {
     @Override
@@ -26,7 +27,7 @@ public class BidDao implements IBidDao {
             if (rowsInserted > 0) {
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
-                        bid.setId(generatedKeys.getInt("bid_id"));
+                        bid.setId(generatedKeys.getInt(1));
                     }
                 }
             }

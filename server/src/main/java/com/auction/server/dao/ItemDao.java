@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 
 import com.auction.core.products.Item;
+import com.auction.server.dao.impl.IItemDao;
 
 public class ItemDao implements IItemDao {
     @Override

@@ -9,28 +9,18 @@ import javafx.fxml.FXML;
 public class NavbarComponentController implements LifecycleAwareController {
 
     @FXML
-    private void handleGoToGeneral() {
+    private void handleGoToAuctions() {
         NavigationService.getInstance().navigateTo(SceneRegistry.GENERAL_PAGE);
     }
 
     @FXML
-    private void handleGoToLogin() {
-        NavigationService.getInstance().openPopup(SceneRegistry.LOGIN_PAGE);
+    private void handleGoToAllItems() {
+        NavigationService.getInstance().navigateTo(SceneRegistry.GENERAL_PAGE);
     }
 
     @FXML
-    private void handleGoToRegister() {
-        NavigationService.getInstance().openPopup(SceneRegistry.REGISTER_PAGE);
-    }
-
-    @FXML
-    private void handleGoToProductDetail() {
-        NavigationService.getInstance().navigateTo(SceneRegistry.PRODUCT_DETAIL_PAGE);
-    }
-
-    @FXML
-    private void handleGoToProfile() {
-        NavigationService.getInstance().navigateTo(SceneRegistry.PROFILE_PAGE);
+    private void handleGoToSellers() {
+        NavigationService.getInstance().navigateTo(SceneRegistry.SELLERS_PAGE);
     }
 
     @Override

@@ -9,15 +9,16 @@ import java.sql.Timestamp;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
+import com.auction.server.dao.impl.IAuctionDao;
 
 public class AuctionDao implements IAuctionDao {
     @Override
     public boolean createAuction(Auction auction) {
-        String sql = "INSERT INTO auctions (item_id, starting_price, bid_increment, start_time, original_end_time, extended_end_time, status, is_deleted, created_at, snipe_threshold, snipe_extension) "
-                +
+        String sql = "INSERT INTO auctions (item_id, starting_price, bid_increment, start_time, original_end_time, extended_end_time, status, is_deleted, created_at, snipe_threshold, snipe_extension) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -267,7 +268,7 @@ public class AuctionDao implements IAuctionDao {
 
     @Override
     public Integer getSellerId(Integer auctionId) {
-        String sql = "SELECT i.seller_id FROM auctions a JOIN items i ON a.item_id = i.id WHERE a.auction_id = ?";
+        String sql = "SELECT i.seller_id FROM auctions a JOIN items i ON a.item_id = i.item_id WHERE a.auction_id = ?";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, auctionId);
@@ -308,13 +309,33 @@ public class AuctionDao implements IAuctionDao {
     }
 
     @Override
-    public List<com.auction.core.dto.auction.PublicAuctionDto> getPublicAuctions(int offset, int limit, boolean includeEndingSoon, boolean includeTrending) {
+    public List<com.auction.core.dto.auction.PublicAuctionDto> getPublicAuctions(
+            int offset,
+            int limit,
+            List<String> statuses,
+            boolean includeEndingSoon,
+            boolean includeTrending) {
+        List<String> safeStatuses = statuses == null
+                ? List.of()
+                : statuses.stream()
+                        .filter(java.util.Objects::nonNull)
+                        .map(String::trim)
+                        .map(String::toUpperCase)
+                        .filter(s -> !s.isEmpty())
+                        .toList();
+
+        if (safeStatuses.isEmpty()) {
+            safeStatuses = List.of("ACTIVE", "PENDING");
+        }
+
+        String statusPlaceholders = safeStatuses.stream().map(s -> "?").collect(Collectors.joining(", "));
+
         StringBuilder sql = new StringBuilder(
             "SELECT a.auction_id, a.item_id, i.name as item_name, i.image_url as thumbnail_url, " +
-            "a.current_price, a.end_time, u.full_name as seller_display_name ");
+            "a.current_price, a.start_time, a.end_time, a.status, u.full_name as seller_display_name ");
         
         if (includeTrending) {
-            sql.append(", COUNT(b.id) as bid_count ");
+            sql.append(", COUNT(b.bid_id) as bid_count ");
         }
         
         sql.append("FROM auctions a ")
@@ -325,13 +346,27 @@ public class AuctionDao implements IAuctionDao {
             sql.append("LEFT JOIN bids b ON a.auction_id = b.auction_id ");
         }
         
-        sql.append("WHERE a.status = 'ACTIVE' AND a.is_deleted = false AND a.end_time > NOW() ");
+        sql.append("WHERE a.status IN (")
+           .append(statusPlaceholders)
+           .append(") AND a.is_deleted = false ");
+
+        if (safeStatuses.contains("ACTIVE")) {
+            sql.append("AND ((a.status = 'ACTIVE' AND a.end_time > NOW()) OR a.status <> 'ACTIVE') ");
+        }
+
+        if (safeStatuses.contains("PENDING")) {
+            sql.append("AND ((a.status = 'PENDING' AND a.start_time >= NOW()) OR a.status <> 'PENDING') ");
+        }
         
         if (includeTrending) {
-            sql.append("GROUP BY a.auction_id, a.item_id, i.name, i.image_url, a.current_price, a.end_time, u.full_name ");
-            sql.append("ORDER BY bid_count DESC, a.end_time ASC ");
+            sql.append("GROUP BY a.auction_id, a.item_id, i.name, i.image_url, a.current_price, a.start_time, a.end_time, a.status, u.full_name ");
+            sql.append("ORDER BY bid_count DESC, a.end_time ASC, a.start_time ASC ");
         } else if (includeEndingSoon) {
-            sql.append("ORDER BY a.end_time ASC ");
+            sql.append("ORDER BY (CASE WHEN a.status = 'ACTIVE' THEN a.end_time END) IS NULL ASC, ")
+               .append("CASE WHEN a.status = 'ACTIVE' THEN a.end_time END ASC, ")
+               .append("(CASE WHEN a.status = 'PENDING' THEN a.start_time END) IS NULL ASC, ")
+               .append("CASE WHEN a.status = 'PENDING' THEN a.start_time END ASC, ")
+               .append("a.auction_id DESC ");
         } else {
             sql.append("ORDER BY a.auction_id DESC "); // default fallback
         }
@@ -341,9 +376,13 @@ public class AuctionDao implements IAuctionDao {
         List<com.auction.core.dto.auction.PublicAuctionDto> result = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
-             
-            stmt.setInt(1, limit);
-            stmt.setInt(2, offset);
+
+            int paramIndex = 1;
+            for (String status : safeStatuses) {
+                stmt.setString(paramIndex++, status);
+            }
+            stmt.setInt(paramIndex++, limit);
+            stmt.setInt(paramIndex, offset);
             
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -353,7 +392,9 @@ public class AuctionDao implements IAuctionDao {
                     dto.setItemName(rs.getString("item_name"));
                     dto.setThumbnailUrl(rs.getString("thumbnail_url"));
                     dto.setCurrentPrice(rs.getDouble("current_price"));
+                    dto.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
                     dto.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+                    dto.setStatus(rs.getString("status"));
                     dto.setSellerDisplayName(rs.getString("seller_display_name"));
                     result.add(dto);
                 }

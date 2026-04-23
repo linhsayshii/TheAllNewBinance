@@ -1,8 +1,8 @@
 package com.auction.server;
 
-import com.auction.server.dao.IAuctionDao;
-import com.auction.server.dao.IBidDao;
-import com.auction.server.dao.IUserDao;
+import com.auction.server.dao.impl.IAuctionDao;
+import com.auction.server.dao.impl.IBidDao;
+import com.auction.server.dao.impl.IUserDao;
 import com.auction.core.services.IAuctionService;
 import com.auction.core.services.IBidService;
 import com.auction.core.services.IUserService;

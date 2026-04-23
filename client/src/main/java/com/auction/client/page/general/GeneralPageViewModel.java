@@ -1,8 +1,9 @@
 package com.auction.client.page.general;
 
+import java.util.List;
+
 import com.auction.client.dto.ProductCardUiModel;
 import com.auction.client.service.AuctionQueryService;
-import java.util.List;
 
 public class GeneralPageViewModel {
 
@@ -18,5 +19,13 @@ public class GeneralPageViewModel {
 
     public List<ProductCardUiModel> loadFeaturedAuctions() {
         return auctionQueryService.getFeaturedAuctions();
+    }
+
+    public List<ProductCardUiModel> loadLiveFeaturedAuctions() {
+        return auctionQueryService.getFeaturedAuctionFeed().liveAuctions();
+    }
+
+    public List<ProductCardUiModel> loadUpcomingFeaturedAuctions() {
+        return auctionQueryService.getFeaturedAuctionFeed().upcomingAuctions();
     }
 }

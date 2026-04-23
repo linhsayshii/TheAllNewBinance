@@ -1,4 +1,4 @@
-package com.auction.server.dao;
+package com.auction.server.dao.impl;
 
 import java.util.List;
 
@@ -16,5 +16,10 @@ public interface IAuctionDao {
     boolean updateAuctionForBid(Bid bid, Auction auction);
     Integer getSellerId(Integer auctionId);
     List<Auction> getAuctionsBySellerId(Integer sellerId);
-    List<com.auction.core.dto.auction.PublicAuctionDto> getPublicAuctions(int offset, int limit, boolean includeEndingSoon, boolean includeTrending);
+    List<com.auction.core.dto.auction.PublicAuctionDto> getPublicAuctions(
+            int offset,
+            int limit,
+            List<String> statuses,
+            boolean includeEndingSoon,
+            boolean includeTrending);
 }

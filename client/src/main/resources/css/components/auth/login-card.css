@@ -1,0 +1,9 @@
+.login-card-root {
+    -fx-background-color: -surface-bg;
+    -fx-min-width: 500;
+    -fx-pref-width: 500;
+    -fx-max-width: 500;
+    -fx-min-height: 600;
+    -fx-pref-height: 600;
+    -fx-max-height: 600;
+}
