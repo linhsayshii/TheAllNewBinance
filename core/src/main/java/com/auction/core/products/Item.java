@@ -22,7 +22,7 @@ public class Item extends Entity {
     }
     /**
     public Item(Integer id, Integer sellerId, String name, String description, String category, String imageUrl) {
-        this(id, sellerId, name, description, category, imageUrl, false);
+     this(id, sellerId, name, description, category, imageUrl, false);
     }
     */
 

@@ -52,6 +52,7 @@ graph TD
 
     Minh --> Core
     Dang --> Core
+    Minh --> Server
 ```
 
 ## Công nghệ sử dụng

@@ -1,0 +1,108 @@
+@startuml TheAllNewBinance_Domain
+title TheAllNewBinance - Domain Model
+!include _theme.puml
+
+left to right direction
+
+legend left
+  Focus:
+  - inheritance from Entity
+  - main business entities
+  - core domain relationships
+endlegend
+
+abstract class Entity {
+  # createdAt : LocalDateTime
+  # updatedAt : LocalDateTime
+  # isDeleted : boolean
+  + getCreatedAt() : LocalDateTime
+  + setCreatedAt(createdAt : LocalDateTime)
+  + getUpdatedAt() : LocalDateTime
+  + setUpdatedAt(updatedAt : LocalDateTime)
+  + isDeleted() : boolean
+  + setDeleted(deleted : boolean)
+  # updateTimestamp()
+}
+
+class User {
+  # id : Integer
+  # username : String
+  # password : String
+  # fullName : String
+  # email : String
+  # balance : Double
+  # lockedBalance : Double
+  # role : Role
+  # isActive : Boolean
+}
+
+class StandardUser
+class Admin
+
+class Item {
+  - id : Integer
+  - sellerId : Integer
+  - name : String
+  - description : String
+  - category : String
+  - imageUrl : String
+}
+
+class Auction {
+  - THRESHOLD_SECONDS : int
+  - EXTENSION_SECONDS : int
+  - id : int
+  - itemId : int
+  - startingPrice : double
+  - currentPrice : double
+  - bidIncrement : double
+  - startTime : LocalDateTime
+  - endTime : LocalDateTime
+  - originalEndTime : LocalDateTime
+  - status : Status
+  - winnerId : int
+  - finalPrice : double
+  + applySnipeExtension(bidTime : LocalDateTime) : boolean
+  + getSnipeSettings() : Integer[]
+}
+
+class Bid {
+  - id : Integer
+  - auctionId : Integer
+  - bidderId : Integer
+  - amount : Double
+}
+
+enum "User.Role" as UserRole {
+  STANDARD
+  ADMIN
+}
+
+enum "Auction.Status" as AuctionStatus {
+  PENDING
+  ACTIVE
+  ENDED
+  CANCELLED
+}
+
+Entity <|-- User
+Entity <|-- Item
+Entity <|-- Auction
+Entity <|-- Bid
+
+User <|-- StandardUser
+User <|-- Admin
+User --> UserRole
+Auction --> AuctionStatus
+
+User "1" --> "0..*" Item : sells
+Item "1" --> "0..1" Auction : listed in
+Auction "1" --> "0..*" Bid : receives
+User "1" --> "0..*" Bid : places
+Auction "0..1" --> "1" User : winner
+
+User -[hidden]-> Item
+Item -[hidden]-> Auction
+Auction -[hidden]-> Bid
+
+@enduml
