@@ -1,0 +1,51 @@
+@startuml TheAllNewBinance_Overview
+title TheAllNewBinance - Module Overview
+!include _theme.puml
+
+left to right direction
+
+legend left
+  Read this first.
+  Only the high-level module dependency direction is shown here.
+endlegend
+
+[client] as clientModule
+[core] as coreModule
+[server] as serverModule
+database "MySQL" as mysql
+
+clientModule --> coreModule : shared models/contracts
+serverModule --> coreModule : implements interfaces
+serverModule --> mysql : JDBC persistence
+clientModule ..> serverModule : target runtime integration\n(current client still uses placeholders)
+
+note right of clientModule
+  JavaFX UI module
+  - scene/page/component structure
+  - hot reload in dev mode
+  - data currently mocked
+end note
+
+note right of coreModule
+  Shared layer
+  - entities
+  - DTOs
+  - DAO interfaces
+  - service interfaces
+  - protocol
+  - utils
+end note
+
+note right of serverModule
+  Backend layer
+  - WebSocket entrypoint
+  - request dispatcher
+  - controllers
+  - services
+  - DAO implementations
+end note
+
+clientModule -[hidden]-> coreModule
+coreModule -[hidden]-> serverModule
+
+@enduml
