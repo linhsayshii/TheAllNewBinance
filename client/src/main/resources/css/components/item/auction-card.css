@@ -1,7 +1,4 @@
 .auction-card-root {
-    -fx-min-width: 300;
-    -fx-pref-width: 400;
-    -fx-max-width: 400;
     -fx-min-height: 400;
     -fx-pref-height: 400;
     -fx-max-height: 400;

@@ -3,6 +3,7 @@ package com.auction.client.scene;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import com.auction.client.config.AppConfig;
 import com.auction.client.config.SceneRegistry;
@@ -40,6 +41,10 @@ public class SceneService {
     }
 
     public void switchTo(SceneRegistry sceneRegistry) {
+        switchTo(sceneRegistry, null);
+    }
+
+    public void switchTo(SceneRegistry sceneRegistry, Map<String, Object> data) {
         try {
             FXMLLoader loader = new FXMLLoader(resourceLoader.requireUrl(sceneRegistry.fxmlPath()));
             Parent root = loader.load();
@@ -52,6 +57,11 @@ public class SceneService {
             // Keep reference to new controller
             currentController = loader.getController();
 
+            // Pass navigation data to controller if it supports it
+            if (data != null && currentController instanceof DataReceivable) {
+                ((DataReceivable) currentController).onDataReceived(data);
+            }
+
             closePopup();
 
             if (sceneHost == null) {
@@ -59,13 +69,17 @@ public class SceneService {
             }
             sceneHost.getChildren().setAll(root);
             
-            Scene scene = new Scene(sceneHost);
+            // Reuse existing scene if sceneHost is already the root of one
+            Scene scene = sceneHost.getScene();
+            if (scene == null) {
+                scene = new Scene(sceneHost);
+                trackScene(scene);
+            }
             applyStylesheets(scene, false);
             themeService.apply(scene, themeService.currentTheme());
             stage.setTitle(sceneRegistry.title());
             stage.setScene(scene);
             currentSceneRegistry = sceneRegistry;
-            trackScene(scene);
         } catch (IOException e) {
             throw new SceneLoadException("Could not load scene " + sceneRegistry.name(), e);
         }

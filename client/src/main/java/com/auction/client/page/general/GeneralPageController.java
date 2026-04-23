@@ -90,10 +90,20 @@ public class GeneralPageController {
         state.scrollPane = scrollPane;
         state.cardsContainer = cardsContainer;
         state.indicatorsContainer = indicatorsContainer;
-        state.snapDelay = new PauseTransition(Duration.millis(120));
+        state.snapDelay = new PauseTransition(Duration.millis(150));
         state.snapDelay.setOnFinished(event -> snapToNearestBlock(state));
 
+        // Disable pannable to prevent click events from being consumed
+        scrollPane.setPannable(false);
+
         scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
+            double newWidth = newBounds.getWidth();
+            // Only recalculate when the viewport width changes significantly (real window resize).
+            // Minor fluctuations (scrollbar, popup, focus) should not trigger relayout.
+            if (state.lastLayoutWidth > 0 && Math.abs(newWidth - state.lastLayoutWidth) < 20.0) {
+                return;
+            }
+            state.lastLayoutWidth = newWidth;
             updateCarouselLayout(state);
             snapToCurrentBlock(state);
         });
@@ -285,6 +295,7 @@ public class GeneralPageController {
         private int itemsPerBlock = 1;
         private int currentBlockIndex = 0;
         private boolean programmaticScroll;
+        private double lastLayoutWidth = -1;
     }
 
     private VBox loadAuctionCard(ProductCardUiModel card) {

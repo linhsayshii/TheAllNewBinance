@@ -49,7 +49,7 @@
     -fx-border-color: transparent;
     -fx-padding: 0 0 40 0;
     -fx-fit-to-height: true;
-    -fx-pannable: true;
+    -fx-pannable: false;
 }
 
 .gp-cards-scroll > .viewport {

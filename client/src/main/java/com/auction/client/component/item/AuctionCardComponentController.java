@@ -1,5 +1,7 @@
 package com.auction.client.component.item;
 
+import java.util.Map;
+
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.dto.ProductCardUiModel;
 import com.auction.client.scene.NavigationService;
@@ -33,6 +35,7 @@ public class AuctionCardComponentController {
 	private Region progressFill;
 
 	private long pressStartedAtNanos;
+	private Integer auctionId;
 
 	@FXML
 	private void handleMousePressed(MouseEvent event) {
@@ -47,7 +50,12 @@ public class AuctionCardComponentController {
 			return;
 		}
 
-		NavigationService.getInstance().navigateTo(SceneRegistry.PRODUCT_DETAIL_PAGE);
+		if (auctionId != null) {
+			NavigationService.getInstance().navigateTo(
+				SceneRegistry.AUCTION_PAGE,
+				Map.of("auctionId", auctionId)
+			);
+		}
 	}
 
 	private boolean isPrimaryClickOnly(MouseEvent event) {
@@ -63,6 +71,7 @@ public class AuctionCardComponentController {
 			return;
 		}
 
+		this.auctionId = model.auctionId();
 		imageLabel.setText("Item Image");
 		timeLeftLabel.setText("End in " + model.timeLeft());
 		titleLabel.setText(model.title());

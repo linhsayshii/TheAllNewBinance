@@ -13,8 +13,37 @@ public class HeaderComponentController {
 	private FontIcon themeModeIcon;
 
 	@FXML
+	private javafx.scene.layout.HBox guestContainer;
+
+	@FXML
+	private javafx.scene.layout.HBox authContainer;
+
+	@FXML
+	private javafx.scene.control.Hyperlink usernameLink;
+
+	@FXML
 	private void initialize() {
 		refreshThemeModeIcon();
+		refreshAuthState();
+	}
+
+	private void refreshAuthState() {
+		if (guestContainer == null || authContainer == null) return;
+		boolean isAuthenticated = com.auction.client.service.UserSessionService.getInstance().isAuthenticated();
+		
+		guestContainer.setVisible(!isAuthenticated);
+		guestContainer.setManaged(!isAuthenticated);
+		
+		authContainer.setVisible(isAuthenticated);
+		authContainer.setManaged(isAuthenticated);
+		
+		if (isAuthenticated && usernameLink != null) {
+			String displayName = com.auction.client.service.UserSessionService.getInstance().getCurrentUser().getFullName();
+			if (displayName == null || displayName.isBlank()) {
+				displayName = "Profile";
+			}
+			usernameLink.setText(displayName);
+		}
 	}
 
 	@FXML
@@ -25,6 +54,11 @@ public class HeaderComponentController {
 	@FXML
 	private void handleGoToLogin() {
 		NavigationService.getInstance().openPopup(SceneRegistry.LOGIN_CARD);
+	}
+
+	@FXML
+	private void handleGoToProfile() {
+		NavigationService.getInstance().navigateTo(SceneRegistry.PROFILE_PAGE);
 	}
 
 	@FXML

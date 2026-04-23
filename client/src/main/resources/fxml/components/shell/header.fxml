@@ -26,9 +26,18 @@
         </VBox>
         <TextField promptText="Search items and sellers" prefWidth="520.0" styleClass="gp-search-field" />
         <Region HBox.hgrow="ALWAYS" />
-        <Label text="Notifications" styleClass="gp-top-link" />
-        <Hyperlink text="Log in" onAction="#handleGoToLogin" styleClass="gp-top-link" />
-        <Button text="Sign Up" onAction="#handleGoToRegister" styleClass="gp-signup-btn" />
+        <HBox fx:id="guestContainer" alignment="CENTER" spacing="20">
+            <children>
+                <Hyperlink text="Log in" onAction="#handleGoToLogin" styleClass="gp-top-link" />
+                <Button text="Sign Up" onAction="#handleGoToRegister" styleClass="gp-signup-btn" />
+            </children>
+        </HBox>
+        <HBox fx:id="authContainer" alignment="CENTER" spacing="20" visible="false" managed="false">
+            <children>
+                <Label text="Notifications" styleClass="gp-top-link" />
+                <Hyperlink fx:id="usernameLink" text="Username" onAction="#handleGoToProfile" styleClass="gp-top-link" />
+            </children>
+        </HBox>
         <Button onAction="#handleToggleTheme" styleClass="gp-theme-icon-btn">
             <graphic>
                 <FontIcon fx:id="themeModeIcon" iconLiteral="fas-sun" iconSize="18" styleClass="gp-theme-mode-icon" />

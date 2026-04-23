@@ -53,7 +53,7 @@
                                                             fitToWidth="false"
                                                             hbarPolicy="NEVER"
                                                             vbarPolicy="NEVER"
-                                                            pannable="true"
+                                                            pannable="false"
                                                             styleClass="gp-cards-scroll">
                                                     <HBox.hgrow>
                                                         <Priority fx:constant="ALWAYS" />
@@ -92,7 +92,7 @@
                                                             fitToWidth="false"
                                                             hbarPolicy="NEVER"
                                                             vbarPolicy="NEVER"
-                                                            pannable="true"
+                                                            pannable="false"
                                                             styleClass="gp-cards-scroll">
                                                     <HBox.hgrow>
                                                         <Priority fx:constant="ALWAYS" />

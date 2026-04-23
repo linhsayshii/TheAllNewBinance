@@ -85,7 +85,7 @@
                             <VBox spacing="4">
                               <children>
                                 <Label text="Current bid" styleClass="pdp-subtle-caption" />
-                                <Label fx:id="currentBidLabel" text="$0.00" styleClass="pdp-current-bid" />
+                                <Label fx:id="currentBidLabel" text="\$0.00" styleClass="pdp-current-bid" />
                               </children>
                             </VBox>
                             <Region HBox.hgrow="ALWAYS" />
@@ -102,7 +102,7 @@
 
                         <VBox spacing="8">
                           <children>
-                            <TextField fx:id="bidAmountInput" promptText="$0.00 or up" styleClass="pdp-bid-input" />
+                            <TextField fx:id="bidAmountInput" promptText="\$0.00 or up" styleClass="pdp-bid-input" />
                             <HBox spacing="8">
                               <children>
                                 <Button fx:id="placeBidButton" text="Place Bid" onAction="#handlePlaceBid" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="pdp-btn-primary" />
