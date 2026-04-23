@@ -362,8 +362,10 @@ public class AuctionDao implements IAuctionDao {
             sql.append("GROUP BY a.auction_id, a.item_id, i.name, i.image_url, a.current_price, a.start_time, a.end_time, a.status, u.full_name ");
             sql.append("ORDER BY bid_count DESC, a.end_time ASC, a.start_time ASC ");
         } else if (includeEndingSoon) {
-            sql.append("ORDER BY CASE WHEN a.status = 'ACTIVE' THEN a.end_time END ASC NULLS LAST, ")
-               .append("CASE WHEN a.status = 'PENDING' THEN a.start_time END ASC NULLS LAST, ")
+            sql.append("ORDER BY (CASE WHEN a.status = 'ACTIVE' THEN a.end_time END) IS NULL ASC, ")
+               .append("CASE WHEN a.status = 'ACTIVE' THEN a.end_time END ASC, ")
+               .append("(CASE WHEN a.status = 'PENDING' THEN a.start_time END) IS NULL ASC, ")
+               .append("CASE WHEN a.status = 'PENDING' THEN a.start_time END ASC, ")
                .append("a.auction_id DESC ");
         } else {
             sql.append("ORDER BY a.auction_id DESC "); // default fallback
