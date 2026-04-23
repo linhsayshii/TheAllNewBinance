@@ -6,6 +6,7 @@ public enum EventType {
     REGISTER,
     UPDATE_PROFILE,
     CHANGE_PASSWORD,
+    LOGOUT,
 
     // Auction
     GET_AUCTION_DETAILS,

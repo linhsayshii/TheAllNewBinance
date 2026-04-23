@@ -102,6 +102,32 @@ public class UserController {
         }
     }
 
+    public String logout(String request) {
+        if (request == null) {
+            return JsonMapper.toJson(errorResponse("Request payload is required"));
+        }
+
+        try {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> payload = JsonMapper.fromJson(request, Map.class);
+            if (payload == null || !payload.containsKey("userId")) {
+                return JsonMapper.toJson(errorResponse("Invalid logout payload"));
+            }
+
+            Integer userId = ((Number) payload.get("userId")).intValue();
+            userService.logout(userId).join();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Logged out successfully");
+            return JsonMapper.toJson(response);
+        } catch (IllegalArgumentException ex) {
+            return JsonMapper.toJson(errorResponse(ex.getMessage()));
+        } catch (Exception ex) {
+            return JsonMapper.toJson(errorResponse("Logout failed"));
+        }
+    }
+
     private Map<String, Object> successResponse(User user) {
         Map<String, Object> response = new HashMap<>();
         Map<String, Object> safeUser = new HashMap<>();

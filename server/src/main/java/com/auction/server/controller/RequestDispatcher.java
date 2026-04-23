@@ -76,6 +76,9 @@ public class RequestDispatcher {
                 case EventType.CHANGE_PASSWORD -> userCtrl == null
                         ? error("User controller is not configured")
                         : userCtrl.changePassword(payload);
+                case EventType.LOGOUT -> userCtrl == null
+                        ? error("User controller is not configured")
+                        : userCtrl.logout(payload);
                 case EventType.PLACE_BID -> bidCtrl == null
                         ? error("Bid controller is not configured")
                         : bidCtrl.placeBid(payload);
@@ -127,7 +130,7 @@ public class RequestDispatcher {
     private void overridePayloadIdentity(EventType type, Map<String, Object> payload, Integer sessionUserId) {
         switch (type) {
             case PLACE_BID, GET_BIDS_BY_BIDDER_ID -> payload.put("bidderId", sessionUserId);
-            case UPDATE_PROFILE, CHANGE_PASSWORD -> payload.put("userId", sessionUserId);
+            case UPDATE_PROFILE, CHANGE_PASSWORD, LOGOUT -> payload.put("userId", sessionUserId);
             case CREATE_AUCTION, GET_AUCTIONS_BY_SELLER -> payload.put("sellerId", sessionUserId);
             default -> {
                 // No identity override required for this event type.

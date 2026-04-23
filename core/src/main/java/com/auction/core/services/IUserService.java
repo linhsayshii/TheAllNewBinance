@@ -13,4 +13,5 @@ public interface IUserService {
     CompletableFuture<User> login(LoginRequest request);
     CompletableFuture<Void> updateProfile(UpdateProfileRequest request);
     CompletableFuture<Void> changePassword(UpdatePasswordRequest request);
+    CompletableFuture<Void> logout(Integer userId);
 }

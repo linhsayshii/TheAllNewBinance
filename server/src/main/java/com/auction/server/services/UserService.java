@@ -39,8 +39,7 @@ public class UserService implements IUserService {
                     PasswordHasher.hash(request.getPassword()),
                     request.getFullname().trim(),
                     request.getEmail().trim(),
-                    0.0
-            );
+                    0.0);
 
             if (!userDao.registerUser(user)) {
                 throw new IllegalStateException("Failed to register user");
@@ -69,7 +68,8 @@ public class UserService implements IUserService {
             validateUpdateProfileRequest(request);
 
             User user = userDao.findById(request.getUserId());
-            if (user == null) throw new IllegalArgumentException("User not found");
+            if (user == null)
+                throw new IllegalArgumentException("User not found");
 
             String newUsername = request.getUsername().trim();
             User existingUser = userDao.findByUsername(newUsername);
@@ -93,7 +93,8 @@ public class UserService implements IUserService {
             validateChangePasswordRequest(request);
 
             User user = userDao.findById(request.getUserId());
-            if (user == null) throw new IllegalArgumentException("User not found");
+            if (user == null)
+                throw new IllegalArgumentException("User not found");
 
             if (!PasswordHasher.verify(request.getOldPassword(), user.getPassword())) {
                 throw new IllegalArgumentException("Old password is incorrect");
@@ -110,30 +111,57 @@ public class UserService implements IUserService {
         });
     }
 
+    @Override
+    public CompletableFuture<Void> logout(Integer userId) {
+        return CompletableFuture.runAsync(() -> {
+            if (userId == null || userId <= 0) {
+                throw new IllegalArgumentException("User ID is invalid");
+            }
+            User user = userDao.findById(userId);
+            if (user == null) {
+                throw new IllegalArgumentException("User not found");
+            }
+        });
+    }
+
     private void validateRegisterRequest(RegisterRequest request) {
-        if (request == null) throw new IllegalArgumentException("Request payload is required");
-        if (isBlank(request.getUsername())) throw new IllegalArgumentException("Username is required");
-        if (isBlank(request.getPassword())) throw new IllegalArgumentException("Password is required");
+        if (request == null)
+            throw new IllegalArgumentException("Request payload is required");
+        if (isBlank(request.getUsername()))
+            throw new IllegalArgumentException("Username is required");
+        if (isBlank(request.getPassword()))
+            throw new IllegalArgumentException("Password is required");
         if (request.getPassword().length() < MIN_PASSWORD_LENGTH) {
             throw new IllegalArgumentException("Password must be at least " + MIN_PASSWORD_LENGTH + " characters");
         }
-        if (isBlank(request.getFullname())) throw new IllegalArgumentException("Full name is required");
-        if (!isValidEmail(request.getEmail())) throw new IllegalArgumentException("Email format is invalid");
+        if (isBlank(request.getFullname()))
+            throw new IllegalArgumentException("Full name is required");
+        if (!isValidEmail(request.getEmail()))
+            throw new IllegalArgumentException("Email format is invalid");
     }
 
     private void validateUpdateProfileRequest(UpdateProfileRequest request) {
-        if (request == null) throw new IllegalArgumentException("Request payload is required");
-        if (request.getUserId() <= 0) throw new IllegalArgumentException("User ID is invalid");
-        if (isBlank(request.getUsername())) throw new IllegalArgumentException("Username is required");
-        if (isBlank(request.getFullName())) throw new IllegalArgumentException("Full name is required");
-        if (!isValidEmail(request.getEmail())) throw new IllegalArgumentException("Email format is invalid");
+        if (request == null)
+            throw new IllegalArgumentException("Request payload is required");
+        if (request.getUserId() <= 0)
+            throw new IllegalArgumentException("User ID is invalid");
+        if (isBlank(request.getUsername()))
+            throw new IllegalArgumentException("Username is required");
+        if (isBlank(request.getFullName()))
+            throw new IllegalArgumentException("Full name is required");
+        if (!isValidEmail(request.getEmail()))
+            throw new IllegalArgumentException("Email format is invalid");
     }
 
     private void validateChangePasswordRequest(UpdatePasswordRequest request) {
-        if (request == null) throw new IllegalArgumentException("Request payload is required");
-        if (request.getUserId() <= 0) throw new IllegalArgumentException("User ID is invalid");
-        if (isBlank(request.getOldPassword())) throw new IllegalArgumentException("Old password is required");
-        if (isBlank(request.getNewPassword())) throw new IllegalArgumentException("New password is required");
+        if (request == null)
+            throw new IllegalArgumentException("Request payload is required");
+        if (request.getUserId() <= 0)
+            throw new IllegalArgumentException("User ID is invalid");
+        if (isBlank(request.getOldPassword()))
+            throw new IllegalArgumentException("Old password is required");
+        if (isBlank(request.getNewPassword()))
+            throw new IllegalArgumentException("New password is required");
         if (request.getNewPassword().length() < MIN_PASSWORD_LENGTH) {
             throw new IllegalArgumentException("New password must be at least " + MIN_PASSWORD_LENGTH + " characters");
         }
