@@ -53,8 +53,8 @@ graph TD
     Khanh --> Server
 
     Minh --> Core
-    Dang --> Core
     Minh --> Server
+    Dang --> Core
 ```
 
 ## Công nghệ sử dụng
