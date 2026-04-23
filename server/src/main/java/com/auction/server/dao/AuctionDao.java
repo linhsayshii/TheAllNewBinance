@@ -268,7 +268,7 @@ public class AuctionDao implements IAuctionDao {
 
     @Override
     public Integer getSellerId(Integer auctionId) {
-        String sql = "SELECT i.seller_id FROM auctions a JOIN items i ON a.item_id = i.id WHERE a.auction_id = ?";
+        String sql = "SELECT i.seller_id FROM auctions a JOIN items i ON a.item_id = i.item_id WHERE a.auction_id = ?";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, auctionId);
