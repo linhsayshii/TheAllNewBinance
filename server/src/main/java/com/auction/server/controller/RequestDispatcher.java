@@ -55,48 +55,54 @@ public class RequestDispatcher {
             if (payloadObj instanceof Map) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> p = (Map<String, Object>) payloadObj;
-                // Sang chấn áp đè ID thật từ phiên Socket
                 overridePayloadIdentity(type, p, sessionUserId);
             }
         }
 
         String payload = extractPayload(node.get("payload"));
 
-        String responseRaw = switch (type) {
-            case EventType.LOGIN -> userCtrl == null
-                    ? error("User controller is not configured")
-                    : userCtrl.login(payload);
-            case EventType.REGISTER -> userCtrl == null
-                    ? error("User controller is not configured")
-                    : userCtrl.register(payload);
-            case EventType.UPDATE_PROFILE -> userCtrl == null
-                    ? error("User controller is not configured")
-                    : userCtrl.updateProfile(payload);
-            case EventType.CHANGE_PASSWORD -> userCtrl == null
-                    ? error("User controller is not configured")
-                    : userCtrl.changePassword(payload);
-            case EventType.PLACE_BID -> bidCtrl == null
-                    ? error("Bid controller is not configured")
-                    : bidCtrl.placeBid(payload);
-            case EventType.CREATE_AUCTION -> auctionCtrl == null
-                    ? error("Auction controller is not configured")
-                    : auctionCtrl.createAuction(payload);
-            case EventType.GET_AUCTION_DETAILS -> auctionCtrl == null
-                    ? error("Auction controller is not configured")
-                    : auctionCtrl.getAuctionDetails(payload);
-            case EventType.GET_AUCTIONS_BY_SELLER -> auctionCtrl == null
-                    ? error("Auction controller is not configured")
-                    : auctionCtrl.getAuctionsBySellerId(payload);
-            case EventType.GET_BIDS_BY_AUCTION_ID -> bidCtrl == null
-                    ? error("Bid controller is not configured")
-                    : bidCtrl.getBidsByAuctionId(payload);
-            case EventType.GET_BIDS_BY_BIDDER_ID -> bidCtrl == null
-                    ? error("Bid controller is not configured")
-                    : bidCtrl.getBidsByBidderId(payload);
-            case EventType.GET_PUBLIC_AUCTIONS -> auctionCtrl == null
-                    ? error("Auction controller is not configured")
-                    : auctionCtrl.getPublicAuctions(payload);
-        };
+        String responseRaw;
+        try {
+            responseRaw = switch (type) {
+                case EventType.LOGIN -> userCtrl == null
+                        ? error("User controller is not configured")
+                        : userCtrl.login(payload);
+                case EventType.REGISTER -> userCtrl == null
+                        ? error("User controller is not configured")
+                        : userCtrl.register(payload);
+                case EventType.UPDATE_PROFILE -> userCtrl == null
+                        ? error("User controller is not configured")
+                        : userCtrl.updateProfile(payload);
+                case EventType.CHANGE_PASSWORD -> userCtrl == null
+                        ? error("User controller is not configured")
+                        : userCtrl.changePassword(payload);
+                case EventType.PLACE_BID -> bidCtrl == null
+                        ? error("Bid controller is not configured")
+                        : bidCtrl.placeBid(payload);
+                case EventType.CREATE_AUCTION -> auctionCtrl == null
+                        ? error("Auction controller is not configured")
+                        : auctionCtrl.createAuction(payload);
+                case EventType.GET_AUCTION_DETAILS -> auctionCtrl == null
+                        ? error("Auction controller is not configured")
+                        : auctionCtrl.getAuctionDetails(payload);
+                case EventType.GET_AUCTIONS_BY_SELLER -> auctionCtrl == null
+                        ? error("Auction controller is not configured")
+                        : auctionCtrl.getAuctionsBySellerId(payload);
+                case EventType.GET_BIDS_BY_AUCTION_ID -> bidCtrl == null
+                        ? error("Bid controller is not configured")
+                        : bidCtrl.getBidsByAuctionId(payload);
+                case EventType.GET_BIDS_BY_BIDDER_ID -> bidCtrl == null
+                        ? error("Bid controller is not configured")
+                        : bidCtrl.getBidsByBidderId(payload);
+                case EventType.GET_PUBLIC_AUCTIONS -> auctionCtrl == null
+                        ? error("Auction controller is not configured")
+                        : auctionCtrl.getPublicAuctions(payload);
+            };
+        } catch (Exception ex) {
+            System.err.println("Unhandled exception during dispatch: " + ex.getMessage());
+            ex.printStackTrace();
+            responseRaw = error("Internal Server Error");
+        }
         
         try {
             @SuppressWarnings("unchecked")

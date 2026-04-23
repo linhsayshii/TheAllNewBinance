@@ -36,6 +36,7 @@ public class AuctionService implements IAuctionService {
 
     @Override
     public CompletableFuture<Auction> createAuction(CreateAuctionRequest request) {
+        // THỰC TẾ: Đây vẫn là tác vụ độc lập nên supplyAsync là hợp lệ
         return CompletableFuture.supplyAsync(() -> {
             Auction auction = new Auction(null, request.getItemId(), request.getStartingPrice(),
                     request.getBidIncrement(),
@@ -47,15 +48,14 @@ public class AuctionService implements IAuctionService {
 
     @Override
     public CompletableFuture<Void> processBid(Bid bid, Auction auction) {
-        return CompletableFuture.runAsync(() -> {
-            if (bid == null || auction == null) {
-                throw new IllegalArgumentException("Bid and Auction must not be null");
-            }
-            boolean updated = auctionDao.updateAuctionForBid(bid, auction);
-            if (!updated) {
-                throw new IllegalStateException("Failed to update auction bid state, possibly concurrency issue.");
-            }
-        });
+        if (bid == null || auction == null) {
+            throw new IllegalArgumentException("Bid and Auction must not be null");
+        }
+        boolean updated = auctionDao.updateAuctionForBid(bid, auction);
+        if (!updated) {
+            throw new IllegalStateException("Failed to update auction bid state, possibly concurrency issue.");
+        }
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
@@ -104,12 +104,12 @@ public class AuctionService implements IAuctionService {
 
     @Override
     public CompletableFuture<Auction> getAuctionDetails(Integer auctionId) {
-        return CompletableFuture.supplyAsync(() -> auctionDao.getAuctionDetails(auctionId));
+        return CompletableFuture.completedFuture(auctionDao.getAuctionDetails(auctionId));
     }
 
     @Override
     public CompletableFuture<Integer> getSellerId(Integer auctionId) {
-        return CompletableFuture.supplyAsync(() -> auctionDao.getSellerId(auctionId));
+        return CompletableFuture.completedFuture(auctionDao.getSellerId(auctionId));
     }
 
     @Override
@@ -121,7 +121,9 @@ public class AuctionService implements IAuctionService {
                     request.isIncludeEndingSoon(), request.isIncludeTrending());
 
             CacheEntry entry = publicAuctionsCache.get(cacheKey);
-            if (entry != null && LocalDateTime.now().isBefore(entry.expiryTime)) {return entry.data; }
+            if (entry != null && LocalDateTime.now().isBefore(entry.expiryTime)) {
+                return entry.data;
+            }
 
             int offset = (request.getPage() - 1) * request.getSize();
             List<PublicAuctionDto> data = auctionDao.getPublicAuctions(
