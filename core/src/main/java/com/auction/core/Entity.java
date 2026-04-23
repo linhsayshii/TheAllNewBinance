@@ -13,10 +13,10 @@ public abstract class Entity {
         this.isDeleted = false;
     }
     public LocalDateTime getCreatedAt() { return createdAt; }
-    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; this.updateTimestamp(); }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
 
     public LocalDateTime getUpdatedAt() { return updatedAt; }
-    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; this.updateTimestamp();}   
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }   
 
     protected void updateTimestamp() {this.updatedAt = LocalDateTime.now(); }
 

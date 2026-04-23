@@ -53,6 +53,11 @@ public class BidDao implements IBidDao {
                         rs.getInt("bidder_id"),
                         rs.getDouble("amount")
                     );
+                    Timestamp createdAt = rs.getTimestamp("created_at");
+                    if (createdAt != null) {
+                        bid.setCreatedAt(createdAt.toLocalDateTime());
+                        bid.setUpdatedAt(createdAt.toLocalDateTime());
+                    }
                     bids.add(bid);  
                 }
             }
@@ -77,6 +82,11 @@ public class BidDao implements IBidDao {
                         rs.getInt("bidder_id"),
                         rs.getDouble("amount")
                     );
+                    Timestamp createdAt = rs.getTimestamp("created_at");
+                    if (createdAt != null) {
+                        bid.setCreatedAt(createdAt.toLocalDateTime());
+                        bid.setUpdatedAt(createdAt.toLocalDateTime());
+                    }
                     bids.add(bid);  
                 }
             }
