@@ -41,18 +41,24 @@ public class SocketServer extends WebSocketServer {
         // Tự động map Session Socket ngay khi nhận lệnh LOGIN/REGISTER thành công
         try {
             if (userId == null) {
-                Map<?, ?> reqNode = JsonMapper.fromJson(message, Map.class);
-                EventType type = EventType.fromWireValue(reqNode.get("type"));
-                if (type == EventType.LOGIN || type == EventType.REGISTER) {
-                    Map<?, ?> respNode = JsonMapper.fromJson(response, Map.class);
-                    if (Boolean.TRUE.equals(respNode.get("success"))) {
-                        Map<?, ?> data = (Map<?, ?>) respNode.get("data");
-                        if (data != null && data.containsKey("id")) {
-                            Number id = (Number) data.get("id");
-                            userSessions.put(conn, id.intValue());
-                            System.out.println("Authenticated connection: " + conn.getRemoteSocketAddress() + " -> UserId: " + id);
-                        }
+            Map<?, ?> reqNode = JsonMapper.fromJson(message, Map.class);
+            EventType type = EventType.fromWireValue(reqNode.get("type"));
+            
+            if (type == EventType.LOGIN || type == EventType.REGISTER) {
+                Map<?, ?> respNode = JsonMapper.fromJson(response, Map.class);
+                if (Boolean.TRUE.equals(respNode.get("success"))) {
+                    Map<?, ?> data = (Map<?, ?>) respNode.get("data");
+                    if (data != null && data.containsKey("id")) {
+                        Number id = (Number) data.get("id");
+                        userSessions.put(conn, id.intValue());
+                        System.out.println("Authenticated connection: " + conn.getRemoteSocketAddress() + " -> UserId: " + id);
                     }
+                }
+            } else if (type == EventType.LOGOUT) {
+                Map<?, ?> respNode = JsonMapper.fromJson(response, Map.class);
+                if (Boolean.TRUE.equals(respNode.get("success"))) {
+                    userSessions.remove(conn);
+                    System.out.println("User logged out on connection: " + conn.getRemoteSocketAddress());
                 }
             }
         } catch (Exception e) {
