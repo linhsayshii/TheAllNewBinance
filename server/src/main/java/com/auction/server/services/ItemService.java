@@ -2,7 +2,7 @@ package com.auction.server.services;
 
 import java.util.concurrent.CompletableFuture;
 
-import com.auction.server.dao.IItemDao;
+import com.auction.server.dao.impl.IItemDao;
 import com.auction.core.products.Item;
 import com.auction.core.services.IItemService;
 

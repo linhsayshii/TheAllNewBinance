@@ -13,12 +13,12 @@ import java.util.stream.Collectors;
 
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
+import com.auction.server.dao.impl.IAuctionDao;
 
 public class AuctionDao implements IAuctionDao {
     @Override
     public boolean createAuction(Auction auction) {
-        String sql = "INSERT INTO auctions (item_id, starting_price, bid_increment, start_time, original_end_time, extended_end_time, status, is_deleted, created_at, snipe_threshold, snipe_extension) "
-                +
+        String sql = "INSERT INTO auctions (item_id, starting_price, bid_increment, start_time, original_end_time, extended_end_time, status, is_deleted, created_at, snipe_threshold, snipe_extension) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
@@ -335,7 +335,7 @@ public class AuctionDao implements IAuctionDao {
             "a.current_price, a.start_time, a.end_time, a.status, u.full_name as seller_display_name ");
         
         if (includeTrending) {
-            sql.append(", COUNT(b.id) as bid_count ");
+            sql.append(", COUNT(b.bid_id) as bid_count ");
         }
         
         sql.append("FROM auctions a ")

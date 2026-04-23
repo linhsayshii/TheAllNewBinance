@@ -8,6 +8,7 @@ import java.sql.Statement;
 import java.sql.Timestamp;
 
 import com.auction.core.users.User;
+import com.auction.server.dao.impl.IUserDao;
 
 public class UserDao implements IUserDao {
     @Override

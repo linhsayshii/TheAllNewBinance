@@ -13,7 +13,7 @@ import com.auction.core.dto.auction.CreateAuctionRequest;
 import com.auction.core.dto.auction.GetAuctionBySellerIdRequest;
 import com.auction.core.dto.auction.PublicAuctionDto;
 import com.auction.core.services.IAuctionService;
-import com.auction.server.dao.IAuctionDao;
+import com.auction.server.dao.impl.IAuctionDao;
 
 public class AuctionService implements IAuctionService {
     private final IAuctionDao auctionDao;
