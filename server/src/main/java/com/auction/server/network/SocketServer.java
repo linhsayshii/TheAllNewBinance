@@ -38,13 +38,12 @@ public class SocketServer extends WebSocketServer {
         String response = dispatcher.dispatch(userId, message);
         conn.send(response);
 
-        // Tự động map Session Socket ngay khi nhận lệnh LOGIN/REGISTER thành công
+        // Tự động map/unmap Session Socket dựa trên kết quả LOGIN/REGISTER/LOGOUT
         try {
-            if (userId == null) {
             Map<?, ?> reqNode = JsonMapper.fromJson(message, Map.class);
             EventType type = EventType.fromWireValue(reqNode.get("type"));
-            
-            if (type == EventType.LOGIN || type == EventType.REGISTER) {
+
+            if (userId == null && (type == EventType.LOGIN || type == EventType.REGISTER)) {
                 Map<?, ?> respNode = JsonMapper.fromJson(response, Map.class);
                 if (Boolean.TRUE.equals(respNode.get("success"))) {
                     Map<?, ?> data = (Map<?, ?>) respNode.get("data");
@@ -54,7 +53,7 @@ public class SocketServer extends WebSocketServer {
                         System.out.println("Authenticated connection: " + conn.getRemoteSocketAddress() + " -> UserId: " + id);
                     }
                 }
-            } else if (type == EventType.LOGOUT) {
+            } else if (userId != null && type == EventType.LOGOUT) {
                 Map<?, ?> respNode = JsonMapper.fromJson(response, Map.class);
                 if (Boolean.TRUE.equals(respNode.get("success"))) {
                     userSessions.remove(conn);
@@ -62,7 +61,7 @@ public class SocketServer extends WebSocketServer {
                 }
             }
         } catch (Exception e) {
-            System.err.println("Failed to intercept auth packet: " + e.getMessage());
+            System.err.println("Failed to intercept auth/session packet: " + e.getMessage());
         }
     }
 
