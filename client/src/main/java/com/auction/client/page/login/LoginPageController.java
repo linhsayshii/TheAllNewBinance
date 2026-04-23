@@ -21,7 +21,7 @@ import javafx.scene.control.TextField;
 
 public class LoginPageController implements Initializable, LifecycleAwareController {
 
-    private static final String HANDLER_ID = "LOGIN_PAGE";
+    private static final String HANDLER_ID = "LOGIN_CARD";
 
     @FXML private TextField txtUsername;
     @FXML private PasswordField txtPassword;
@@ -53,10 +53,10 @@ public class LoginPageController implements Initializable, LifecycleAwareControl
     @FXML
     private void handleGoToRegister() {
         if (NavigationService.getInstance().isPopupOpen()) {
-            NavigationService.getInstance().openPopup(SceneRegistry.REGISTER_PAGE);
+            NavigationService.getInstance().openPopup(SceneRegistry.REGISTER_CARD);
             return;
         }
-        NavigationService.getInstance().navigateTo(SceneRegistry.REGISTER_PAGE);
+        NavigationService.getInstance().navigateTo(SceneRegistry.REGISTER_CARD);
     }
 
     private void onLoginResponse(String rawJson) {

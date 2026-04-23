@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
 public class JsonMapper {
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     // Khởi tạo Gson với format ngày giờ chuẩn để đồng bộ toàn hệ thống
     private static final Gson GSON = new GsonBuilder()
@@ -21,7 +21,7 @@ public class JsonMapper {
                     if (value == null) {
                         out.nullValue();
                     } else {
-                        out.value(formatter.format(value));
+                        out.value(FORMATTER.format(value));
                     }
                 }
 
@@ -31,7 +31,7 @@ public class JsonMapper {
                         in.nextNull();
                         return null;
                     }
-                    return LocalDateTime.parse(in.nextString(), formatter);
+                    return LocalDateTime.parse(in.nextString(), FORMATTER);
                 }
             })
             .create();

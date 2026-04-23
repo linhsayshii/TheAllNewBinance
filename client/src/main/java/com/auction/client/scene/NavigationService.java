@@ -1,5 +1,7 @@
 package com.auction.client.scene;
 
+import java.util.Map;
+
 import com.auction.client.config.SceneRegistry;
 
 public class NavigationService {
@@ -18,6 +20,10 @@ public class NavigationService {
 
     public void navigateTo(SceneRegistry sceneRegistry) {
         sceneService.switchTo(sceneRegistry);
+    }
+
+    public void navigateTo(SceneRegistry sceneRegistry, Map<String, Object> data) {
+        sceneService.switchTo(sceneRegistry, data);
     }
 
     public void openPopup(SceneRegistry sceneRegistry) {

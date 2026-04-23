@@ -1,4 +1,4 @@
-package com.auction.client.page.productdetail;
+package com.auction.client.page.auction;
 
 import java.text.DecimalFormat;
 import java.time.Duration;
@@ -23,7 +23,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 
-public class ProductDetailPageViewModel {
+public class AuctionPageViewModel {
 
     public String productTitle() {
         return title.get();
@@ -41,12 +41,13 @@ public class ProductDetailPageViewModel {
 
     private final IntegerProperty auctionId = new SimpleIntegerProperty(0);
     private final IntegerProperty bidderId = new SimpleIntegerProperty(0);
+    private final IntegerProperty sellerId = new SimpleIntegerProperty(1); // Temporary dummy value
     private final StringProperty category = new SimpleStringProperty("CATEGORY");
     private final StringProperty title = new SimpleStringProperty("Product detail placeholder");
     private final StringProperty description = new SimpleStringProperty("No description");
     private final StringProperty imageText = new SimpleStringProperty("Item Image");
     private final StringProperty sellerName = new SimpleStringProperty("Unknown Seller");
-    private final StringProperty currentBidDisplay = new SimpleStringProperty("$0.00");
+    private final StringProperty currentBidDisplay = new SimpleStringProperty("\\$0.00");
     private final StringProperty bidderCountText = new SimpleStringProperty("0 people bidding");
     private final StringProperty countdownText = new SimpleStringProperty("00d 00h 00m 00s");
     private final StringProperty loginPrompt = new SimpleStringProperty("Please log in or sign up to place a bid");
@@ -57,6 +58,10 @@ public class ProductDetailPageViewModel {
     private final BooleanProperty biddingEnabled = new SimpleBooleanProperty(true);
 
     private final ObservableList<Bid> bids = FXCollections.observableArrayList();
+
+    public void setAuctionId(int id) {
+        auctionId.set(id);
+    }
 
     public void applyAuctionData(Auction auction, Item item, String seller, Integer currentBidderId, List<Bid> bidHistory) {
         if (auction != null) {
@@ -140,6 +145,10 @@ public class ProductDetailPageViewModel {
 
     public Integer getBidderId() {
         return bidderId.get();
+    }
+
+    public Integer getSellerId() {
+        return sellerId.get();
     }
 
     public StringProperty categoryProperty() {

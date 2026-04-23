@@ -3,7 +3,7 @@ package com.auction.core.dto.auction;
 public class GetPublicAuctionsRequest {
     private int page = 1;
     private int size = 20;
-    private String status = "ACTIVE";
+    private String status = "ACTIVE,PENDING";
     private boolean includeEndingSoon = true;
     private boolean includeTrending = false;
 

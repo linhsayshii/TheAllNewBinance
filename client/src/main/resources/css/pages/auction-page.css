@@ -1,0 +1,323 @@
+/* ======= Auction Page ======= */
+
+.auction-page-root {
+    -fx-background-color: -app-bg;
+}
+
+.auction-scroll {
+    -fx-background-color: -app-bg;
+    -fx-background: -app-bg;
+}
+
+.auction-scroll > .viewport {
+    -fx-background-color: -app-bg;
+}
+
+.auction-content-root {
+    -fx-background-color: -app-bg;
+}
+
+.auction-main-grid {
+    -fx-alignment: top-left;
+}
+
+/* ---- Left Column ---- */
+
+.auction-left-col {
+    -fx-min-width: 500;
+}
+
+.auction-category {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -brand;
+    -fx-text-transform: uppercase;
+}
+
+.auction-title {
+    -fx-font-family: "Inria Serif";
+    -fx-font-size: 32px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -text-primary;
+}
+
+.auction-image-box {
+    -fx-min-height: 360;
+    -fx-pref-height: 400;
+    -fx-background-color: -panel-bg;
+    -fx-background-radius: 0;
+}
+
+.auction-image-text {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -text-primary;
+    -fx-opacity: 0.6;
+}
+
+.auction-section-title {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -text-primary;
+}
+
+.auction-separator {
+    -fx-padding: 4 0 4 0;
+}
+
+.auction-chart-box {
+    -fx-background-color: -surface-bg;
+    -fx-background-radius: 12;
+    -fx-padding: 8;
+}
+
+.bid-history-chart {
+    -fx-background-color: transparent;
+}
+
+.bid-history-chart .chart-series-line {
+    -fx-stroke: -brand;
+}
+
+.bid-history-chart .chart-line-symbol {
+    -fx-background-color: -brand, -app-bg;
+}
+
+.auction-description {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-text-fill: -text-primary;
+    -fx-opacity: 0.85;
+    -fx-line-spacing: 4px;
+}
+
+/* ---- Right Column ---- */
+
+.auction-right-col {
+    -fx-alignment: top-center;
+}
+
+/* Timer Panel */
+
+.auction-timer-panel {
+    -fx-background-color: -surface-bg;
+    -fx-border-color: -border-color;
+    -fx-border-width: 1;
+    -fx-border-radius: 0 0 0 0;
+    -fx-background-radius: 12 12 0 0;
+    -fx-padding: 10 16 0 16;
+}
+
+.auction-timer-date {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-text-fill: -text-primary;
+    -fx-opacity: 0.7;
+}
+
+.auction-timer-digits {
+    -fx-padding: 8 0 12 0;
+}
+
+.auction-timer-cell {
+    -fx-alignment: center;
+    -fx-padding: 4 12 4 12;
+}
+
+.auction-timer-number {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 32px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -text-primary;
+}
+
+.auction-timer-unit {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 9px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -text-primary;
+    -fx-opacity: 0.55;
+}
+
+.auction-timer-sep {
+    -fx-padding: 4 0 4 0;
+}
+
+.auction-timer-progress {
+    -fx-min-height: 4;
+    -fx-pref-height: 4;
+    -fx-max-height: 4;
+    -fx-background-color: linear-gradient(to right, -brand 70%, -border-color 70%);
+    -fx-background-radius: 0 0 0 0;
+}
+
+/* Bid Panel */
+
+.auction-bid-panel {
+    -fx-background-color: -app-bg;
+    -fx-border-color: -border-color;
+    -fx-border-width: 0 1 1 1;
+    -fx-border-radius: 0 0 0 0;
+    -fx-background-radius: 0 0 12 12;
+    -fx-padding: 18 20 18 20;
+}
+
+.auction-bid-caption {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -brand;
+}
+
+.auction-bid-price {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 28px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -text-primary;
+}
+
+/* Seller */
+
+.auction-seller-row {
+    -fx-padding: 6 10 6 10;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.auction-seller-row:hover {
+    -fx-background-color: -surface-bg;
+}
+
+.auction-avatar-circle {
+    -fx-fill: -panel-bg;
+}
+
+.auction-seller-avatar {
+    -fx-min-width: 44;
+    -fx-min-height: 44;
+}
+
+.auction-seller-name {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -text-primary;
+}
+
+.auction-seller-link {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-text-fill: -text-primary;
+    -fx-opacity: 0.65;
+    -fx-cursor: hand;
+}
+
+.auction-seller-arrow {
+    -fx-font-size: 22px;
+    -fx-text-fill: -text-primary;
+    -fx-opacity: 0.4;
+}
+
+/* Bid Input */
+
+.auction-bid-input {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-padding: 10 14 10 14;
+    -fx-background-color: -app-bg;
+    -fx-border-color: -border-color;
+    -fx-border-radius: 0;
+    -fx-background-radius: 8;
+    -fx-text-fill: -text-primary;
+}
+
+.auction-bid-input:focused {
+    -fx-border-color: -brand;
+}
+
+/* Buttons */
+
+.auction-btn-outline {
+    -fx-background-color: -app-bg;
+    -fx-text-fill: -brand;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-padding: 10 20 10 20;
+    -fx-border-color: -brand;
+    -fx-border-radius: 0;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.auction-btn-outline:hover {
+    -fx-background-color: -surface-bg;
+}
+
+.auction-btn-filled {
+    -fx-background-color: -brand;
+    -fx-text-fill: -app-bg;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-padding: 10 20 10 20;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+}
+
+.auction-btn-filled:hover {
+    -fx-background-color: derive(-brand, -10%);
+}
+
+/* Login Prompt */
+
+.auction-login-prompt-box {
+    -fx-background-color: -surface-bg;
+    -fx-background-radius: 8;
+    -fx-padding: 10;
+}
+
+.auction-login-prompt {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-text-fill: -text-primary;
+    -fx-opacity: 0.7;
+}
+
+/* Bid History */
+
+.auction-bid-history-title {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 15px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -brand;
+}
+
+.auction-bidder-count {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-text-fill: -text-primary;
+    -fx-opacity: 0.65;
+}
+
+.auction-bid-list {
+    -fx-background-insets: 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+
+.auction-bid-list .list-cell {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-padding: 6 4 6 4;
+    -fx-border-color: transparent transparent -border-color transparent;
+    -fx-text-fill: -text-primary;
+}
+
+.auction-bid-list .list-cell:empty {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}

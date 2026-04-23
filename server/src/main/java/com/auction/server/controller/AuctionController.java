@@ -70,13 +70,11 @@ public class AuctionController {
 			} else {
 				request = JsonMapper.fromJson(payload, com.auction.core.dto.auction.GetPublicAuctionsRequest.class);
 			}
-			List<com.auction.core.dto.auction.PublicAuctionDto> auctions = auctionService.getPublicAuctions(request)
-					.join();
+			List<com.auction.core.dto.auction.PublicAuctionDto> auctions = auctionService.getPublicAuctions(request).join();
 			return JsonMapper.toJson(successResponse(auctions));
 		} catch (IllegalArgumentException ex) {
 			return JsonMapper.toJson(errorResponse(ex.getMessage()));
 		} catch (Exception ex) {
-			ex.printStackTrace();
 			return JsonMapper.toJson(errorResponse("Internal server error"));
 		}
 	}

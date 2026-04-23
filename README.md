@@ -42,12 +42,10 @@ graph TD
 
     Core[Core]
     Server[Server]
-    ClientController[Client Controller]
     Client[Client]
 
     Linh --> Server
     Linh --> Core
-    Linh --> ClientController
 
     Khanh --> Client
     Khanh --> Server
