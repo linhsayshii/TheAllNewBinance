@@ -59,7 +59,7 @@ graph TD
 
 ## Công nghệ sử dụng
 
-| Thành phần | Công nghệ |
+| Thành phần | Côn nghệ |
 |---|---|
 | Ngôn ngữ | Java 21 |
 | Build tool | Maven (multi-module) |
