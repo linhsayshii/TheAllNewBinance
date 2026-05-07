@@ -3,6 +3,7 @@ package com.auction.server.controller;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 import com.auction.core.auction.Bid;
 import com.auction.core.dto.bid.GetBidByAuctionIdRequest;
@@ -18,21 +19,33 @@ public class BidController {
 		this.bidService = bidService;
 	}
 
-	public String placeBid(String request) {
+	/**
+	 * Full async — returns CompletableFuture instead of blocking with .join()
+	 */
+	public CompletableFuture<String> placeBid(String request) {
 		if (request == null) {
-			return JsonMapper.toJson(errorResponse("Request payload is required"));
+			return CompletableFuture.completedFuture(
+				JsonMapper.toJson(errorResponse("Request payload is required")));
 		}
 		try {
 			PlaceBid placeBidRequest = JsonMapper.fromJson(request, PlaceBid.class);
-			Bid bid = bidService.placeBid(placeBidRequest).join();
-			if (bid == null) {
-				return JsonMapper.toJson(errorResponse("Failed to place bid"));
-			}
-			return JsonMapper.toJson(successResponse(bid));
+			return bidService.placeBid(placeBidRequest)
+				.thenApply(bid -> {
+					if (bid == null) {
+						return JsonMapper.toJson(errorResponse("Failed to place bid"));
+					}
+					return JsonMapper.toJson(successResponse(bid));
+				})
+				.exceptionally(ex -> {
+					Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+					return JsonMapper.toJson(errorResponse(cause.getMessage()));
+				});
 		} catch (IllegalArgumentException | IllegalStateException ex) {
-			return JsonMapper.toJson(errorResponse(ex.getMessage()));
+			return CompletableFuture.completedFuture(
+				JsonMapper.toJson(errorResponse(ex.getMessage())));
 		} catch (Exception ex) {
-			return JsonMapper.toJson(errorResponse("Internal server error while placing bid"));
+			return CompletableFuture.completedFuture(
+				JsonMapper.toJson(errorResponse("Internal server error while placing bid")));
 		}
 	}
 

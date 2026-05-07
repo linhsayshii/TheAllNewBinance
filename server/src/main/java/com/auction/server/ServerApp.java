@@ -15,6 +15,7 @@ import com.auction.server.dao.BidDao;
 import com.auction.server.dao.UserDao;
 import com.auction.server.network.SocketServer;
 import com.auction.server.services.AuctionService;
+import com.auction.server.services.BidQueueManager;
 import com.auction.server.services.BidService;
 import com.auction.server.services.UserService;
 
@@ -28,21 +29,31 @@ public class ServerApp {
         // 2. Dependency Injection - Instantiating Services
         IUserService userService = new UserService(userDao);
         IAuctionService auctionService = new AuctionService(auctionDao);
-        IBidService bidService = new BidService(bidDao, auctionService, userDao);
 
-        // 3. Dependency Injection - Instantiating Controllers
+        // 3. Queue-based bid processing (replaces DB row lock)
+        BidQueueManager bidQueueManager = new BidQueueManager(bidDao, auctionService);
+        IBidService bidService = new BidService(bidDao, auctionService, userDao, bidQueueManager);
+
+        // 4. Dependency Injection - Instantiating Controllers
         UserController userCtrl = new UserController(userService);
         AuctionController auctionCtrl = new AuctionController(auctionService);
         BidController bidCtrl = new BidController(bidService);
 
-        // 4. Instantiating RequestDispatcher
+        // 5. Instantiating RequestDispatcher
         RequestDispatcher dispatcher = new RequestDispatcher(userCtrl, auctionCtrl, bidCtrl);
 
-        // 5. Start Server
+        // 6. Start Server
         int port = 8080;
         SocketServer server = new SocketServer(port, dispatcher);
         server.start();
 
         System.out.println("TheAllNewBinance Auction Server is warming up and binding to port " + port);
+
+        // 7. Graceful shutdown hook — drain bid queues before exit
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("Shutting down bid queue manager...");
+            bidQueueManager.shutdown();
+            System.out.println("Bid queue manager shut down.");
+        }));
     }
 }

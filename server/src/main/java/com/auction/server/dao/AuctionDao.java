@@ -160,69 +160,48 @@ public class AuctionDao implements IAuctionDao {
 
     @Override
     public void updateCurrentPrice(Bid bid) {
-        // Tái sử dụng connection nhưng với Transaction
-        String selectForUpdate = "SELECT current_price FROM auctions WHERE auction_id = ? FOR UPDATE";
+        // Queue đã serialize bid per auction nên không cần FOR UPDATE
+        String selectSql = "SELECT current_price FROM auctions WHERE auction_id = ?";
         String updateSql = "UPDATE auctions SET current_price = ?, updated_at = ? WHERE auction_id = ?";
 
         Connection conn = DBConnection.getConnection();
         try {
-            // Tắt auto commit để bắt đầu Transaction
-            conn.setAutoCommit(false);
-
-            // 1. Khóa row auction này lại bằng FOR UPDATE
-            try (PreparedStatement selectStmt = conn.prepareStatement(selectForUpdate)) {
+            // 1. Đọc giá hiện tại (không cần lock vì queue đã serialize)
+            try (PreparedStatement selectStmt = conn.prepareStatement(selectSql)) {
                 selectStmt.setInt(1, bid.getAuctionId());
                 try (ResultSet rs = selectStmt.executeQuery()) {
                     if (rs.next()) {
                         double dbCurrentPrice = rs.getDouble("current_price");
                         if (dbCurrentPrice >= bid.getAmount()) {
-                            System.err.println("Concurrency alert: Another bid was placed higher just now!");
-                            conn.rollback();
                             throw new IllegalStateException("Phiên đấu giá đã có người đặt giá cao hơn!");
                         }
                     }
                 }
             }
 
-            // 2. An toàn cập nhật giá mới
+            // 2. Cập nhật giá mới
             try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
                 updateStmt.setDouble(1, bid.getAmount());
                 updateStmt.setTimestamp(2, Timestamp.valueOf(LocalDateTime.now()));
                 updateStmt.setInt(3, bid.getAuctionId());
                 updateStmt.executeUpdate();
             }
-
-            // Commit transaction, chính thức lưu và giải phóng khóa FOR UPDATE
-            conn.commit();
         } catch (SQLException e) {
-            System.err.println("Error: Locked update failed! " + e.getMessage());
-            try {
-                if (conn != null)
-                    conn.rollback();
-            } catch (SQLException ex) {
-                System.err.println("Error: Cannot rollback! " + ex.getMessage());
-            }
-        } finally {
-            try {
-                if (conn != null)
-                    conn.setAutoCommit(true);
-            } catch (SQLException ex) {
-                System.err.println("Error: Cannot set auto commit! " + ex.getMessage());
-            }
+            System.err.println("Error: Update price failed! " + e.getMessage());
+            throw new RuntimeException("Database error during price update", e);
         }
     }
 
     @Override
     public boolean updateAuctionForBid(Bid bid, Auction auction) {
-        // Only lock, updates, NO commit and NO setAutoCommit here. The Service layer
-        // handles it.
-        String selectForUpdate = "SELECT current_price, end_time FROM auctions WHERE auction_id = ? FOR UPDATE";
+        // Queue đã serialize bid per auction — không cần FOR UPDATE
+        String selectSql = "SELECT current_price, end_time FROM auctions WHERE auction_id = ?";
         String updateSql = "UPDATE auctions SET current_price = ?, end_time = ?, updated_at = ? WHERE auction_id = ?";
 
         Connection conn = DBConnection.getConnection();
         try {
-            // 1. Khóa row auction và lấy thông tin mới nhất
-            try (PreparedStatement selectStmt = conn.prepareStatement(selectForUpdate)) {
+            // 1. Đọc thông tin mới nhất từ DB (serialized bởi queue)
+            try (PreparedStatement selectStmt = conn.prepareStatement(selectSql)) {
                 selectStmt.setInt(1, bid.getAuctionId());
                 try (ResultSet rs = selectStmt.executeQuery()) {
                     if (rs.next()) {
@@ -251,7 +230,7 @@ public class AuctionDao implements IAuctionDao {
                 }
             }
 
-            // 2. An toàn cập nhật giá mới và thời gian mới
+            // 2. Cập nhật giá mới và thời gian mới
             try (PreparedStatement updateStmt = conn.prepareStatement(updateSql)) {
                 updateStmt.setDouble(1, bid.getAmount());
                 updateStmt.setTimestamp(2, Timestamp.valueOf(auction.getEndTime()));
@@ -261,7 +240,7 @@ public class AuctionDao implements IAuctionDao {
                 return rows > 0;
             }
         } catch (SQLException e) {
-            System.err.println("Error: Locked update failed! " + e.getMessage());
+            System.err.println("Error: Update bid failed! " + e.getMessage());
             throw new RuntimeException("Database error during bid update", e);
         }
     }
