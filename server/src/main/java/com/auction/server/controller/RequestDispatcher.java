@@ -1,21 +1,49 @@
 package com.auction.server.controller;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 import com.auction.core.protocol.EventType;
 import com.auction.core.utils.JsonMapper;
 
 public class RequestDispatcher {
-    private final UserController userCtrl;
-    private final AuctionController auctionCtrl;
-    private final BidController bidCtrl;
+    private final Map<EventType, Function<String, CompletableFuture<String>>> handlers = new EnumMap<>(EventType.class);
 
     public RequestDispatcher(UserController userCtrl, AuctionController auctionCtrl, BidController bidCtrl) {
-        this.userCtrl = userCtrl;
-        this.auctionCtrl = auctionCtrl;
-        this.bidCtrl = bidCtrl;
+        registerHandlers(userCtrl, auctionCtrl, bidCtrl);
+    }
+
+    /**
+     * Register all event handlers.
+     * Adding a new EventType = adding one line here — OCP compliant.
+     */
+    private void registerHandlers(UserController userCtrl, AuctionController auctionCtrl, BidController bidCtrl) {
+        // User handlers
+        registerSync(EventType.LOGIN, userCtrl::login);
+        registerSync(EventType.REGISTER, userCtrl::register);
+        registerSync(EventType.UPDATE_PROFILE, userCtrl::updateProfile);
+        registerSync(EventType.CHANGE_PASSWORD, userCtrl::changePassword);
+        registerSync(EventType.LOGOUT, userCtrl::logout);
+
+        // Auction handlers
+        registerSync(EventType.CREATE_AUCTION, auctionCtrl::createAuction);
+        registerSync(EventType.GET_AUCTION_DETAILS, auctionCtrl::getAuctionDetails);
+        registerSync(EventType.GET_AUCTIONS_BY_SELLER, auctionCtrl::getAuctionsBySellerId);
+        registerSync(EventType.GET_PUBLIC_AUCTIONS, auctionCtrl::getPublicAuctions);
+
+        // Bid handlers
+        handlers.put(EventType.PLACE_BID, bidCtrl::placeBid); // async native
+        registerSync(EventType.GET_BIDS_BY_AUCTION_ID, bidCtrl::getBidsByAuctionId);
+        registerSync(EventType.GET_BIDS_BY_BIDDER_ID, bidCtrl::getBidsByBidderId);
+    }
+
+    /**
+     * Wraps a synchronous handler (String → String) into the async-compatible Function.
+     */
+    private void registerSync(EventType type, Function<String, String> syncHandler) {
+        handlers.put(type, payload -> CompletableFuture.completedFuture(syncHandler.apply(payload)));
     }
 
     /**
@@ -24,28 +52,29 @@ public class RequestDispatcher {
      */
     public CompletableFuture<String> dispatch(Integer sessionUserId, String rawJson) {
         if (rawJson == null || rawJson.isBlank()) {
-            return CompletableFuture.completedFuture(error("Request body is empty"));
+            return CompletableFuture.completedFuture(ApiResponse.error("Request body is empty"));
         }
 
         Object parsed;
         try {
             parsed = JsonMapper.fromJson(rawJson, Object.class);
         } catch (Exception e) {
-            return CompletableFuture.completedFuture(error("Malformed JSON Syntax: " + e.getMessage()));
+            return CompletableFuture.completedFuture(
+                    ApiResponse.error("Malformed JSON Syntax: " + e.getMessage()));
         }
 
         if (!(parsed instanceof Map<?, ?> node)) {
-            return CompletableFuture.completedFuture(error("Invalid JSON format"));
+            return CompletableFuture.completedFuture(ApiResponse.error("Invalid JSON format"));
         }
 
         Object typeNode = node.get("type");
         if (typeNode == null) {
-            return CompletableFuture.completedFuture(error("Missing type"));
+            return CompletableFuture.completedFuture(ApiResponse.error("Missing type"));
         }
 
         EventType type = EventType.fromWireValue(typeNode);
         if (type == null) {
-            return CompletableFuture.completedFuture(error("Unknown type: " + typeNode));
+            return CompletableFuture.completedFuture(ApiResponse.error("Unknown type: " + typeNode));
         }
 
         Object correlationId = node.get("correlationId");
@@ -53,7 +82,8 @@ public class RequestDispatcher {
         // Cấp quyền bảo mật: Chặn đứng truy cập nặc danh và tự động đè ID
         if (sessionUserId == null) {
             if (!isAnonymousAllowed(type)) {
-                return CompletableFuture.completedFuture(error("Unauthorized: Please login first!"));
+                return CompletableFuture.completedFuture(
+                        ApiResponse.error("Unauthorized: Please login first!"));
             }
         } else {
             Object payloadObj = node.get("payload");
@@ -66,67 +96,24 @@ public class RequestDispatcher {
 
         String payload = extractPayload(node.get("payload"));
 
-        // Route to controller — PLACE_BID is async, others are sync
+        // Route to handler via registry
         CompletableFuture<String> responseFuture;
         try {
-            if (type == EventType.PLACE_BID) {
-                responseFuture = bidCtrl == null
-                        ? CompletableFuture.completedFuture(error("Bid controller is not configured"))
-                        : bidCtrl.placeBid(payload);
+            Function<String, CompletableFuture<String>> handler = handlers.get(type);
+            if (handler == null) {
+                responseFuture = CompletableFuture.completedFuture(
+                        ApiResponse.error("No handler registered for: " + type));
             } else {
-                String syncResult = dispatchSync(type, payload);
-                responseFuture = CompletableFuture.completedFuture(syncResult);
+                responseFuture = handler.apply(payload);
             }
         } catch (Exception ex) {
             System.err.println("Unhandled exception during dispatch: " + ex.getMessage());
             ex.printStackTrace();
-            responseFuture = CompletableFuture.completedFuture(error("Internal Server Error"));
+            responseFuture = CompletableFuture.completedFuture(ApiResponse.error("Internal Server Error"));
         }
 
         // Enrich response with type and correlationId
         return responseFuture.thenApply(responseRaw -> enrichResponse(responseRaw, type, correlationId));
-    }
-
-    /**
-     * Synchronous dispatch for all non-bid operations.
-     */
-    private String dispatchSync(EventType type, String payload) {
-        return switch (type) {
-            case EventType.LOGIN -> userCtrl == null
-                    ? error("User controller is not configured")
-                    : userCtrl.login(payload);
-            case EventType.REGISTER -> userCtrl == null
-                    ? error("User controller is not configured")
-                    : userCtrl.register(payload);
-            case EventType.UPDATE_PROFILE -> userCtrl == null
-                    ? error("User controller is not configured")
-                    : userCtrl.updateProfile(payload);
-            case EventType.CHANGE_PASSWORD -> userCtrl == null
-                    ? error("User controller is not configured")
-                    : userCtrl.changePassword(payload);
-            case EventType.LOGOUT -> userCtrl == null
-                    ? error("User controller is not configured")
-                    : userCtrl.logout(payload);
-            case EventType.CREATE_AUCTION -> auctionCtrl == null
-                    ? error("Auction controller is not configured")
-                    : auctionCtrl.createAuction(payload);
-            case EventType.GET_AUCTION_DETAILS -> auctionCtrl == null
-                    ? error("Auction controller is not configured")
-                    : auctionCtrl.getAuctionDetails(payload);
-            case EventType.GET_AUCTIONS_BY_SELLER -> auctionCtrl == null
-                    ? error("Auction controller is not configured")
-                    : auctionCtrl.getAuctionsBySellerId(payload);
-            case EventType.GET_BIDS_BY_AUCTION_ID -> bidCtrl == null
-                    ? error("Bid controller is not configured")
-                    : bidCtrl.getBidsByAuctionId(payload);
-            case EventType.GET_BIDS_BY_BIDDER_ID -> bidCtrl == null
-                    ? error("Bid controller is not configured")
-                    : bidCtrl.getBidsByBidderId(payload);
-            case EventType.GET_PUBLIC_AUCTIONS -> auctionCtrl == null
-                    ? error("Auction controller is not configured")
-                    : auctionCtrl.getPublicAuctions(payload);
-            case EventType.PLACE_BID -> error("PLACE_BID should be handled asynchronously");
-        };
     }
 
     private String enrichResponse(String responseRaw, EventType type, Object correlationId) {
@@ -166,12 +153,5 @@ public class RequestDispatcher {
             return null;
         }
         return JsonMapper.toJson(payloadNode);
-    }
-
-    private String error(String message) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", false);
-        response.put("message", message);
-        return JsonMapper.toJson(response);
     }
 }

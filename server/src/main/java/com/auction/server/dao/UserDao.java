@@ -91,18 +91,7 @@ public class UserDao implements IUserDao {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    User user = new User(
-                        rs.getInt("user_id"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("full_name"),
-                        rs.getString("email"),
-                        rs.getDouble("balance"),
-                        User.Role.valueOf(rs.getString("role")),
-                        rs.getBoolean("is_active")
-                    );
-                    user.setLockedBalance(rs.getDouble("locked_balance"));
-                    return user;
+                    return mapUser(rs);
                 }
             }
         } catch (SQLException e) {
@@ -119,18 +108,7 @@ public class UserDao implements IUserDao {
             stmt.setString(1, username);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    User user = new User(
-                        rs.getInt("user_id"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("full_name"),
-                        rs.getString("email"),
-                        rs.getDouble("balance"),
-                        User.Role.valueOf(rs.getString("role")),
-                        rs.getBoolean("is_active")
-                    );
-                    user.setLockedBalance(rs.getDouble("locked_balance"));
-                    return user;
+                    return mapUser(rs);
                 }
             }
         } catch (SQLException e) {
@@ -171,5 +149,20 @@ public class UserDao implements IUserDao {
             System.err.println("Error: Cannot refund balance! " + e.getMessage());
         }
         return false;
+    }
+
+    private User mapUser(ResultSet rs) throws SQLException {
+        User user = new User(
+            rs.getInt("user_id"),
+            rs.getString("username"),
+            rs.getString("password"),
+            rs.getString("full_name"),
+            rs.getString("email"),
+            rs.getDouble("balance"),
+            User.Role.valueOf(rs.getString("role")),
+            rs.getBoolean("is_active")
+        );
+        user.setLockedBalance(rs.getDouble("locked_balance"));
+        return user;
     }
 }
