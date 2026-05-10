@@ -330,11 +330,11 @@ public class AuctionDao implements IAuctionDao {
            .append(") AND a.is_deleted = false ");
 
         if (safeStatuses.contains("ACTIVE")) {
-            sql.append("AND ((a.status = 'ACTIVE' AND a.end_time > NOW()) OR a.status <> 'ACTIVE') ");
+            sql.append("AND ((a.status = 'ACTIVE' AND a.end_time > ?) OR a.status <> 'ACTIVE') ");
         }
 
         if (safeStatuses.contains("PENDING")) {
-            sql.append("AND ((a.status = 'PENDING' AND a.start_time >= NOW()) OR a.status <> 'PENDING') ");
+            sql.append("AND ((a.status = 'PENDING' AND a.start_time >= ?) OR a.status <> 'PENDING') ");
         }
         
         if (includeTrending) {
@@ -360,6 +360,15 @@ public class AuctionDao implements IAuctionDao {
             for (String status : safeStatuses) {
                 stmt.setString(paramIndex++, status);
             }
+            
+            Timestamp now = Timestamp.valueOf(LocalDateTime.now());
+            if (safeStatuses.contains("ACTIVE")) {
+                stmt.setTimestamp(paramIndex++, now);
+            }
+            if (safeStatuses.contains("PENDING")) {
+                stmt.setTimestamp(paramIndex++, now);
+            }
+            
             stmt.setInt(paramIndex++, limit);
             stmt.setInt(paramIndex, offset);
             
