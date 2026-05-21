@@ -1,9 +1,5 @@
 package com.auction.server.controller;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.auction.core.auction.Auction;
 import com.auction.core.dto.auction.CreateAuctionRequest;
 import com.auction.core.dto.auction.GetAuctionBySellerIdRequest;
@@ -13,7 +9,7 @@ import com.auction.core.dto.auction.PromoteAuctionRequest;
 import com.auction.core.services.IAuctionService;
 import com.auction.core.utils.JsonMapper;
 
-public class AuctionController {
+public class AuctionController extends BaseController {
 	private final IAuctionService auctionService;
 
 	public AuctionController(IAuctionService auctionService) {
@@ -21,15 +17,9 @@ public class AuctionController {
 	}
 
 	public String createAuction(String payload) {
-		try {
-			CreateAuctionRequest createAuctionRequest = JsonMapper.fromJson(payload, CreateAuctionRequest.class);
-			Auction auction = auctionService.createAuction(createAuctionRequest).join();
-			return JsonMapper.toJson(successResponse(auction));
-		} catch (IllegalArgumentException ex) {
-			return JsonMapper.toJson(errorResponse(ex.getMessage()));
-		} catch (Exception ex) {
-			return JsonMapper.toJson(errorResponse("Internal server error"));
-		}
+		return handleSync(payload, CreateAuctionRequest.class,
+				req -> auctionService.createAuction(req).join(),
+				"Internal server error");
 	}
 
 	public String getAuctionDetails(String payload) {

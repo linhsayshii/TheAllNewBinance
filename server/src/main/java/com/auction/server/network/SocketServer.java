@@ -35,10 +35,28 @@ public class SocketServer extends WebSocketServer {
     @Override
     public void onMessage(WebSocket conn, String message) {
         Integer userId = userSessions.get(conn);
-        String response = dispatcher.dispatch(userId, message);
-        conn.send(response);
 
-        // Tự động map/unmap Session Socket dựa trên kết quả LOGIN/REGISTER/LOGOUT
+        // dispatch() trả về CompletableFuture — full async
+        dispatcher.dispatch(userId, message).thenAccept(response -> {
+            if (conn.isOpen()) {
+                conn.send(response);
+            }
+
+            // Tự động map/unmap Session Socket dựa trên kết quả LOGIN/REGISTER/LOGOUT
+            interceptAuthSession(conn, userId, message, response);
+        }).exceptionally(ex -> {
+            System.err.println("Async dispatch error: " + ex.getMessage());
+            if (conn.isOpen()) {
+                conn.send("{\"success\":false,\"message\":\"Internal server error\"}");
+            }
+            return null;
+        });
+    }
+
+    /**
+     * Intercept auth-related responses to manage session mapping.
+     */
+    private void interceptAuthSession(WebSocket conn, Integer userId, String message, String response) {
         try {
             Map<?, ?> reqNode = JsonMapper.fromJson(message, Map.class);
             EventType type = EventType.fromWireValue(reqNode.get("type"));

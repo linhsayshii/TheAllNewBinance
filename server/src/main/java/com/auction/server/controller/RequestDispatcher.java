@@ -1,7 +1,9 @@
 package com.auction.server.controller;
 
-import java.util.HashMap;
+import java.util.EnumMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 import com.auction.core.protocol.EventType;
 import com.auction.core.utils.JsonMapper;
@@ -22,30 +24,42 @@ public class RequestDispatcher {
         this.userDao = userDao;
     }
 
-    public String dispatch(Integer sessionUserId, String rawJson) {
+    /**
+     * Wraps a synchronous handler (String → String) into the async-compatible Function.
+     */
+    private void registerSync(EventType type, Function<String, String> syncHandler) {
+        handlers.put(type, payload -> CompletableFuture.completedFuture(syncHandler.apply(payload)));
+    }
+
+    /**
+     * Dispatch trả về CompletableFuture<String> để hỗ trợ full async cho PLACE_BID.
+     * Các operation khác vẫn synchronous, wrap trong completedFuture.
+     */
+    public CompletableFuture<String> dispatch(Integer sessionUserId, String rawJson) {
         if (rawJson == null || rawJson.isBlank()) {
-            return error("Request body is empty");
+            return CompletableFuture.completedFuture(ApiResponse.error("Request body is empty"));
         }
 
         Object parsed;
         try {
             parsed = JsonMapper.fromJson(rawJson, Object.class);
         } catch (Exception e) {
-            return error("Malformed JSON Syntax: " + e.getMessage());
+            return CompletableFuture.completedFuture(
+                    ApiResponse.error("Malformed JSON Syntax: " + e.getMessage()));
         }
 
         if (!(parsed instanceof Map<?, ?> node)) {
-            return error("Invalid JSON format");
+            return CompletableFuture.completedFuture(ApiResponse.error("Invalid JSON format"));
         }
 
         Object typeNode = node.get("type");
         if (typeNode == null) {
-            return error("Missing type");
+            return CompletableFuture.completedFuture(ApiResponse.error("Missing type"));
         }
 
         EventType type = EventType.fromWireValue(typeNode);
         if (type == null) {
-            return error("Unknown type: " + typeNode);
+            return CompletableFuture.completedFuture(ApiResponse.error("Unknown type: " + typeNode));
         }
 
         Object correlationId = node.get("correlationId");
@@ -53,7 +67,8 @@ public class RequestDispatcher {
         // Cấp quyền bảo mật: Chặn đứng truy cập nặc danh và tự động đè ID
         if (sessionUserId == null) {
             if (!isAnonymousAllowed(type)) {
-                return error("Unauthorized: Please login first!");
+                return CompletableFuture.completedFuture(
+                        ApiResponse.error("Unauthorized: Please login first!"));
             }
         } else {
             Object payloadObj = node.get("payload");
@@ -128,9 +143,14 @@ public class RequestDispatcher {
         } catch (Exception ex) {
             System.err.println("Unhandled exception during dispatch: " + ex.getMessage());
             ex.printStackTrace();
-            responseRaw = error("Internal Server Error");
+            responseFuture = CompletableFuture.completedFuture(ApiResponse.error("Internal Server Error"));
         }
-        
+
+        // Enrich response with type and correlationId
+        return responseFuture.thenApply(responseRaw -> enrichResponse(responseRaw, type, correlationId));
+    }
+
+    private String enrichResponse(String responseRaw, EventType type, Object correlationId) {
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> responseMap = JsonMapper.fromJson(responseRaw, Map.class);
@@ -183,12 +203,5 @@ public class RequestDispatcher {
             return null;
         }
         return JsonMapper.toJson(payloadNode);
-    }
-
-    private String error(String message) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", false);
-        response.put("message", message);
-        return JsonMapper.toJson(response);
     }
 }

@@ -11,7 +11,7 @@ import com.auction.core.services.IUserService;
 import com.auction.core.users.User;
 import com.auction.core.utils.JsonMapper;
 
-public class UserController {
+public class UserController extends BaseController {
     private final IUserService userService;
 
     public UserController(IUserService userService) {
@@ -19,117 +19,63 @@ public class UserController {
     }
 
     public String login(String request) {
-        if (request == null) {
-            return JsonMapper.toJson(errorResponse("Request payload is required"));
-        }
-
-        try {
-            LoginRequest loginRequest = JsonMapper.fromJson(request, LoginRequest.class);
-            if (loginRequest == null) {
-                return JsonMapper.toJson(errorResponse("Invalid login payload"));
-            }
-
-            User user = userService.login(loginRequest).join();
+        return handleSync(request, LoginRequest.class, req -> {
+            User user = userService.login(req).join();
             if (user == null) {
-                return JsonMapper.toJson(errorResponse("Invalid username or password"));
+                throw new IllegalArgumentException("Invalid username or password");
             }
-
-            return JsonMapper.toJson(successResponse(user));
-        } catch (IllegalArgumentException ex) {
-            return JsonMapper.toJson(errorResponse(ex.getMessage()));
-        } catch (Exception ex) {
-            return JsonMapper.toJson(errorResponse("Login failed"));
-        }
+            return toSafeUser(user);
+        }, "Login failed");
     }
 
     public String register(String request) {
-        if (request == null) {
-            return JsonMapper.toJson(errorResponse("Request payload is required"));
-        }
-
-        try {
-            RegisterRequest registerRequest = JsonMapper.fromJson(request, RegisterRequest.class);
-            if (registerRequest == null) {
-                return JsonMapper.toJson(errorResponse("Invalid register payload"));
-            }
-
-            User user = userService.registerUser(registerRequest).join();
-            return JsonMapper.toJson(successResponse(user));
-        } catch (IllegalArgumentException ex) {
-            return JsonMapper.toJson(errorResponse(ex.getMessage()));
-        } catch (Exception ex) {
-            return JsonMapper.toJson(errorResponse("Register failed"));
-        }
+        return handleSync(request, RegisterRequest.class, req -> {
+            User user = userService.registerUser(req).join();
+            return toSafeUser(user);
+        }, "Register failed");
     }
 
     public String updateProfile(String request) {
-        if (request == null) {
-            return JsonMapper.toJson(errorResponse("Request payload is required"));
-        }
-
-        try {
-            UpdateProfileRequest updateProfileRequest = JsonMapper.fromJson(request, UpdateProfileRequest.class);
-            if (updateProfileRequest == null) {
-                return JsonMapper.toJson(errorResponse("Invalid update profile payload"));
-            }
-
-            userService.updateProfile(updateProfileRequest).join();
-            return JsonMapper.toJson(successResponse(updateProfileRequest));
-        } catch (IllegalArgumentException ex) {
-            return JsonMapper.toJson(errorResponse(ex.getMessage()));
-        } catch (Exception ex) {
-            return JsonMapper.toJson(errorResponse("Update profile failed"));
-        }
+        return handleSync(request, UpdateProfileRequest.class, req -> {
+            userService.updateProfile(req).join();
+            return req;
+        }, "Update profile failed");
     }
 
     public String changePassword(String request) {
-        if (request == null) {
-            return JsonMapper.toJson(errorResponse("Request payload is required"));
-        }
-
-        try {
-            UpdatePasswordRequest updatePasswordRequest = JsonMapper.fromJson(request, UpdatePasswordRequest.class);
-            if (updatePasswordRequest == null) {
-                return JsonMapper.toJson(errorResponse("Invalid change password payload"));
-            }
-
-            userService.changePassword(updatePasswordRequest).join();
-            return JsonMapper.toJson(successResponse(updatePasswordRequest));
-        } catch (IllegalArgumentException ex) {
-            return JsonMapper.toJson(errorResponse(ex.getMessage()));
-        } catch (Exception ex) {
-            return JsonMapper.toJson(errorResponse("Change password failed"));
-        }
+        return handleSync(request, UpdatePasswordRequest.class, req -> {
+            userService.changePassword(req).join();
+            return req;
+        }, "Change password failed");
     }
 
     public String logout(String request) {
         if (request == null) {
-            return JsonMapper.toJson(errorResponse("Request payload is required"));
+            return ApiResponse.error("Request payload is required");
         }
-
         try {
             @SuppressWarnings("unchecked")
             Map<String, Object> payload = JsonMapper.fromJson(request, Map.class);
             if (payload == null || !payload.containsKey("userId")) {
-                return JsonMapper.toJson(errorResponse("Invalid logout payload"));
+                return ApiResponse.error("Invalid logout payload");
             }
 
             Integer userId = ((Number) payload.get("userId")).intValue();
             userService.logout(userId).join();
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("success", true);
-            response.put("message", "Logged out successfully");
-            return JsonMapper.toJson(response);
+            return ApiResponse.successMessage("Logged out successfully");
         } catch (IllegalArgumentException ex) {
-            return JsonMapper.toJson(errorResponse(ex.getMessage()));
+            return ApiResponse.error(ex.getMessage());
         } catch (Exception ex) {
-            return JsonMapper.toJson(errorResponse("Logout failed"));
+            return ApiResponse.error("Logout failed");
         }
     }
 
-    private Map<String, Object> successResponse(User user) {
-        Map<String, Object> response = new HashMap<>();
+    /**
+     * Maps a User entity to a safe Map that excludes sensitive fields (password).
+     * Solves Feature Envy — this mapping logic stays in the controller
+     * as a presentation concern, but is now extracted to a single reusable method.
+     */
+    private Map<String, Object> toSafeUser(User user) {
         Map<String, Object> safeUser = new HashMap<>();
         safeUser.put("id", user.getId());
         safeUser.put("username", user.getUsername());
@@ -138,30 +84,6 @@ public class UserController {
         safeUser.put("balance", user.getBalance());
         safeUser.put("role", user.getRole());
         safeUser.put("isActive", user.getIsActive());
-
-        response.put("success", true);
-        response.put("data", safeUser);
-        return response;
-    }
-
-    private Map<String, Object> successResponse(UpdateProfileRequest updateProfileRequest) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("data", updateProfileRequest);
-        return response;
-    }
-
-    private Map<String, Object> successResponse(UpdatePasswordRequest updatePasswordRequest) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", true);
-        response.put("data", updatePasswordRequest);
-        return response;
-    }
-
-    private Map<String, Object> errorResponse(String message) {
-        Map<String, Object> response = new HashMap<>();
-        response.put("success", false);
-        response.put("message", message);
-        return response;
+        return safeUser;
     }
 }

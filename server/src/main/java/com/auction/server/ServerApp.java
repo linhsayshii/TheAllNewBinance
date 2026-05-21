@@ -18,6 +18,7 @@ import com.auction.server.dao.impl.IItemDao;
 import com.auction.server.dao.impl.IUserDao;
 import com.auction.server.network.SocketServer;
 import com.auction.server.services.AuctionService;
+import com.auction.server.services.BidQueueManager;
 import com.auction.server.services.BidService;
 import com.auction.server.services.FeaturedAuctionBatchJob;
 import com.auction.server.services.UserService;
@@ -33,27 +34,25 @@ public class ServerApp {
         // 2. Dependency Injection - Instantiating Services
         IUserService userService = new UserService(userDao);
         IAuctionService auctionService = new AuctionService(auctionDao, itemDao, userDao);
-        IBidService bidService = new BidService(bidDao, auctionService, userDao);
 
-        // 3. Dependency Injection - Instantiating Controllers
+        // 3. Queue-based bid processing (replaces DB row lock)
+        BidQueueManager bidQueueManager = new BidQueueManager(bidDao, auctionService);
+        IBidService bidService = new BidService(bidDao, auctionService, userDao, bidQueueManager);
+
+        // 4. Dependency Injection - Instantiating Controllers
         UserController userCtrl = new UserController(userService);
         AuctionController auctionCtrl = new AuctionController(auctionService);
         BidController bidCtrl = new BidController(bidService);
         ItemController itemCtrl = new ItemController();
 
-        // 4. Instantiating RequestDispatcher (userDao dùng để verify Admin role phía Server)
-        RequestDispatcher dispatcher = new RequestDispatcher(userCtrl, auctionCtrl, bidCtrl, itemCtrl, userDao);
+        // 4. Instantiating RequestDispatcher
+        RequestDispatcher dispatcher = new RequestDispatcher(userCtrl, auctionCtrl, bidCtrl);
 
-        // 5. Start Server
+        // 6. Start Server
         int port = 8080;
         SocketServer server = new SocketServer(port, dispatcher);
         server.start();
 
         System.out.println("TheAllNewBinance Auction Server is warming up and binding to port " + port);
-
-        // 6. Start Batch Job: reset expired Star Auctions at midnight daily
-        FeaturedAuctionBatchJob batchJob = new FeaturedAuctionBatchJob(auctionDao);
-        batchJob.start();
-
     }
 }

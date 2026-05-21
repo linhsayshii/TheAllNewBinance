@@ -47,18 +47,7 @@ public class BidDao implements IBidDao {
             stmt.setInt(1, bidderId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    Bid bid = new Bid(
-                        rs.getInt("bid_id"),
-                        rs.getInt("auction_id"),
-                        rs.getInt("bidder_id"),
-                        rs.getDouble("amount")
-                    );
-                    Timestamp createdAt = rs.getTimestamp("created_at");
-                    if (createdAt != null) {
-                        bid.setCreatedAt(createdAt.toLocalDateTime());
-                        bid.setUpdatedAt(createdAt.toLocalDateTime());
-                    }
-                    bids.add(bid);  
+                    bids.add(mapBid(rs));
                 }
             }
         } catch (SQLException e) {
@@ -76,18 +65,7 @@ public class BidDao implements IBidDao {
             stmt.setInt(1, auctionId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    Bid bid = new Bid(
-                        rs.getInt("bid_id"),
-                        rs.getInt("auction_id"),
-                        rs.getInt("bidder_id"),
-                        rs.getDouble("amount")
-                    );
-                    Timestamp createdAt = rs.getTimestamp("created_at");
-                    if (createdAt != null) {
-                        bid.setCreatedAt(createdAt.toLocalDateTime());
-                        bid.setUpdatedAt(createdAt.toLocalDateTime());
-                    }
-                    bids.add(bid);  
+                    bids.add(mapBid(rs));
                 }
             }
         } catch (SQLException e) {
@@ -110,5 +88,20 @@ public class BidDao implements IBidDao {
             System.err.println("Error: Cannot check hasBid!" + e.getMessage());
         }
         return false;
+    }
+
+    private Bid mapBid(ResultSet rs) throws SQLException {
+        Bid bid = new Bid(
+            rs.getInt("bid_id"),
+            rs.getInt("auction_id"),
+            rs.getInt("bidder_id"),
+            rs.getDouble("amount")
+        );
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        if (createdAt != null) {
+            bid.setCreatedAt(createdAt.toLocalDateTime());
+            bid.setUpdatedAt(createdAt.toLocalDateTime());
+        }
+        return bid;
     }
 }
