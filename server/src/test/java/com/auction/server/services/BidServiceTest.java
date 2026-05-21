@@ -1,15 +1,26 @@
 package com.auction.server.services;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
+import com.auction.core.dto.auction.AuctionDetailsDto;
 import com.auction.core.dto.bid.PlaceBid;
+import com.auction.core.exception.ErrorCode;
+import com.auction.core.exception.auction.AuctionClosedException;
+import com.auction.core.exception.auction.InvalidBidException;
+import com.auction.core.exception.auction.ShillBiddingForbiddenException;
+import com.auction.core.exception.wallet.InsufficientBalanceException;
 import com.auction.core.services.IAuctionService;
 import com.auction.core.users.User;
-import com.auction.core.dto.auction.AuctionDetailsDto;
 import com.auction.server.dao.impl.IBidDao;
 import com.auction.server.dao.impl.IUserDao;
 import java.time.LocalDateTime;
@@ -90,7 +101,7 @@ public class BidServiceTest {
     }
 
     @Test
-    void testPlaceBid_InvalidBid_AuctionEnded() {
+    void testPlaceBid_AuctionEnded_ShouldThrowAuctionClosedException() {
         testAuction.setEndTime(LocalDateTime.now().minusHours(1)); // Auction ended
         CompletableFuture<AuctionDetailsDto> auctionFuture =
                 CompletableFuture.completedFuture(new AuctionDetailsDto(testAuction, null, null));
@@ -103,14 +114,34 @@ public class BidServiceTest {
         CompletableFuture<Bid> resultFuture = bidService.placeBid(placeBidRequest);
 
         CompletionException exception = assertThrows(CompletionException.class, resultFuture::join);
-        assertTrue(exception.getCause() instanceof IllegalArgumentException);
-        assertEquals("Auction has already ended", exception.getCause().getMessage());
-
+        assertTrue(exception.getCause() instanceof AuctionClosedException);
+        assertEquals(
+                ErrorCode.AUCTION_CLOSED,
+                ((AuctionClosedException) exception.getCause()).getErrorCode());
         verify(bidQueueManager, never()).submitBid(any(BidTask.class));
     }
 
     @Test
-    void testPlaceBid_InvalidBid_InsufficientBalanceForDeposit() {
+    void testPlaceBid_AuctionNotActive_ShouldThrowAuctionClosedException() {
+        testAuction.setStatus(Auction.Status.PENDING);
+        CompletableFuture<AuctionDetailsDto> auctionFuture =
+                CompletableFuture.completedFuture(new AuctionDetailsDto(testAuction, null, null));
+
+        when(userDao.findById(2)).thenReturn(testUser);
+        when(auctionService.getAuctionDetails(1)).thenReturn(auctionFuture);
+
+        CompletableFuture<Bid> resultFuture = bidService.placeBid(placeBidRequest);
+
+        CompletionException exception = assertThrows(CompletionException.class, resultFuture::join);
+        assertTrue(exception.getCause() instanceof AuctionClosedException);
+        assertEquals(
+                ErrorCode.AUCTION_CLOSED,
+                ((AuctionClosedException) exception.getCause()).getErrorCode());
+        verify(bidQueueManager, never()).submitBid(any(BidTask.class));
+    }
+
+    @Test
+    void testPlaceBid_InsufficientBalance_ShouldThrowInsufficientBalanceException() {
         CompletableFuture<AuctionDetailsDto> auctionFuture =
                 CompletableFuture.completedFuture(new AuctionDetailsDto(testAuction, null, null));
         CompletableFuture<Integer> sellerFuture = CompletableFuture.completedFuture(1);
@@ -124,14 +155,15 @@ public class BidServiceTest {
         CompletableFuture<Bid> resultFuture = bidService.placeBid(placeBidRequest);
 
         CompletionException exception = assertThrows(CompletionException.class, resultFuture::join);
-        assertTrue(exception.getCause() instanceof IllegalArgumentException);
-        assertEquals("Insufficient balance for deposit", exception.getCause().getMessage());
-
+        assertTrue(exception.getCause() instanceof InsufficientBalanceException);
+        assertEquals(
+                ErrorCode.INSUFFICIENT_BALANCE,
+                ((InsufficientBalanceException) exception.getCause()).getErrorCode());
         verify(bidQueueManager, never()).submitBid(any(BidTask.class));
     }
 
     @Test
-    void testPlaceBid_InvalidBid_ShillBidding() {
+    void testPlaceBid_ShillBidding_ShouldThrowShillBiddingForbiddenException() {
         placeBidRequest.setBidderId(1); // Bidder is the same as seller
         testUser.setId(1);
         CompletableFuture<AuctionDetailsDto> auctionFuture =
@@ -145,14 +177,15 @@ public class BidServiceTest {
         CompletableFuture<Bid> resultFuture = bidService.placeBid(placeBidRequest);
 
         CompletionException exception = assertThrows(CompletionException.class, resultFuture::join);
-        assertTrue(exception.getCause() instanceof IllegalArgumentException);
-        assertEquals("Seller cannot bid on their own auction", exception.getCause().getMessage());
-
+        assertTrue(exception.getCause() instanceof ShillBiddingForbiddenException);
+        assertEquals(
+                ErrorCode.SHILL_BIDDING_FORBIDDEN,
+                ((ShillBiddingForbiddenException) exception.getCause()).getErrorCode());
         verify(bidQueueManager, never()).submitBid(any(BidTask.class));
     }
 
     @Test
-    void testPlaceBid_InvalidBid_AmountLessOrEqualZero() {
+    void testPlaceBid_InvalidAmount_ShouldThrowInvalidBidException() {
         placeBidRequest.setAmount(0.0);
         CompletableFuture<AuctionDetailsDto> auctionFuture =
                 CompletableFuture.completedFuture(new AuctionDetailsDto(testAuction, null, null));
@@ -165,27 +198,10 @@ public class BidServiceTest {
         CompletableFuture<Bid> resultFuture = bidService.placeBid(placeBidRequest);
 
         CompletionException exception = assertThrows(CompletionException.class, resultFuture::join);
-        assertTrue(exception.getCause() instanceof IllegalArgumentException);
-        assertEquals("Invalid bid amount", exception.getCause().getMessage());
-
-        verify(bidQueueManager, never()).submitBid(any(BidTask.class));
-    }
-
-    @Test
-    void testPlaceBid_InvalidBid_AuctionNotActive() {
-        testAuction.setStatus(Auction.Status.PENDING);
-        CompletableFuture<AuctionDetailsDto> auctionFuture =
-                CompletableFuture.completedFuture(new AuctionDetailsDto(testAuction, null, null));
-
-        when(userDao.findById(2)).thenReturn(testUser);
-        when(auctionService.getAuctionDetails(1)).thenReturn(auctionFuture);
-
-        CompletableFuture<Bid> resultFuture = bidService.placeBid(placeBidRequest);
-
-        CompletionException exception = assertThrows(CompletionException.class, resultFuture::join);
-        assertTrue(exception.getCause() instanceof IllegalArgumentException);
-        assertEquals("Auction is not active", exception.getCause().getMessage());
-
+        assertTrue(exception.getCause() instanceof InvalidBidException);
+        assertEquals(
+                ErrorCode.INVALID_BID_AMOUNT,
+                ((InvalidBidException) exception.getCause()).getErrorCode());
         verify(bidQueueManager, never()).submitBid(any(BidTask.class));
     }
 }

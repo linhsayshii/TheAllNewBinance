@@ -1,12 +1,18 @@
 package com.auction.client.page.productdetail;
 
 import com.auction.client.config.SceneRegistry;
+import com.auction.client.network.ClientExceptionFactory;
 import com.auction.client.scene.LifecycleAwareController;
 import com.auction.client.scene.NavigationService;
 import com.auction.client.service.ImageLoader;
 import com.auction.client.service.NetworkService;
 import com.auction.core.auction.Bid;
 import com.auction.core.dto.bid.PlaceBid;
+import com.auction.core.exception.DomainException;
+import com.auction.core.exception.auction.AuctionClosedException;
+import com.auction.core.exception.auction.InvalidBidException;
+import com.auction.core.exception.auction.ShillBiddingForbiddenException;
+import com.auction.core.exception.wallet.InsufficientBalanceException;
 import com.auction.core.protocol.EventType;
 import com.auction.core.utils.JsonMapper;
 import java.net.URL;
@@ -117,8 +123,26 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
     private void handlePlaceBidResponse(String rawJson) {
         try {
             Map<?, ?> response = JsonMapper.fromJson(rawJson, Map.class);
-            Object success = response != null ? response.get("success") : null;
+            if (response == null) {
+                return;
+            }
+
+            Object success = response.get("success");
+
+            // Handle error response: parse errorCode and dispatch to typed UI handler
             if (!(success instanceof Boolean) || !((Boolean) success)) {
+                Object errCodeObj = response.get("errorCode");
+                String message = response.get("message") instanceof String msg
+                        ? msg
+                        : "An error occurred. Please try again.";
+
+                if (errCodeObj instanceof Number errNum) {
+                    DomainException ex =
+                            ClientExceptionFactory.create(errNum.intValue(), message);
+                    Platform.runLater(() -> dispatchBidError(ex));
+                } else {
+                    Platform.runLater(() -> showInfo("Bid Failed", message));
+                }
                 return;
             }
 
@@ -135,6 +159,31 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
         } catch (Exception e) {
             System.err.println(
                     "Error processing place bid response in ProductDetail: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Routes a typed DomainException to the appropriate UI action.
+     * Uses Java 21 Pattern Matching switch inside Platform.runLater() to guarantee
+     * thread safety and eliminate MatchException crashes from unhandled subtypes.
+     */
+    private void dispatchBidError(DomainException ex) {
+        switch (ex) {
+            case AuctionClosedException e -> {
+                viewModel.biddingEnabledProperty().set(false);
+                showInfo("Auction Closed", e.getMessage());
+            }
+            case InsufficientBalanceException e -> {
+                showInfo("Insufficient Balance",
+                        "Your balance is too low to hold the 30% deposit. Please top up.");
+            }
+            case ShillBiddingForbiddenException e -> {
+                showInfo("Not Allowed", "You cannot bid on your own auction.");
+            }
+            case InvalidBidException e -> {
+                showInfo("Invalid Bid", e.getMessage());
+            }
+            default -> showInfo("Bid Failed", ex.getMessage());
         }
     }
 

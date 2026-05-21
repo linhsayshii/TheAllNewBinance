@@ -5,6 +5,11 @@ import com.auction.core.auction.Bid;
 import com.auction.core.dto.bid.GetBidByAuctionIdRequest;
 import com.auction.core.dto.bid.GetBidByBidderIdRequest;
 import com.auction.core.dto.bid.PlaceBid;
+import com.auction.core.exception.DomainException;
+import com.auction.core.exception.auction.AuctionClosedException;
+import com.auction.core.exception.auction.InvalidBidException;
+import com.auction.core.exception.auction.ShillBiddingForbiddenException;
+import com.auction.core.exception.wallet.InsufficientBalanceException;
 import com.auction.core.services.IAuctionService;
 import com.auction.core.services.IBidService;
 import com.auction.core.users.User;
@@ -51,9 +56,8 @@ public class BidService implements IBidService {
                                 throw new RuntimeException(
                                         "Bid processing timed out, please retry");
                             }
-                            if (cause instanceof IllegalArgumentException
-                                    || cause instanceof IllegalStateException) {
-                                throw (RuntimeException) cause;
+                            if (cause instanceof DomainException domainEx) {
+                                throw domainEx;
                             }
                             throw new RuntimeException(cause.getMessage(), cause);
                         });
@@ -75,35 +79,35 @@ public class BidService implements IBidService {
         // Validate User
         User user = userDao.findById(request.getBidderId());
         if (user == null) {
-            throw new IllegalArgumentException("User not found");
+            throw new InvalidBidException("User not found");
         }
 
         // .join() to wait for asynchronous results in the same thread pool
         com.auction.core.dto.auction.AuctionDetailsDto details =
                 auctionService.getAuctionDetails(request.getAuctionId()).join();
         if (details == null || details.getAuction() == null) {
-            throw new IllegalArgumentException("Auction not found");
+            throw new AuctionClosedException("Auction not found");
         }
         Auction auction = details.getAuction();
 
         if (auction.getStatus() != Auction.Status.ACTIVE) {
-            throw new IllegalArgumentException("Auction is not active");
+            throw new AuctionClosedException("Auction is not active");
         }
 
-        // Shill Bidding check (seller cannot bid on own auction)
+        // Shill Bidding check: seller cannot bid on their own auction
         Integer sellerId = auctionService.getSellerId(request.getAuctionId()).join();
         if (sellerId != null && sellerId.equals(request.getBidderId())) {
-            throw new IllegalArgumentException("Seller cannot bid on their own auction");
+            throw new ShillBiddingForbiddenException();
         }
 
         // Validate amount
         double amount = request.getAmount();
         if (!Double.isFinite(amount) || amount <= 0) {
-            throw new IllegalArgumentException("Invalid bid amount");
+            throw new InvalidBidException("Invalid bid amount");
         }
 
         if (java.time.LocalDateTime.now().isAfter(auction.getEndTime())) {
-            throw new IllegalArgumentException("Auction has already ended");
+            throw new AuctionClosedException("Auction has already ended");
         }
 
         // Hold deposit if first bid
@@ -112,7 +116,7 @@ public class BidService implements IBidService {
             double depositAmount = auction.getStartingPrice() * 0.3;
             boolean held = userDao.holdBalance(user.getId(), depositAmount);
             if (!held) {
-                throw new IllegalArgumentException("Insufficient balance for deposit");
+                throw new InsufficientBalanceException();
             }
         }
 

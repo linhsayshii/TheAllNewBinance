@@ -1,5 +1,6 @@
 package com.auction.server.controller;
 
+import com.auction.core.exception.DomainException;
 import com.auction.core.utils.JsonMapper;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -17,7 +18,7 @@ public abstract class BaseController {
      *
      * @param request raw JSON string
      * @param requestType DTO class to deserialize into
-     * @param handler business logic; may throw IllegalArgumentException for validation errors
+     * @param handler business logic; may throw DomainException for business rule violations
      * @param fallbackError generic error message when an unexpected exception occurs
      */
     protected <T, R> String handleSync(
@@ -35,6 +36,13 @@ public abstract class BaseController {
                 return ApiResponse.error(fallbackError);
             }
             return ApiResponse.success(result);
+        } catch (DomainException ex) {
+            System.err.printf(
+                    "[DOMAIN ERROR] Code: %d | Type: %s | Message: %s%n",
+                    ex.getErrorCode().getValue(),
+                    ex.getClass().getSimpleName(),
+                    ex.getMessage());
+            return ApiResponse.error(ex.getErrorCode(), ex.getMessage());
         } catch (IllegalArgumentException | IllegalStateException ex) {
             return ApiResponse.error(ex.getMessage());
         } catch (Exception ex) {
@@ -69,8 +77,25 @@ public abstract class BaseController {
                     .exceptionally(
                             ex -> {
                                 Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                                if (cause instanceof DomainException domainEx) {
+                                    System.err.printf(
+                                            "[DOMAIN ERROR] Code: %d | Type: %s | Message: %s%n",
+                                            domainEx.getErrorCode().getValue(),
+                                            domainEx.getClass().getSimpleName(),
+                                            domainEx.getMessage());
+                                    return ApiResponse.error(
+                                            domainEx.getErrorCode(), domainEx.getMessage());
+                                }
                                 return ApiResponse.error(cause.getMessage());
                             });
+        } catch (DomainException ex) {
+            System.err.printf(
+                    "[DOMAIN ERROR] Code: %d | Type: %s | Message: %s%n",
+                    ex.getErrorCode().getValue(),
+                    ex.getClass().getSimpleName(),
+                    ex.getMessage());
+            return CompletableFuture.completedFuture(
+                    ApiResponse.error(ex.getErrorCode(), ex.getMessage()));
         } catch (IllegalArgumentException | IllegalStateException ex) {
             return CompletableFuture.completedFuture(ApiResponse.error(ex.getMessage()));
         } catch (Exception ex) {
