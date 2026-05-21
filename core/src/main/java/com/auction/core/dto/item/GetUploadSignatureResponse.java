@@ -5,8 +5,7 @@ public class GetUploadSignatureResponse {
     private long timestamp;
     private String apiKey;
 
-    public GetUploadSignatureResponse() {
-    }
+    public GetUploadSignatureResponse() {}
 
     public GetUploadSignatureResponse(String signature, long timestamp, String apiKey) {
         this.signature = signature;

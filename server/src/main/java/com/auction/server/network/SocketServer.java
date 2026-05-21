@@ -1,16 +1,14 @@
 package com.auction.server.network;
 
-import java.net.InetSocketAddress;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-
-import org.java_websocket.WebSocket;
-import org.java_websocket.handshake.ClientHandshake;
-import org.java_websocket.server.WebSocketServer;
-
 import com.auction.core.protocol.EventType;
 import com.auction.core.utils.JsonMapper;
 import com.auction.server.controller.RequestDispatcher;
+import java.net.InetSocketAddress;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import org.java_websocket.WebSocket;
+import org.java_websocket.handshake.ClientHandshake;
+import org.java_websocket.server.WebSocketServer;
 
 public class SocketServer extends WebSocketServer {
     private final RequestDispatcher dispatcher;
@@ -28,7 +26,8 @@ public class SocketServer extends WebSocketServer {
 
     @Override
     public void onClose(WebSocket conn, int code, String reason, boolean remote) {
-        System.out.println("Connection closed: " + conn.getRemoteSocketAddress() + " with code " + code);
+        System.out.println(
+                "Connection closed: " + conn.getRemoteSocketAddress() + " with code " + code);
         userSessions.remove(conn);
     }
 
@@ -37,26 +36,33 @@ public class SocketServer extends WebSocketServer {
         Integer userId = userSessions.get(conn);
 
         // dispatch() trả về CompletableFuture — full async
-        dispatcher.dispatch(userId, message).thenAccept(response -> {
-            if (conn.isOpen()) {
-                conn.send(response);
-            }
+        dispatcher
+                .dispatch(userId, message)
+                .thenAccept(
+                        response -> {
+                            if (conn.isOpen()) {
+                                conn.send(response);
+                            }
 
-            // Tự động map/unmap Session Socket dựa trên kết quả LOGIN/REGISTER/LOGOUT
-            interceptAuthSession(conn, userId, message, response);
-        }).exceptionally(ex -> {
-            System.err.println("Async dispatch error: " + ex.getMessage());
-            if (conn.isOpen()) {
-                conn.send("{\"success\":false,\"message\":\"Internal server error\"}");
-            }
-            return null;
-        });
+                            // Tự động map/unmap Session Socket dựa trên kết quả
+                            // LOGIN/REGISTER/LOGOUT
+                            interceptAuthSession(conn, userId, message, response);
+                        })
+                .exceptionally(
+                        ex -> {
+                            System.err.println("Async dispatch error: " + ex.getMessage());
+                            if (conn.isOpen()) {
+                                conn.send(
+                                        "{\"success\":false,\"message\":\"Internal server"
+                                                + " error\"}");
+                            }
+                            return null;
+                        });
     }
 
-    /**
-     * Intercept auth-related responses to manage session mapping.
-     */
-    private void interceptAuthSession(WebSocket conn, Integer userId, String message, String response) {
+    /** Intercept auth-related responses to manage session mapping. */
+    private void interceptAuthSession(
+            WebSocket conn, Integer userId, String message, String response) {
         try {
             Map<?, ?> reqNode = JsonMapper.fromJson(message, Map.class);
             EventType type = EventType.fromWireValue(reqNode.get("type"));
@@ -68,14 +74,19 @@ public class SocketServer extends WebSocketServer {
                     if (data != null && data.containsKey("id")) {
                         Number id = (Number) data.get("id");
                         userSessions.put(conn, id.intValue());
-                        System.out.println("Authenticated connection: " + conn.getRemoteSocketAddress() + " -> UserId: " + id);
+                        System.out.println(
+                                "Authenticated connection: "
+                                        + conn.getRemoteSocketAddress()
+                                        + " -> UserId: "
+                                        + id);
                     }
                 }
             } else if (userId != null && type == EventType.LOGOUT) {
                 Map<?, ?> respNode = JsonMapper.fromJson(response, Map.class);
                 if (Boolean.TRUE.equals(respNode.get("success"))) {
                     userSessions.remove(conn);
-                    System.out.println("User logged out on connection: " + conn.getRemoteSocketAddress());
+                    System.out.println(
+                            "User logged out on connection: " + conn.getRemoteSocketAddress());
                 }
             }
         } catch (Exception e) {
@@ -85,7 +96,11 @@ public class SocketServer extends WebSocketServer {
 
     @Override
     public void onError(WebSocket conn, Exception ex) {
-        System.err.println("Error on connection " + (conn != null ? conn.getRemoteSocketAddress() : "null") + ": " + ex.getMessage());
+        System.err.println(
+                "Error on connection "
+                        + (conn != null ? conn.getRemoteSocketAddress() : "null")
+                        + ": "
+                        + ex.getMessage());
         if (conn != null) {
             userSessions.remove(conn);
         }

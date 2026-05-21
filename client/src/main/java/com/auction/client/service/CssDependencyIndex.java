@@ -10,7 +10,8 @@ import java.util.regex.Pattern;
 
 public class CssDependencyIndex {
 
-    private static final Pattern IMPORT_PATTERN = Pattern.compile("@import\\s+(?:url\\()?['\"]?([^'\")]+)['\"]?\\)?");
+    private static final Pattern IMPORT_PATTERN =
+            Pattern.compile("@import\\s+(?:url\\()?['\"]?([^'\")]+)['\"]?\\)?");
 
     private final Path appCssPath;
     private final Set<Path> dependencies = new HashSet<>();
@@ -42,7 +43,9 @@ public class CssDependencyIndex {
                 Matcher matcher = IMPORT_PATTERN.matcher(line);
                 while (matcher.find()) {
                     String importPath = matcher.group(1).trim();
-                    if (importPath.isEmpty() || importPath.startsWith("http://") || importPath.startsWith("https://")) {
+                    if (importPath.isEmpty()
+                            || importPath.startsWith("http://")
+                            || importPath.startsWith("https://")) {
                         continue;
                     }
                     Path imported = cssPath.getParent().resolve(importPath).normalize();

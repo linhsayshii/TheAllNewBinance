@@ -1,12 +1,10 @@
 package com.auction.client.component.item;
 
-import java.util.Map;
-
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.dto.ProfileAuctionCardUiModel;
 import com.auction.client.scene.NavigationService;
 import com.auction.client.service.ImageLoader;
-
+import java.util.Map;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -16,27 +14,27 @@ import javafx.scene.input.MouseEvent;
 /**
  * Controller for the compact profile auction card (profile-auction-card.fxml).
  *
- * Differences from {@link AuctionCardComponentController} (general page):
- *  — Uses {@link ProfileAuctionCardUiModel} instead of ProductCardUiModel
- *  — Sets a coloured status badge with a dynamic CSS style class
- *  — No progress bar
- *  — Optional [Promote] button for seller's own listings (showPromoteButton=true)
+ * <p>Differences from {@link AuctionCardComponentController} (general page): — Uses {@link
+ * ProfileAuctionCardUiModel} instead of ProductCardUiModel — Sets a coloured status badge with a
+ * dynamic CSS style class — No progress bar — Optional [Promote] button for seller's own listings
+ * (showPromoteButton=true)
  */
 public class ProfileAuctionCardController {
 
     private static final long MAX_CLICK_DURATION_MILLIS = 250;
 
     @FXML private javafx.scene.layout.StackPane imageContainer;
-    @FXML private Label  imageLabel;
-    @FXML private Label  titleLabel;
-    @FXML private Label  priceCaptionLabel;
-    @FXML private Label  priceLabel;
-    @FXML private Label  badgeLabel;
-    @FXML private Label  timeLabel;
+    @FXML private Label imageLabel;
+    @FXML private Label titleLabel;
+    @FXML private Label priceCaptionLabel;
+    @FXML private Label priceLabel;
+    @FXML private Label badgeLabel;
+    @FXML private Label timeLabel;
     @FXML private Button promoteBtn;
 
-    private long     pressStartedAtNanos;
-    private Integer  auctionId;
+    private long pressStartedAtNanos;
+    private Integer auctionId;
+
     /** Callback set by PersonalProfileController to open the Promote modal */
     private Runnable onPromoteClick;
 
@@ -51,12 +49,12 @@ public class ProfileAuctionCardController {
 
     @FXML
     private void handleOpenAuction(MouseEvent event) {
-        if (!isPrimaryClickOnly(event)) return;
+        if (!isPrimaryClickOnly(event)) {
+            return;
+        }
         if (auctionId != null) {
-            NavigationService.getInstance().navigateTo(
-                SceneRegistry.AUCTION_PAGE,
-                Map.of("auctionId", auctionId)
-            );
+            NavigationService.getInstance()
+                    .navigateTo(SceneRegistry.AUCTION_PAGE, Map.of("auctionId", auctionId));
         }
     }
 
@@ -70,23 +68,26 @@ public class ProfileAuctionCardController {
     // ── Data binding ──────────────────────────────────────────────────────
 
     /**
-     * Populates the card with data from a {@link ProfileAuctionCardUiModel}.
-     * Must be called after the FXML has been loaded (i.e., from the parent
-     * controller that loads the card via FXMLLoader).
+     * Populates the card with data from a {@link ProfileAuctionCardUiModel}. Must be called after
+     * the FXML has been loaded (i.e., from the parent controller that loads the card via
+     * FXMLLoader).
      *
-     * @param model     card data
+     * @param model card data
      * @param onPromote callback to run when [Promote] is clicked; if null the button stays hidden
      */
     public void setData(ProfileAuctionCardUiModel model, Runnable onPromote) {
-        if (model == null) return;
+        if (model == null) {
+            return;
+        }
 
-        this.auctionId     = model.auctionId();
+        this.auctionId = model.auctionId();
         this.onPromoteClick = onPromote;
 
         ImageLoader.loadImage(model.imageUrl(), imageContainer, imageLabel);
 
         titleLabel.setText(model.title() != null ? model.title() : "Untitled");
-        priceCaptionLabel.setText(model.priceCaption() != null ? model.priceCaption() : "Current bid");
+        priceCaptionLabel.setText(
+                model.priceCaption() != null ? model.priceCaption() : "Current bid");
         priceLabel.setText(model.price() != null ? model.price() : "$—");
         timeLabel.setText(model.timeInfo() != null ? model.timeInfo() : "");
 

@@ -1,15 +1,13 @@
 package com.auction.client.page.auction;
 
+import com.auction.core.auction.Auction;
+import com.auction.core.auction.Bid;
+import com.auction.core.products.Item;
 import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-
-import com.auction.core.auction.Auction;
-import com.auction.core.auction.Bid;
-import com.auction.core.products.Item;
-
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -49,12 +47,16 @@ public class AuctionPageViewModel {
     private final StringProperty currentBidDisplay = new SimpleStringProperty("\\$0.00");
     private final StringProperty bidderCountText = new SimpleStringProperty("0 people bidding");
     private final StringProperty countdownText = new SimpleStringProperty("00d 00h 00m 00s");
-    private final StringProperty loginPrompt = new SimpleStringProperty("Please log in or sign up to place a bid");
+    private final StringProperty loginPrompt =
+            new SimpleStringProperty("Please log in or sign up to place a bid");
 
     private final IntegerProperty winnerId = new SimpleIntegerProperty(0);
-    private final ObjectProperty<LocalDateTime> startTime = new SimpleObjectProperty<>(LocalDateTime.now());
-    private final ObjectProperty<LocalDateTime> endTime = new SimpleObjectProperty<>(LocalDateTime.now());
-    private final ObjectProperty<Auction.Status> status = new SimpleObjectProperty<>(Auction.Status.ACTIVE);
+    private final ObjectProperty<LocalDateTime> startTime =
+            new SimpleObjectProperty<>(LocalDateTime.now());
+    private final ObjectProperty<LocalDateTime> endTime =
+            new SimpleObjectProperty<>(LocalDateTime.now());
+    private final ObjectProperty<Auction.Status> status =
+            new SimpleObjectProperty<>(Auction.Status.ACTIVE);
     private final DoubleProperty currentBidAmount = new SimpleDoubleProperty(0.0);
     private final DoubleProperty bidIncrement = new SimpleDoubleProperty(1.0);
     private final BooleanProperty biddingEnabled = new SimpleBooleanProperty(true);
@@ -81,18 +83,26 @@ public class AuctionPageViewModel {
         return status;
     }
 
-    public void applyAuctionData(Auction auction, Item item, String seller, Integer currentBidderId, List<Bid> bidHistory) {
+    public void applyAuctionData(
+            Auction auction,
+            Item item,
+            String seller,
+            Integer currentBidderId,
+            List<Bid> bidHistory) {
         if (auction != null) {
             auctionId.set(auction.getId() != null ? auction.getId() : 0);
-            currentBidAmount.set(auction.getCurrentPrice() != null ? auction.getCurrentPrice() : 0.0);
+            currentBidAmount.set(
+                    auction.getCurrentPrice() != null ? auction.getCurrentPrice() : 0.0);
             bidIncrement.set(auction.getBidIncrement() != null ? auction.getBidIncrement() : 1.0);
-            startTime.set(auction.getStartTime() != null ? auction.getStartTime() : LocalDateTime.now());
+            startTime.set(
+                    auction.getStartTime() != null ? auction.getStartTime() : LocalDateTime.now());
             endTime.set(auction.getEndTime() != null ? auction.getEndTime() : LocalDateTime.now());
             status.set(auction.getStatus() != null ? auction.getStatus() : Auction.Status.ACTIVE);
             winnerId.set(auction.getWinnerId() != null ? auction.getWinnerId() : 0);
 
             boolean active = auction.getStatus() == Auction.Status.ACTIVE;
-            if (auction.getEndTime() != null && auction.getEndTime().isBefore(LocalDateTime.now())) {
+            if (auction.getEndTime() != null
+                    && auction.getEndTime().isBefore(LocalDateTime.now())) {
                 active = false;
                 status.set(Auction.Status.ENDED);
             }
@@ -103,7 +113,10 @@ public class AuctionPageViewModel {
             category.set(safeUpper(item.getCategory(), "CATEGORY"));
             title.set(safe(item.getName(), "Product detail placeholder"));
             description.set(safe(item.getDescription(), "No description"));
-            imageUrl.set(item.getImageUrl() != null && !item.getImageUrl().isBlank() ? item.getImageUrl() : "Item Image");
+            imageUrl.set(
+                    item.getImageUrl() != null && !item.getImageUrl().isBlank()
+                            ? item.getImageUrl()
+                            : "Item Image");
             sellerId.set(item.getSellerId() != null ? item.getSellerId() : 0);
         }
 
@@ -123,8 +136,12 @@ public class AuctionPageViewModel {
         }
 
         bidHistory.stream()
-            .sorted(Comparator.comparing(Bid::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
-            .forEach(bids::add);
+                .sorted(
+                        Comparator.comparing(
+                                        Bid::getCreatedAt,
+                                        Comparator.nullsLast(Comparator.naturalOrder()))
+                                .reversed())
+                .forEach(bids::add);
 
         bidderCountText.set(bids.size() + " people bidding");
         Bid latest = bids.get(0);
@@ -171,7 +188,8 @@ public class AuctionPageViewModel {
             long hours = (totalSeconds % 86_400) / 3_600;
             long minutes = (totalSeconds % 3_600) / 60;
             long seconds = totalSeconds % 60;
-            countdownText.set(String.format("%02dd %02dh %02dm %02ds", days, hours, minutes, seconds));
+            countdownText.set(
+                    String.format("%02dd %02dh %02dm %02ds", days, hours, minutes, seconds));
         } else if (status.get() == Auction.Status.ACTIVE) {
             LocalDateTime end = endTime.get();
             if (end == null) {
@@ -189,7 +207,8 @@ public class AuctionPageViewModel {
             long hours = (totalSeconds % 86_400) / 3_600;
             long minutes = (totalSeconds % 3_600) / 60;
             long seconds = totalSeconds % 60;
-            countdownText.set(String.format("%02dd %02dh %02dm %02ds", days, hours, minutes, seconds));
+            countdownText.set(
+                    String.format("%02dd %02dh %02dm %02ds", days, hours, minutes, seconds));
         } else {
             countdownText.set("Auction ended");
             biddingEnabled.set(false);
@@ -261,8 +280,8 @@ public class AuctionPageViewModel {
     }
 
     public String imageUrl() {
-		return imageUrl.get();
-	}
+        return imageUrl.get();
+    }
 
     public StringProperty imageUrlProperty() {
         return imageUrl;

@@ -3,7 +3,6 @@ package com.auction.client.component.shell;
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.scene.LifecycleAwareController;
 import com.auction.client.scene.NavigationService;
-
 import javafx.fxml.FXML;
 
 public class NavbarComponentController implements LifecycleAwareController {

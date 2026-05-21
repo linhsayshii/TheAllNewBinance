@@ -1,5 +1,7 @@
 package com.auction.client.service;
 
+import com.auction.client.config.AppConfig;
+import com.auction.client.scene.SceneService;
 import java.io.IOException;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
@@ -13,10 +15,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
-import com.auction.client.config.AppConfig;
-import com.auction.client.scene.SceneService;
-
 import javafx.application.Platform;
 import javafx.scene.Scene;
 
@@ -44,13 +42,15 @@ public class HotReloadService {
         }
 
         if (!AppConfig.isHotReloadEnabled()) {
-            System.out.println("[HotReload] Disabled. Set app.devMode=true and app.hotReload=true to enable.");
+            System.out.println(
+                    "[HotReload] Disabled. Set app.devMode=true and app.hotReload=true to enable.");
             return;
         }
 
         Path resourceRoot = AppConfig.sourceResourceRoot().orElse(null);
         if (resourceRoot == null) {
-            System.out.println("[HotReload] Source resource root was not found. Expected src/main/resources.");
+            System.out.println(
+                    "[HotReload] Source resource root was not found. Expected src/main/resources.");
             return;
         }
 
@@ -111,7 +111,8 @@ public class HotReloadService {
                 }
                 Path file = directory.resolve((Path) event.context()).normalize();
                 changedFiles.add(file);
-                if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE && Files.isDirectory(file)) {
+                if (event.kind() == StandardWatchEventKinds.ENTRY_CREATE
+                        && Files.isDirectory(file)) {
                     registerAllDirectories(file);
                 }
             }
@@ -147,21 +148,23 @@ public class HotReloadService {
 
         final boolean reloadCss = shouldReloadCss;
         final boolean reloadFxml = shouldReloadFxml;
-        Platform.runLater(() -> {
-            if (reloadCss) {
-                sceneService.reloadStylesheets();
-                reloadThemeIfNeeded(changedFiles);
-            }
-            if (reloadFxml) {
-                sceneService.reloadCurrentScene();
-            }
-        });
+        Platform.runLater(
+                () -> {
+                    if (reloadCss) {
+                        sceneService.reloadStylesheets();
+                        reloadThemeIfNeeded(changedFiles);
+                    }
+                    if (reloadFxml) {
+                        sceneService.reloadCurrentScene();
+                    }
+                });
     }
 
     private void reloadThemeIfNeeded(List<Path> changedFiles) {
         for (Path changedFile : changedFiles) {
             String normalizedPath = changedFile.toString().replace('\\', '/');
-            if (normalizedPath.endsWith("themes/light.css") || normalizedPath.endsWith("themes/dark.css")) {
+            if (normalizedPath.endsWith("themes/light.css")
+                    || normalizedPath.endsWith("themes/dark.css")) {
                 for (Scene scene : sceneService.activeScenes()) {
                     themeService.reloadIfThemeChanged(scene, normalizedPath);
                 }
@@ -174,9 +177,10 @@ public class HotReloadService {
         if (current == null) {
             return false;
         }
-        String expectedSuffix = current.fxmlPath().startsWith("/")
-            ? current.fxmlPath().substring(1)
-            : current.fxmlPath();
+        String expectedSuffix =
+                current.fxmlPath().startsWith("/")
+                        ? current.fxmlPath().substring(1)
+                        : current.fxmlPath();
         return normalizedPath.endsWith(expectedSuffix);
     }
 
@@ -186,9 +190,7 @@ public class HotReloadService {
         }
 
         try {
-            Files.walk(rootDirectory)
-                .filter(Files::isDirectory)
-                .forEach(this::registerDirectory);
+            Files.walk(rootDirectory).filter(Files::isDirectory).forEach(this::registerDirectory);
         } catch (IOException ignored) {
             // Ignore one broken branch and continue watching available directories.
         }
@@ -196,12 +198,12 @@ public class HotReloadService {
 
     private void registerDirectory(Path directory) {
         try {
-            WatchKey key = directory.register(
-                watchService,
-                StandardWatchEventKinds.ENTRY_CREATE,
-                StandardWatchEventKinds.ENTRY_MODIFY,
-                StandardWatchEventKinds.ENTRY_DELETE
-            );
+            WatchKey key =
+                    directory.register(
+                            watchService,
+                            StandardWatchEventKinds.ENTRY_CREATE,
+                            StandardWatchEventKinds.ENTRY_MODIFY,
+                            StandardWatchEventKinds.ENTRY_DELETE);
             watchDirectories.put(key, directory);
         } catch (IOException ignored) {
             // Ignore directory that cannot be watched.

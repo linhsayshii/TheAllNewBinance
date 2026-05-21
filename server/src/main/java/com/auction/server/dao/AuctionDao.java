@@ -1,5 +1,8 @@
 package com.auction.server.dao;
 
+import com.auction.core.auction.Auction;
+import com.auction.core.auction.Bid;
+import com.auction.server.dao.impl.IAuctionDao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -11,17 +14,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.auction.core.auction.Auction;
-import com.auction.core.auction.Bid;
-import com.auction.server.dao.impl.IAuctionDao;
-
 public class AuctionDao implements IAuctionDao {
     @Override
     public boolean createAuction(Auction auction) {
-        String sql = "INSERT INTO auctions (item_id, starting_price, bid_increment, start_time, original_end_time, extended_end_time, status, is_deleted, created_at, snipe_threshold, snipe_extension) " +
-                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        String sql =
+                "INSERT INTO auctions (item_id, starting_price, bid_increment, start_time,"
+                    + " original_end_time, extended_end_time, status, is_deleted, created_at,"
+                    + " snipe_threshold, snipe_extension) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+                PreparedStatement stmt =
+                        conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, auction.getItemId());
             stmt.setDouble(2, auction.getStartingPrice());
             stmt.setDouble(3, auction.getBidIncrement());
@@ -50,7 +52,11 @@ public class AuctionDao implements IAuctionDao {
 
     @Override
     public boolean updateAuctionInformation(Auction auction) {
-        String sql = "UPDATE auctions SET item_id = ?, starting_price = ?, current_price = ?, bid_increment = ?, start_time = ?, original_end_time = ?, end_time = ?, status = ?, winner_id = ?, updated_at = ?, snipe_threshold = ?, snipe_extension = ? WHERE auction_id = ?";
+        String sql =
+                "UPDATE auctions SET item_id = ?, starting_price = ?, current_price = ?,"
+                        + " bid_increment = ?, start_time = ?, original_end_time = ?, end_time = ?,"
+                        + " status = ?, winner_id = ?, updated_at = ?, snipe_threshold = ?,"
+                        + " snipe_extension = ? WHERE auction_id = ?";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, auction.getItemId());
@@ -125,9 +131,12 @@ public class AuctionDao implements IAuctionDao {
                     auction.setBidIncrement(rs.getDouble("bid_increment"));
                     auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
                     auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
-                    auction.setOriginalEndTime(rs.getTimestamp("original_end_time").toLocalDateTime());
+                    auction.setOriginalEndTime(
+                            rs.getTimestamp("original_end_time").toLocalDateTime());
                     auction.setStatus(
-                            rs.getString("status").equals("ACTIVE") ? Auction.Status.ACTIVE : Auction.Status.PENDING);
+                            rs.getString("status").equals("ACTIVE")
+                                    ? Auction.Status.ACTIVE
+                                    : Auction.Status.PENDING);
                     auction.setWinnerId(rs.getInt("winner_id"));
                     auction.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                     return auction;
@@ -162,7 +171,8 @@ public class AuctionDao implements IAuctionDao {
     public void updateCurrentPrice(Bid bid) {
         // Queue đã serialize bid per auction nên không cần FOR UPDATE
         String selectSql = "SELECT current_price FROM auctions WHERE auction_id = ?";
-        String updateSql = "UPDATE auctions SET current_price = ?, updated_at = ? WHERE auction_id = ?";
+        String updateSql =
+                "UPDATE auctions SET current_price = ?, updated_at = ? WHERE auction_id = ?";
 
         Connection conn = DBConnection.getConnection();
         try {
@@ -173,7 +183,8 @@ public class AuctionDao implements IAuctionDao {
                     if (rs.next()) {
                         double dbCurrentPrice = rs.getDouble("current_price");
                         if (dbCurrentPrice >= bid.getAmount()) {
-                            throw new IllegalStateException("Phiên đấu giá đã có người đặt giá cao hơn!");
+                            throw new IllegalStateException(
+                                    "Phiên đấu giá đã có người đặt giá cao hơn!");
                         }
                     }
                 }
@@ -196,7 +207,9 @@ public class AuctionDao implements IAuctionDao {
     public boolean updateAuctionForBid(Bid bid, Auction auction) {
         // Queue đã serialize bid per auction — không cần FOR UPDATE
         String selectSql = "SELECT current_price, end_time FROM auctions WHERE auction_id = ?";
-        String updateSql = "UPDATE auctions SET current_price = ?, end_time = ?, updated_at = ? WHERE auction_id = ?";
+        String updateSql =
+                "UPDATE auctions SET current_price = ?, end_time = ?, updated_at = ? WHERE"
+                        + " auction_id = ?";
 
         Connection conn = DBConnection.getConnection();
         try {
@@ -211,11 +224,15 @@ public class AuctionDao implements IAuctionDao {
                         // Check price
                         if (dbCurrentPrice + auction.getBidIncrement() > bid.getAmount()) {
                             throw new IllegalStateException(
-                                    "Phiên đấu giá đã có người đặt giá cao hơn hoặc không đủ bước giá!");
+                                    "Phiên đấu giá đã có người đặt giá cao hơn hoặc không đủ bước"
+                                            + " giá!");
                         }
 
                         // Check time
-                        LocalDateTime bidTime = bid.getCreatedAt() != null ? bid.getCreatedAt() : LocalDateTime.now();
+                        LocalDateTime bidTime =
+                                bid.getCreatedAt() != null
+                                        ? bid.getCreatedAt()
+                                        : LocalDateTime.now();
                         if (!bidTime.isBefore(dbEndTime)) {
                             throw new IllegalStateException("Phiên đấu giá đã kết thúc!");
                         }
@@ -247,7 +264,9 @@ public class AuctionDao implements IAuctionDao {
 
     @Override
     public Integer getSellerId(Integer auctionId) {
-        String sql = "SELECT i.seller_id FROM auctions a JOIN items i ON a.item_id = i.item_id WHERE a.auction_id = ?";
+        String sql =
+                "SELECT i.seller_id FROM auctions a JOIN items i ON a.item_id = i.item_id WHERE"
+                        + " a.auction_id = ?";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, auctionId);
@@ -294,73 +313,80 @@ public class AuctionDao implements IAuctionDao {
             List<String> statuses,
             boolean includeEndingSoon,
             boolean includeTrending) {
-        List<String> safeStatuses = statuses == null
-                ? List.of()
-                : statuses.stream()
-                        .filter(java.util.Objects::nonNull)
-                        .map(String::trim)
-                        .map(String::toUpperCase)
-                        .filter(s -> !s.isEmpty())
-                        .toList();
+        List<String> safeStatuses =
+                statuses == null
+                        ? List.of()
+                        : statuses.stream()
+                                .filter(java.util.Objects::nonNull)
+                                .map(String::trim)
+                                .map(String::toUpperCase)
+                                .filter(s -> !s.isEmpty())
+                                .toList();
 
         if (safeStatuses.isEmpty()) {
             safeStatuses = List.of("ACTIVE", "PENDING");
         }
 
-        String statusPlaceholders = safeStatuses.stream().map(s -> "?").collect(Collectors.joining(", "));
+        String statusPlaceholders =
+                safeStatuses.stream().map(s -> "?").collect(Collectors.joining(", "));
 
-        StringBuilder sql = new StringBuilder(
-            "SELECT a.auction_id, a.item_id, i.name as item_name, i.image_url as thumbnail_url, " +
-            "a.current_price, a.start_time, a.end_time, a.status, u.full_name as seller_display_name ");
-        
+        StringBuilder sql =
+                new StringBuilder(
+                        "SELECT a.auction_id, a.item_id, i.name as item_name, i.image_url as"
+                            + " thumbnail_url, a.current_price, a.start_time, a.end_time, a.status,"
+                            + " u.full_name as seller_display_name ");
+
         if (includeTrending) {
             sql.append(", COUNT(b.bid_id) as bid_count ");
         }
-        
+
         sql.append("FROM auctions a ")
-           .append("JOIN items i ON a.item_id = i.item_id ")
-           .append("JOIN users u ON i.seller_id = u.user_id ");
-           
+                .append("JOIN items i ON a.item_id = i.item_id ")
+                .append("JOIN users u ON i.seller_id = u.user_id ");
+
         if (includeTrending) {
             sql.append("LEFT JOIN bids b ON a.auction_id = b.auction_id ");
         }
-        
+
         sql.append("WHERE a.status IN (")
-           .append(statusPlaceholders)
-           .append(") AND a.is_deleted = false ");
+                .append(statusPlaceholders)
+                .append(") AND a.is_deleted = false ");
 
         if (safeStatuses.contains("ACTIVE")) {
             sql.append("AND ((a.status = 'ACTIVE' AND a.end_time > ?) OR a.status <> 'ACTIVE') ");
         }
 
         if (safeStatuses.contains("PENDING")) {
-            sql.append("AND ((a.status = 'PENDING' AND a.start_time >= ?) OR a.status <> 'PENDING') ");
+            sql.append(
+                    "AND ((a.status = 'PENDING' AND a.start_time >= ?) OR a.status <> 'PENDING') ");
         }
-        
+
         if (includeTrending) {
-            sql.append("GROUP BY a.auction_id, a.item_id, i.name, i.image_url, a.current_price, a.start_time, a.end_time, a.status, u.full_name ");
+            sql.append(
+                    "GROUP BY a.auction_id, a.item_id, i.name, i.image_url, a.current_price,"
+                            + " a.start_time, a.end_time, a.status, u.full_name ");
             sql.append("ORDER BY bid_count DESC, a.end_time ASC, a.start_time ASC ");
         } else if (includeEndingSoon) {
             sql.append("ORDER BY (CASE WHEN a.status = 'ACTIVE' THEN a.end_time END) IS NULL ASC, ")
-               .append("CASE WHEN a.status = 'ACTIVE' THEN a.end_time END ASC, ")
-               .append("(CASE WHEN a.status = 'PENDING' THEN a.start_time END) IS NULL ASC, ")
-               .append("CASE WHEN a.status = 'PENDING' THEN a.start_time END ASC, ")
-               .append("a.auction_id DESC ");
+                    .append("CASE WHEN a.status = 'ACTIVE' THEN a.end_time END ASC, ")
+                    .append("(CASE WHEN a.status = 'PENDING' THEN a.start_time END) IS NULL ASC, ")
+                    .append("CASE WHEN a.status = 'PENDING' THEN a.start_time END ASC, ")
+                    .append("a.auction_id DESC ");
         } else {
             sql.append("ORDER BY a.auction_id DESC "); // default fallback
         }
-        
+
         sql.append("LIMIT ? OFFSET ?");
-        
+
         List<com.auction.core.dto.auction.PublicAuctionDto> result = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
+                PreparedStatement stmt = conn.prepareStatement(sql.toString())) {
 
             int paramIndex = 1;
             for (String status : safeStatuses) {
                 stmt.setString(paramIndex++, status);
             }
-            
+
             Timestamp now = Timestamp.valueOf(LocalDateTime.now());
             if (safeStatuses.contains("ACTIVE")) {
                 stmt.setTimestamp(paramIndex++, now);
@@ -368,13 +394,14 @@ public class AuctionDao implements IAuctionDao {
             if (safeStatuses.contains("PENDING")) {
                 stmt.setTimestamp(paramIndex++, now);
             }
-            
+
             stmt.setInt(paramIndex++, limit);
             stmt.setInt(paramIndex, offset);
-            
+
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    com.auction.core.dto.auction.PublicAuctionDto dto = new com.auction.core.dto.auction.PublicAuctionDto();
+                    com.auction.core.dto.auction.PublicAuctionDto dto =
+                            new com.auction.core.dto.auction.PublicAuctionDto();
                     dto.setAuctionId(rs.getInt("auction_id"));
                     dto.setItemId(rs.getInt("item_id"));
                     dto.setItemName(rs.getString("item_name"));
@@ -394,10 +421,13 @@ public class AuctionDao implements IAuctionDao {
     }
 
     @Override
-    public boolean promoteAuction(Integer auctionId, java.time.LocalDateTime featuredUntil, String promotedDescription) {
-        String sql = "UPDATE auctions SET is_featured = true, featured_until = ?, promoted_description = ?, updated_at = ? WHERE auction_id = ? AND is_deleted = false";
+    public boolean promoteAuction(
+            Integer auctionId, java.time.LocalDateTime featuredUntil, String promotedDescription) {
+        String sql =
+                "UPDATE auctions SET is_featured = true, featured_until = ?, promoted_description ="
+                        + " ?, updated_at = ? WHERE auction_id = ? AND is_deleted = false";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setTimestamp(1, Timestamp.valueOf(featuredUntil));
             stmt.setString(2, promotedDescription);
             stmt.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
@@ -413,21 +443,21 @@ public class AuctionDao implements IAuctionDao {
     public List<com.auction.core.dto.auction.PublicAuctionDto> getFeaturedAuctions(int limit) {
         // Dùng ORDER BY RAND() để xáo trộn ngẫu nhiên, giới hạn pool
         String sql =
-            "SELECT a.auction_id, a.item_id, i.name as item_name, i.image_url as thumbnail_url, " +
-            "a.current_price, a.start_time, a.end_time, a.status, u.full_name as seller_display_name, " +
-            "a.is_featured, a.featured_until, a.promoted_description, i.description as item_description " +
-            "FROM auctions a " +
-            "JOIN items i ON a.item_id = i.item_id " +
-            "JOIN users u ON i.seller_id = u.user_id " +
-            "WHERE a.is_featured = true AND a.status = 'ACTIVE' AND a.end_time > NOW() AND a.is_deleted = false " +
-            "ORDER BY RAND() LIMIT ?";
+                "SELECT a.auction_id, a.item_id, i.name as item_name, i.image_url as thumbnail_url,"
+                    + " a.current_price, a.start_time, a.end_time, a.status, u.full_name as"
+                    + " seller_display_name, a.is_featured, a.featured_until,"
+                    + " a.promoted_description, i.description as item_description FROM auctions a"
+                    + " JOIN items i ON a.item_id = i.item_id JOIN users u ON i.seller_id ="
+                    + " u.user_id WHERE a.is_featured = true AND a.status = 'ACTIVE' AND a.end_time"
+                    + " > NOW() AND a.is_deleted = false ORDER BY RAND() LIMIT ?";
         List<com.auction.core.dto.auction.PublicAuctionDto> result = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, limit);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    com.auction.core.dto.auction.PublicAuctionDto dto = new com.auction.core.dto.auction.PublicAuctionDto();
+                    com.auction.core.dto.auction.PublicAuctionDto dto =
+                            new com.auction.core.dto.auction.PublicAuctionDto();
                     dto.setAuctionId(rs.getInt("auction_id"));
                     dto.setItemId(rs.getInt("item_id"));
                     dto.setItemName(rs.getString("item_name"));
@@ -439,13 +469,19 @@ public class AuctionDao implements IAuctionDao {
                     dto.setSellerDisplayName(rs.getString("seller_display_name"));
                     dto.setIsFeatured(rs.getBoolean("is_featured"));
                     Timestamp featuredUntil = rs.getTimestamp("featured_until");
-                    if (featuredUntil != null) dto.setFeaturedUntil(featuredUntil.toLocalDateTime());
-                    // Fallback: nếu promotedDescription trống, dùng 100 ký tự đầu của item description
+                    if (featuredUntil != null) {
+                        dto.setFeaturedUntil(featuredUntil.toLocalDateTime());
+                    }
+                    // Fallback: if promotedDescription is empty, use first 100 chars of item
+                    // description
                     String promoted = rs.getString("promoted_description");
                     if (promoted == null || promoted.isBlank()) {
                         String itemDesc = rs.getString("item_description");
                         if (itemDesc != null && !itemDesc.isBlank()) {
-                            promoted = itemDesc.length() > 100 ? itemDesc.substring(0, 100) + "..." : itemDesc;
+                            promoted =
+                                    itemDesc.length() > 100
+                                            ? itemDesc.substring(0, 100) + "..."
+                                            : itemDesc;
                         }
                     }
                     dto.setPromotedDescription(promoted);
@@ -460,9 +496,11 @@ public class AuctionDao implements IAuctionDao {
 
     @Override
     public int resetExpiredFeaturedAuctions() {
-        String sql = "UPDATE auctions SET is_featured = false, featured_until = NULL WHERE is_featured = true AND featured_until IS NOT NULL AND featured_until <= NOW()";
+        String sql =
+                "UPDATE auctions SET is_featured = false, featured_until = NULL WHERE is_featured ="
+                        + " true AND featured_until IS NOT NULL AND featured_until <= NOW()";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             int affected = stmt.executeUpdate();
             if (affected > 0) {
                 System.out.println("[BatchJob] Reset " + affected + " expired featured auctions.");
@@ -475,28 +513,38 @@ public class AuctionDao implements IAuctionDao {
     }
 
     @Override
-    public List<com.auction.core.dto.auction.PublicAuctionDto> getAllAuctionsForAdmin(List<String> statuses, int offset, int limit) {
-        List<String> safeStatuses = (statuses == null || statuses.isEmpty()) ? List.of("ACTIVE", "PENDING", "ENDED", "CANCELLED") : statuses;
-        String statusPlaceholders = safeStatuses.stream().map(s -> "?").collect(java.util.stream.Collectors.joining(", "));
+    public List<com.auction.core.dto.auction.PublicAuctionDto> getAllAuctionsForAdmin(
+            List<String> statuses, int offset, int limit) {
+        List<String> safeStatuses =
+                (statuses == null || statuses.isEmpty())
+                        ? List.of("ACTIVE", "PENDING", "ENDED", "CANCELLED")
+                        : statuses;
+        String statusPlaceholders =
+                safeStatuses.stream()
+                        .map(s -> "?")
+                        .collect(java.util.stream.Collectors.joining(", "));
         String sql =
-            "SELECT a.auction_id, a.item_id, i.name as item_name, i.image_url as thumbnail_url, " +
-            "a.current_price, a.start_time, a.end_time, a.status, u.full_name as seller_display_name, " +
-            "a.is_featured, a.featured_until, a.promoted_description " +
-            "FROM auctions a " +
-            "JOIN items i ON a.item_id = i.item_id " +
-            "JOIN users u ON i.seller_id = u.user_id " +
-            "WHERE a.status IN (" + statusPlaceholders + ") AND a.is_deleted = false " +
-            "ORDER BY a.auction_id DESC LIMIT ? OFFSET ?";
+                "SELECT a.auction_id, a.item_id, i.name as item_name, i.image_url as thumbnail_url,"
+                        + " a.current_price, a.start_time, a.end_time, a.status, u.full_name as"
+                        + " seller_display_name, a.is_featured, a.featured_until,"
+                        + " a.promoted_description FROM auctions a JOIN items i ON a.item_id ="
+                        + " i.item_id JOIN users u ON i.seller_id = u.user_id WHERE a.status IN ("
+                        + statusPlaceholders
+                        + ") AND a.is_deleted = false "
+                        + "ORDER BY a.auction_id DESC LIMIT ? OFFSET ?";
         List<com.auction.core.dto.auction.PublicAuctionDto> result = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             int idx = 1;
-            for (String s : safeStatuses) stmt.setString(idx++, s);
+            for (String s : safeStatuses) {
+                stmt.setString(idx++, s);
+            }
             stmt.setInt(idx++, limit);
             stmt.setInt(idx, offset);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    com.auction.core.dto.auction.PublicAuctionDto dto = new com.auction.core.dto.auction.PublicAuctionDto();
+                    com.auction.core.dto.auction.PublicAuctionDto dto =
+                            new com.auction.core.dto.auction.PublicAuctionDto();
                     dto.setAuctionId(rs.getInt("auction_id"));
                     dto.setItemId(rs.getInt("item_id"));
                     dto.setItemName(rs.getString("item_name"));
@@ -508,7 +556,9 @@ public class AuctionDao implements IAuctionDao {
                     dto.setSellerDisplayName(rs.getString("seller_display_name"));
                     dto.setIsFeatured(rs.getBoolean("is_featured"));
                     Timestamp featuredUntil = rs.getTimestamp("featured_until");
-                    if (featuredUntil != null) dto.setFeaturedUntil(featuredUntil.toLocalDateTime());
+                    if (featuredUntil != null) {
+                        dto.setFeaturedUntil(featuredUntil.toLocalDateTime());
+                    }
                     dto.setPromotedDescription(rs.getString("promoted_description"));
                     result.add(dto);
                 }

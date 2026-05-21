@@ -1,5 +1,14 @@
 package com.auction.client.page.productdetail;
 
+import com.auction.client.config.SceneRegistry;
+import com.auction.client.scene.LifecycleAwareController;
+import com.auction.client.scene.NavigationService;
+import com.auction.client.service.ImageLoader;
+import com.auction.client.service.NetworkService;
+import com.auction.core.auction.Bid;
+import com.auction.core.dto.bid.PlaceBid;
+import com.auction.core.protocol.EventType;
+import com.auction.core.utils.JsonMapper;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.time.LocalDateTime;
@@ -10,17 +19,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
-
-import com.auction.client.config.SceneRegistry;
-import com.auction.client.scene.LifecycleAwareController;
-import com.auction.client.scene.NavigationService;
-import com.auction.client.service.ImageLoader;
-import com.auction.client.service.NetworkService;
-import com.auction.core.auction.Bid;
-import com.auction.core.dto.bid.PlaceBid;
-import com.auction.core.protocol.EventType;
-import com.auction.core.utils.JsonMapper;
-
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -99,7 +97,9 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
     private void handleSocketResponse(String rawJson) {
         try {
             Map<?, ?> response = JsonMapper.fromJson(rawJson, Map.class);
-            if (response == null || !response.containsKey("data") || !(response.get("data") instanceof List)) {
+            if (response == null
+                    || !response.containsKey("data")
+                    || !(response.get("data") instanceof List)) {
                 return;
             }
             String dataJson = JsonMapper.toJson(response.get("data"));
@@ -109,7 +109,8 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
                 Platform.runLater(() -> updateBidViews(bids));
             }
         } catch (Exception e) {
-            System.err.println("Error processing socket response in ProductDetail: " + e.getMessage());
+            System.err.println(
+                    "Error processing socket response in ProductDetail: " + e.getMessage());
         }
     }
 
@@ -132,15 +133,14 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
             }
             Platform.runLater(() -> mergeSingleBid(incomingBid));
         } catch (Exception e) {
-            System.err.println("Error processing place bid response in ProductDetail: " + e.getMessage());
+            System.err.println(
+                    "Error processing place bid response in ProductDetail: " + e.getMessage());
         }
     }
 
     private void fetchBidHistoryFromServer(int auctionId) {
-        Map<String, Integer> payload = Map.of(
-            "auctionId", auctionId,
-            "userId", viewModel.getBidderId()
-        );
+        Map<String, Integer> payload =
+                Map.of("auctionId", auctionId, "userId", viewModel.getBidderId());
         NetworkService.getInstance().sendRequest(EventType.GET_BIDS_BY_AUCTION_ID, payload);
     }
 
@@ -149,13 +149,19 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Lịch sử giá");
 
-        List<Bid> sorted = bids == null ? List.of() : bids.stream()
-            .sorted(Comparator.comparing(Bid::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())))
-            .toList();
+        List<Bid> sorted =
+                bids == null
+                        ? List.of()
+                        : bids.stream()
+                                .sorted(
+                                        Comparator.comparing(
+                                                Bid::getCreatedAt,
+                                                Comparator.nullsLast(Comparator.naturalOrder())))
+                                .toList();
 
         for (Bid bid : sorted) {
-            String timeLabel = bid.getCreatedAt() != null
-                ? bid.getCreatedAt().format(TIME_FORMAT) : "Unknown";
+            String timeLabel =
+                    bid.getCreatedAt() != null ? bid.getCreatedAt().format(TIME_FORMAT) : "Unknown";
             series.getData().add(new XYChart.Data<>(timeLabel, bid.getAmount()));
         }
         bidHistoryChart.getData().add(series);
@@ -180,7 +186,9 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
         }
 
         if (!networkReady) {
-            showInfo("Network unavailable", "Cannot place bid because server connection is unavailable.");
+            showInfo(
+                    "Network unavailable",
+                    "Cannot place bid because server connection is unavailable.");
             return;
         }
 
@@ -190,16 +198,18 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
 
     @FXML
     private void handleSetAutoBid() {
-        showInfo("Auto Bid", "Auto Bid popup will be implemented next. Local state strategy is ready.");
+        showInfo(
+                "Auto Bid",
+                "Auto Bid popup will be implemented next. Local state strategy is ready.");
     }
 
     private void setupBindings() {
         categoryLabel.textProperty().bind(viewModel.categoryProperty());
         titleLabel.textProperty().bind(viewModel.titleProperty());
         descriptionLabel.textProperty().bind(viewModel.descriptionProperty());
-    
+
         ImageLoader.loadImage(viewModel.imageUrl(), imageContainer, imageLabel, 800);
-        
+
         countdownLabel.textProperty().bind(viewModel.countdownTextProperty());
         currentBidLabel.textProperty().bind(viewModel.currentBidDisplayProperty());
         bidderCountLabel.textProperty().bind(viewModel.bidderCountTextProperty());
@@ -217,10 +227,16 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
 
     private void registerNetworkHandlers() {
         try {
-            NetworkService.getInstance().getClient()
-                .addResponseHandler(EventType.GET_BIDS_BY_AUCTION_ID, HANDLER_ID, this::handleSocketResponse);
-            NetworkService.getInstance().getClient()
-                .addResponseHandler(EventType.PLACE_BID, HANDLER_ID, this::handlePlaceBidResponse);
+            NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            EventType.GET_BIDS_BY_AUCTION_ID,
+                            HANDLER_ID,
+                            this::handleSocketResponse);
+            NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            EventType.PLACE_BID, HANDLER_ID, this::handlePlaceBidResponse);
             networkReady = true;
         } catch (IllegalStateException ex) {
             networkReady = false;
@@ -231,12 +247,17 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
         if (countdownTimeline != null) {
             countdownTimeline.stop();
         }
-        countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
-            viewModel.updateCountdown(LocalDateTime.now());
-            if (!viewModel.isBiddingEnabled() && countdownTimeline != null) {
-                countdownTimeline.stop();
-            }
-        }));
+        countdownTimeline =
+                new Timeline(
+                        new KeyFrame(
+                                Duration.seconds(1),
+                                event -> {
+                                    viewModel.updateCountdown(LocalDateTime.now());
+                                    if (!viewModel.isBiddingEnabled()
+                                            && countdownTimeline != null) {
+                                        countdownTimeline.stop();
+                                    }
+                                }));
         countdownTimeline.setCycleCount(Timeline.INDEFINITE);
         countdownTimeline.play();
     }
@@ -255,12 +276,27 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
     }
 
     private void refreshBidHistoryList(List<Bid> bids) {
-        List<String> rows = bids.stream().map(bid -> {
-            String time = bid.getCreatedAt() == null ? "Unknown" : bid.getCreatedAt().format(TIME_FORMAT);
-            String bidder = bid.getBidderId() == null ? "#-" : "#" + bid.getBidderId();
-            String amount = "$" + MONEY_FORMAT.format(bid.getAmount() == null ? 0.0 : bid.getAmount());
-            return time + "  |  Bidder " + bidder + "  |  " + amount;
-        }).toList();
+        List<String> rows =
+                bids.stream()
+                        .map(
+                                bid -> {
+                                    String time =
+                                            bid.getCreatedAt() == null
+                                                    ? "Unknown"
+                                                    : bid.getCreatedAt().format(TIME_FORMAT);
+                                    String bidder =
+                                            bid.getBidderId() == null
+                                                    ? "#-"
+                                                    : "#" + bid.getBidderId();
+                                    String amount =
+                                            "$"
+                                                    + MONEY_FORMAT.format(
+                                                            bid.getAmount() == null
+                                                                    ? 0.0
+                                                                    : bid.getAmount());
+                                    return time + "  |  Bidder " + bidder + "  |  " + amount;
+                                })
+                        .toList();
         bidHistoryList.getItems().setAll(rows);
     }
 
@@ -293,7 +329,11 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
         if (!networkReady) {
             return;
         }
-        NetworkService.getInstance().getClient().removeResponseHandler(EventType.GET_BIDS_BY_AUCTION_ID, HANDLER_ID);
-        NetworkService.getInstance().getClient().removeResponseHandler(EventType.PLACE_BID, HANDLER_ID);
+        NetworkService.getInstance()
+                .getClient()
+                .removeResponseHandler(EventType.GET_BIDS_BY_AUCTION_ID, HANDLER_ID);
+        NetworkService.getInstance()
+                .getClient()
+                .removeResponseHandler(EventType.PLACE_BID, HANDLER_ID);
     }
 }

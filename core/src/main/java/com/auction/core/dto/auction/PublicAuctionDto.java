@@ -20,19 +20,18 @@ public class PublicAuctionDto {
     public PublicAuctionDto() {}
 
     public PublicAuctionDto(
-        Integer auctionId,
-        Integer itemId,
-        String itemName,
-        String thumbnailUrl,
-        Double currentPrice,
-        LocalDateTime startTime,
-        LocalDateTime endTime,
-        String status,
-        String sellerDisplayName,
-        Boolean isFeatured,
-        LocalDateTime featuredUntil,
-        String promotedDescription
-    ) {
+            Integer auctionId,
+            Integer itemId,
+            String itemName,
+            String thumbnailUrl,
+            Double currentPrice,
+            LocalDateTime startTime,
+            LocalDateTime endTime,
+            String status,
+            String sellerDisplayName,
+            Boolean isFeatured,
+            LocalDateTime featuredUntil,
+            String promotedDescription) {
         this.auctionId = auctionId;
         this.itemId = itemId;
         this.itemName = itemName;
@@ -47,39 +46,99 @@ public class PublicAuctionDto {
         this.promotedDescription = promotedDescription;
     }
 
-    public Integer getAuctionId() {return auctionId; }
-    public void setAuctionId(Integer auctionId) {this.auctionId = auctionId;}
+    public Integer getAuctionId() {
+        return auctionId;
+    }
 
-    public Integer getItemId() {return itemId; }
-    public void setItemId(Integer itemId) {this.itemId = itemId; }
+    public void setAuctionId(Integer auctionId) {
+        this.auctionId = auctionId;
+    }
 
-    public String getItemName() {return itemName; }
-    public void setItemName(String itemName) {this.itemName = itemName;}
+    public Integer getItemId() {
+        return itemId;
+    }
 
-    public String getThumbnailUrl() {return thumbnailUrl;}
-    public void setThumbnailUrl(String thumbnailUrl) {this.thumbnailUrl = thumbnailUrl; }
+    public void setItemId(Integer itemId) {
+        this.itemId = itemId;
+    }
 
-    public Double getCurrentPrice() {return currentPrice;}
-    public void setCurrentPrice(Double currentPrice) {this.currentPrice = currentPrice;}
+    public String getItemName() {
+        return itemName;
+    }
 
-    public LocalDateTime getStartTime() {return startTime; }
-    public void setStartTime(LocalDateTime startTime) {this.startTime = startTime; }
+    public void setItemName(String itemName) {
+        this.itemName = itemName;
+    }
 
-    public LocalDateTime getEndTime() {return endTime; }
-    public void setEndTime(LocalDateTime endTime) {this.endTime = endTime;}
+    public String getThumbnailUrl() {
+        return thumbnailUrl;
+    }
 
-    public String getStatus() {return status; }
-    public void setStatus(String status) {this.status = status; }
+    public void setThumbnailUrl(String thumbnailUrl) {
+        this.thumbnailUrl = thumbnailUrl;
+    }
 
-    public String getSellerDisplayName() {return sellerDisplayName; }
-    public void setSellerDisplayName(String sellerDisplayName) {this.sellerDisplayName = sellerDisplayName; }
+    public Double getCurrentPrice() {
+        return currentPrice;
+    }
 
-    public Boolean getIsFeatured() { return isFeatured; }
-    public void setIsFeatured(Boolean isFeatured) { this.isFeatured = isFeatured; }
+    public void setCurrentPrice(Double currentPrice) {
+        this.currentPrice = currentPrice;
+    }
 
-    public LocalDateTime getFeaturedUntil() { return featuredUntil; }
-    public void setFeaturedUntil(LocalDateTime featuredUntil) { this.featuredUntil = featuredUntil; }
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
 
-    public String getPromotedDescription() { return promotedDescription; }
-    public void setPromotedDescription(String promotedDescription) { this.promotedDescription = promotedDescription; }
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public String getSellerDisplayName() {
+        return sellerDisplayName;
+    }
+
+    public void setSellerDisplayName(String sellerDisplayName) {
+        this.sellerDisplayName = sellerDisplayName;
+    }
+
+    public Boolean getIsFeatured() {
+        return isFeatured;
+    }
+
+    public void setIsFeatured(Boolean isFeatured) {
+        this.isFeatured = isFeatured;
+    }
+
+    public LocalDateTime getFeaturedUntil() {
+        return featuredUntil;
+    }
+
+    public void setFeaturedUntil(LocalDateTime featuredUntil) {
+        this.featuredUntil = featuredUntil;
+    }
+
+    public String getPromotedDescription() {
+        return promotedDescription;
+    }
+
+    public void setPromotedDescription(String promotedDescription) {
+        this.promotedDescription = promotedDescription;
+    }
 }

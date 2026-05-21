@@ -13,10 +13,10 @@ public enum EventType {
     CREATE_AUCTION,
     GET_AUCTIONS_BY_SELLER,
     GET_PUBLIC_AUCTIONS,
-    PROMOTE_AUCTION,          // User/Admin: promote listing lên Star Auction
-    GET_FEATURED_AUCTIONS,    // Anonymous: lấy danh sách Star Auction cho Carousel
-    GET_ALL_AUCTIONS_ADMIN,   // Admin only: lấy tất cả auctions theo status
-    GET_ALL_USERS_ADMIN,      // Admin only: lấy tất cả users
+    PROMOTE_AUCTION, // User/Admin: promote listing lên Star Auction
+    GET_FEATURED_AUCTIONS, // Anonymous: lấy danh sách Star Auction cho Carousel
+    GET_ALL_AUCTIONS_ADMIN, // Admin only: lấy tất cả auctions theo status
+    GET_ALL_USERS_ADMIN, // Admin only: lấy tất cả users
 
     // Item
     GET_UPLOAD_SIGNATURE,

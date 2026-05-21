@@ -5,7 +5,6 @@ import com.auction.client.mock.MockAuctionClient;
 import com.auction.client.mock.MockDataProvider;
 import com.auction.client.network.AuctionClient;
 import com.auction.core.protocol.EventType;
-
 import java.net.URI;
 
 public class NetworkService {
@@ -21,7 +20,8 @@ public class NetworkService {
             if (AppConfig.isMockMode()) {
                 mockDataProvider = new MockDataProvider();
                 client = new MockAuctionClient(mockDataProvider);
-                System.out.println("[MockMode] NetworkService using MockAuctionClient — no server connection");
+                System.out.println(
+                        "[MockMode] NetworkService using MockAuctionClient — no server connection");
             } else {
                 client = new AuctionClient(new URI(serverUri));
                 client.connect();
@@ -52,13 +52,14 @@ public class NetworkService {
         return client.sendRequest(type, payload);
     }
 
-    public void addCorrelationHandler(String correlationId, java.util.function.Consumer<String> handler) {
+    public void addCorrelationHandler(
+            String correlationId, java.util.function.Consumer<String> handler) {
         client.addCorrelationHandler(correlationId, handler);
     }
 
     /**
-     * Returns the MockDataProvider if running in mock mode, otherwise null.
-     * Used by ClientApp for auto-login of the default mock user.
+     * Returns the MockDataProvider if running in mock mode, otherwise null. Used by ClientApp for
+     * auto-login of the default mock user.
      */
     public MockDataProvider getMockDataProvider() {
         return mockDataProvider;
@@ -75,4 +76,3 @@ public class NetworkService {
         }
     }
 }
-

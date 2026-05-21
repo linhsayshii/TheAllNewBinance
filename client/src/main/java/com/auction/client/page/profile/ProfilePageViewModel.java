@@ -1,17 +1,5 @@
 package com.auction.client.page.profile;
 
-import java.text.DecimalFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import com.auction.client.dto.ProfileAuctionCardUiModel;
 import com.auction.client.service.NetworkService;
 import com.auction.client.service.UserSessionService;
@@ -23,7 +11,17 @@ import com.auction.core.dto.bid.GetBidByBidderIdRequest;
 import com.auction.core.protocol.EventType;
 import com.auction.core.users.User;
 import com.auction.core.utils.JsonMapper;
-
+import java.text.DecimalFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -36,9 +34,8 @@ import javafx.beans.property.StringProperty;
 /**
  * ViewModel for the User Profile page.
  *
- * Handles two modes:
- *  — Personal (isPublicView = false): full data from UserSessionService.
- *  — Public Seller View (isPublicView = true): fetches seller's public listings.
+ * <p>Handles two modes: — Personal (isPublicView = false): full data from UserSessionService. —
+ * Public Seller View (isPublicView = true): fetches seller's public listings.
  */
 public class ProfilePageViewModel {
 
@@ -47,13 +44,14 @@ public class ProfilePageViewModel {
     // ------------------------------------------------------------------ //
     private static final DecimalFormat MONEY_FORMAT = new DecimalFormat("#,##0.00");
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("MMM yyyy");
-    private static final DateTimeFormatter TIME_LEFT_FORMAT = DateTimeFormatter.ofPattern("dd/MM HH:mm");
+    private static final DateTimeFormatter TIME_LEFT_FORMAT =
+            DateTimeFormatter.ofPattern("dd/MM HH:mm");
     private static final long NETWORK_TIMEOUT_MS = 5_000;
 
     // ------------------------------------------------------------------ //
     //  Observable Properties (bound in controller)                        //
     // ------------------------------------------------------------------ //
-    private final StringProperty displayName = new SimpleStringProperty("—");
+    private final StringProperty displayName = new SimpleStringProperty("Guest");
     private final StringProperty userIdTag = new SimpleStringProperty("");
     private final StringProperty emailProperty = new SimpleStringProperty("");
     private final StringProperty joinDate = new SimpleStringProperty("");
@@ -75,17 +73,26 @@ public class ProfilePageViewModel {
     private int targetUserId = -1;
 
     /** My bids section data */
-    private final List<ProfileAuctionCardUiModel> activeBids = Collections.synchronizedList(new ArrayList<>());
-    private final List<ProfileAuctionCardUiModel> wonAuctions = Collections.synchronizedList(new ArrayList<>());
+    private final List<ProfileAuctionCardUiModel> activeBids =
+            Collections.synchronizedList(new ArrayList<>());
+
+    private final List<ProfileAuctionCardUiModel> wonAuctions =
+            Collections.synchronizedList(new ArrayList<>());
 
     /** My listings section data */
-    private final List<ProfileAuctionCardUiModel> liveListings = Collections.synchronizedList(new ArrayList<>());
-    private final List<ProfileAuctionCardUiModel> pendingListings = Collections.synchronizedList(new ArrayList<>());
-    private final List<ProfileAuctionCardUiModel> soldListings = Collections.synchronizedList(new ArrayList<>());
-    private final List<ProfileAuctionCardUiModel> unsoldListings = Collections.synchronizedList(new ArrayList<>());
+    private final List<ProfileAuctionCardUiModel> liveListings =
+            Collections.synchronizedList(new ArrayList<>());
+
+    private final List<ProfileAuctionCardUiModel> pendingListings =
+            Collections.synchronizedList(new ArrayList<>());
+    private final List<ProfileAuctionCardUiModel> soldListings =
+            Collections.synchronizedList(new ArrayList<>());
+    private final List<ProfileAuctionCardUiModel> unsoldListings =
+            Collections.synchronizedList(new ArrayList<>());
 
     /** Seller stats */
     private final IntegerProperty totalListingsCount = new SimpleIntegerProperty(0);
+
     private final IntegerProperty soldListingsCount = new SimpleIntegerProperty(0);
 
     // ------------------------------------------------------------------ //
@@ -107,8 +114,10 @@ public class ProfilePageViewModel {
         avatarInitial.set(name.isEmpty() ? "?" : String.valueOf(name.charAt(0)).toUpperCase());
         userIdTag.set(user.getId() != null ? "#" + user.getId() : "");
         emailProperty.set(blankSafe(user.getEmail(), ""));
-        joinDate.set(user.getCreatedAt() != null
-                ? "Member since " + user.getCreatedAt().format(DATE_FORMAT) : "");
+        joinDate.set(
+                user.getCreatedAt() != null
+                        ? "Member since " + user.getCreatedAt().format(DATE_FORMAT)
+                        : "");
 
         // Finance
         double balance = user.getBalance() != null ? user.getBalance() : 0.0;
@@ -135,10 +144,9 @@ public class ProfilePageViewModel {
     // ------------------------------------------------------------------ //
 
     /**
-     * Fetches all bids placed by the current user, then resolves auction
-     * details for each unique auctionId. Returns when all calls have
-     * completed or timed out.
-     * Must be called from a background thread.
+     * Fetches all bids placed by the current user, then resolves auction details for each unique
+     * auctionId. Returns when all calls have completed or timed out. Must be called from a
+     * background thread.
      */
     public void fetchMyBids() {
         if (targetUserId < 0) {
@@ -150,7 +158,9 @@ public class ProfilePageViewModel {
 
         try {
             NetworkService ns = NetworkService.getInstance();
-            if (!waitForSocket(ns)) return;
+            if (!waitForSocket(ns)) {
+                return;
+            }
 
             // Step 1: get all bids by this bidder
             CountDownLatch bidsLatch = new CountDownLatch(1);
@@ -160,27 +170,40 @@ public class ProfilePageViewModel {
             req.setBidderId(targetUserId);
             String bidsCorr = ns.sendRequest(EventType.GET_BIDS_BY_BIDDER_ID, req);
 
-            ns.addCorrelationHandler(bidsCorr, raw -> {
-                rawBids.addAll(parseBids(raw));
-                bidsLatch.countDown();
-            });
+            ns.addCorrelationHandler(
+                    bidsCorr,
+                    raw -> {
+                        rawBids.addAll(parseBids(raw));
+                        bidsLatch.countDown();
+                    });
 
             bidsLatch.await(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
 
-            if (rawBids.isEmpty()) return;
+            if (rawBids.isEmpty()) {
+                return;
+            }
 
             // Step 2: find unique auctionIds and fetch details in parallel
             Map<Integer, Bid> highestBidByAuction = new ConcurrentHashMap<>();
             for (Bid bid : rawBids) {
-                if (bid.getAuctionId() == null) continue;
-                highestBidByAuction.merge(bid.getAuctionId(), bid,
-                    (existing, incoming) ->
-                        (incoming.getAmount() != null && existing.getAmount() != null
-                            && incoming.getAmount() > existing.getAmount()) ? incoming : existing);
+                if (bid.getAuctionId() == null) {
+                    continue;
+                }
+                highestBidByAuction.merge(
+                        bid.getAuctionId(),
+                        bid,
+                        (existing, incoming) ->
+                                (incoming.getAmount() != null
+                                                && existing.getAmount() != null
+                                                && incoming.getAmount() > existing.getAmount())
+                                        ? incoming
+                                        : existing);
             }
 
             int uniqueCount = highestBidByAuction.size();
-            if (uniqueCount == 0) return;
+            if (uniqueCount == 0) {
+                return;
+            }
 
             CountDownLatch detailsLatch = new CountDownLatch(uniqueCount);
             AtomicInteger activeBidsCounter = new AtomicInteger(0);
@@ -189,29 +212,31 @@ public class ProfilePageViewModel {
                 int auctionId = entry.getKey();
                 Bid myBid = entry.getValue();
 
-                String detailCorr = ns.sendRequest(
-                    EventType.GET_AUCTION_DETAILS,
-                    new GetAuctionDetailsRequest(auctionId)
-                );
+                String detailCorr =
+                        ns.sendRequest(
+                                EventType.GET_AUCTION_DETAILS,
+                                new GetAuctionDetailsRequest(auctionId));
 
-                ns.addCorrelationHandler(detailCorr, raw -> {
-                    try {
-                        Auction auction = parseAuction(raw);
-                        if (auction != null) {
-                            ProfileAuctionCardUiModel card = buildBidCard(auction, myBid);
-                            if (card != null) {
-                                if ("badge-won".equals(card.badgeStyleClass())) {
-                                    wonAuctions.add(card);
-                                } else {
-                                    activeBids.add(card);
-                                    activeBidsCounter.incrementAndGet();
+                ns.addCorrelationHandler(
+                        detailCorr,
+                        raw -> {
+                            try {
+                                Auction auction = parseAuction(raw);
+                                if (auction != null) {
+                                    ProfileAuctionCardUiModel card = buildBidCard(auction, myBid);
+                                    if (card != null) {
+                                        if ("badge-won".equals(card.badgeStyleClass())) {
+                                            wonAuctions.add(card);
+                                        } else {
+                                            activeBids.add(card);
+                                            activeBidsCounter.incrementAndGet();
+                                        }
+                                    }
                                 }
+                            } finally {
+                                detailsLatch.countDown();
                             }
-                        }
-                    } finally {
-                        detailsLatch.countDown();
-                    }
-                });
+                        });
             }
 
             detailsLatch.await(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
@@ -227,12 +252,14 @@ public class ProfilePageViewModel {
     // ------------------------------------------------------------------ //
 
     /**
-     * Fetches all auctions created by the current user (as seller).
-     * Must be called from a background thread.
+     * Fetches all auctions created by the current user (as seller). Must be called from a
+     * background thread.
      */
     public void fetchMyListings() {
         int sellerId = targetUserId;
-        if (sellerId < 0) return;
+        if (sellerId < 0) {
+            return;
+        }
 
         liveListings.clear();
         pendingListings.clear();
@@ -241,7 +268,9 @@ public class ProfilePageViewModel {
 
         try {
             NetworkService ns = NetworkService.getInstance();
-            if (!waitForSocket(ns)) return;
+            if (!waitForSocket(ns)) {
+                return;
+            }
 
             CountDownLatch latch = new CountDownLatch(1);
             List<Auction> auctions = new ArrayList<>();
@@ -249,22 +278,29 @@ public class ProfilePageViewModel {
             GetAuctionBySellerIdRequest req = new GetAuctionBySellerIdRequest(sellerId);
             String corr = ns.sendRequest(EventType.GET_AUCTIONS_BY_SELLER, req);
 
-            ns.addCorrelationHandler(corr, raw -> {
-                auctions.addAll(parseAuctions(raw));
-                latch.countDown();
-            });
+            ns.addCorrelationHandler(
+                    corr,
+                    raw -> {
+                        auctions.addAll(parseAuctions(raw));
+                        latch.countDown();
+                    });
 
             latch.await(NETWORK_TIMEOUT_MS, TimeUnit.MILLISECONDS);
 
             int sold = 0;
             for (Auction auction : auctions) {
                 ProfileAuctionCardUiModel card = buildListingCard(auction);
-                if (card == null) continue;
+                if (card == null) {
+                    continue;
+                }
                 switch (card.badgeStyleClass()) {
-                    case "badge-live"    -> liveListings.add(card);
+                    case "badge-live" -> liveListings.add(card);
                     case "badge-pending" -> pendingListings.add(card);
-                    case "badge-sold"    -> { soldListings.add(card); sold++; }
-                    default              -> unsoldListings.add(card);
+                    case "badge-sold" -> {
+                        soldListings.add(card);
+                        sold++;
+                    }
+                    default -> unsoldListings.add(card);
                 }
             }
 
@@ -282,11 +318,14 @@ public class ProfilePageViewModel {
     // ------------------------------------------------------------------ //
 
     private ProfileAuctionCardUiModel buildBidCard(Auction auction, Bid myBid) {
-        if (auction == null || myBid == null) return null;
+        if (auction == null || myBid == null) {
+            return null;
+        }
 
         Integer auctionId = auction.getId();
         String title = "Auction #" + auctionId;
-        String myBidFormatted = "$" + MONEY_FORMAT.format(myBid.getAmount() != null ? myBid.getAmount() : 0.0);
+        String myBidFormatted =
+                "$" + MONEY_FORMAT.format(myBid.getAmount() != null ? myBid.getAmount() : 0.0);
 
         Auction.Status status = auction.getStatus();
 
@@ -294,8 +333,14 @@ public class ProfilePageViewModel {
         if (status == Auction.Status.ENDED
                 && auction.getWinnerId() != null
                 && auction.getWinnerId().equals(targetUserId)) {
-            String finalPrice = "$" + MONEY_FORMAT.format(auction.getFinalPrice() != null ? auction.getFinalPrice() : 0.0);
-            return ProfileAuctionCardUiModel.won(auctionId, title, finalPrice, formatEnded(auction.getEndTime()));
+            String finalPrice =
+                    "$"
+                            + MONEY_FORMAT.format(
+                                    auction.getFinalPrice() != null
+                                            ? auction.getFinalPrice()
+                                            : 0.0);
+            return ProfileAuctionCardUiModel.won(
+                    auctionId, title, finalPrice, formatEnded(auction.getEndTime()));
         }
 
         // Ended but not won → treat as outbid/lost (we still show it in active bids briefly)
@@ -316,7 +361,9 @@ public class ProfilePageViewModel {
     }
 
     private ProfileAuctionCardUiModel buildListingCard(Auction auction) {
-        if (auction == null) return null;
+        if (auction == null) {
+            return null;
+        }
 
         Integer auctionId = auction.getId();
         String title = "Auction #" + auctionId;
@@ -324,28 +371,65 @@ public class ProfilePageViewModel {
 
         return switch (status) {
             case ACTIVE -> {
-                String price = "$" + MONEY_FORMAT.format(auction.getCurrentPrice() != null ? auction.getCurrentPrice() : 0.0);
+                String price =
+                        "$"
+                                + MONEY_FORMAT.format(
+                                        auction.getCurrentPrice() != null
+                                                ? auction.getCurrentPrice()
+                                                : 0.0);
                 boolean featured = Boolean.TRUE.equals(auction.getIsFeatured());
-                yield ProfileAuctionCardUiModel.live(auctionId, title, price, formatTimeLeft(auction.getEndTime()), featured);
+                yield ProfileAuctionCardUiModel.live(
+                        auctionId, title, price, formatTimeLeft(auction.getEndTime()), featured);
             }
             case PENDING -> {
-                String price = "$" + MONEY_FORMAT.format(auction.getStartingPrice() != null ? auction.getStartingPrice() : 0.0);
-                yield ProfileAuctionCardUiModel.pending(auctionId, title, price, formatUpcomingStart(auction.getStartTime()));
+                String price =
+                        "$"
+                                + MONEY_FORMAT.format(
+                                        auction.getStartingPrice() != null
+                                                ? auction.getStartingPrice()
+                                                : 0.0);
+                yield ProfileAuctionCardUiModel.pending(
+                        auctionId, title, price, formatUpcomingStart(auction.getStartTime()));
             }
             case ENDED -> {
                 boolean hasBuyer = auction.getWinnerId() != null && auction.getWinnerId() > 0;
                 if (hasBuyer) {
-                    String finalPrice = "$" + MONEY_FORMAT.format(auction.getFinalPrice() != null ? auction.getFinalPrice() : 0.0);
-                    yield ProfileAuctionCardUiModel.sold(auctionId, title, finalPrice, formatEnded(auction.getEndTime()));
+                    String finalPrice =
+                            "$"
+                                    + MONEY_FORMAT.format(
+                                            auction.getFinalPrice() != null
+                                                    ? auction.getFinalPrice()
+                                                    : 0.0);
+                    yield ProfileAuctionCardUiModel.sold(
+                            auctionId, title, finalPrice, formatEnded(auction.getEndTime()));
                 } else {
-                    String price = "$" + MONEY_FORMAT.format(auction.getStartingPrice() != null ? auction.getStartingPrice() : 0.0);
-                    yield ProfileAuctionCardUiModel.unsold(auctionId, title, price, formatEnded(auction.getEndTime()));
+                    String price =
+                            "$"
+                                    + MONEY_FORMAT.format(
+                                            auction.getStartingPrice() != null
+                                                    ? auction.getStartingPrice()
+                                                    : 0.0);
+                    yield ProfileAuctionCardUiModel.unsold(
+                            auctionId, title, price, formatEnded(auction.getEndTime()));
                 }
             }
             case CANCELLED -> {
-                String price = "$" + MONEY_FORMAT.format(auction.getStartingPrice() != null ? auction.getStartingPrice() : 0.0);
-                yield new ProfileAuctionCardUiModel(auctionId, title, "Opening bid", price,
-                        formatEnded(auction.getEndTime()), "CANCELLED", "badge-cancelled", false, null);
+                String price =
+                        "$"
+                                + MONEY_FORMAT.format(
+                                        auction.getStartingPrice() != null
+                                                ? auction.getStartingPrice()
+                                                : 0.0);
+                yield new ProfileAuctionCardUiModel(
+                        auctionId,
+                        title,
+                        "Opening bid",
+                        price,
+                        formatEnded(auction.getEndTime()),
+                        "CANCELLED",
+                        "badge-cancelled",
+                        false,
+                        null);
             }
         };
     }
@@ -358,9 +442,13 @@ public class ProfilePageViewModel {
     private List<Bid> parseBids(String raw) {
         try {
             Map<?, ?> response = JsonMapper.fromJson(raw, Map.class);
-            if (response == null || !Boolean.TRUE.equals(response.get("success"))) return List.of();
+            if (response == null || !Boolean.TRUE.equals(response.get("success"))) {
+                return List.of();
+            }
             Object data = response.get("data");
-            if (!(data instanceof List)) return List.of();
+            if (!(data instanceof List)) {
+                return List.of();
+            }
             String dataJson = JsonMapper.toJson(data);
             Bid[] bids = JsonMapper.fromJson(dataJson, Bid[].class);
             return bids != null ? java.util.Arrays.asList(bids) : List.of();
@@ -372,9 +460,13 @@ public class ProfilePageViewModel {
     private Auction parseAuction(String raw) {
         try {
             Map<?, ?> response = JsonMapper.fromJson(raw, Map.class);
-            if (response == null || !Boolean.TRUE.equals(response.get("success"))) return null;
+            if (response == null || !Boolean.TRUE.equals(response.get("success"))) {
+                return null;
+            }
             Object data = response.get("data");
-            if (data == null) return null;
+            if (data == null) {
+                return null;
+            }
             return JsonMapper.fromJson(JsonMapper.toJson(data), Auction.class);
         } catch (Exception e) {
             return null;
@@ -385,9 +477,13 @@ public class ProfilePageViewModel {
     private List<Auction> parseAuctions(String raw) {
         try {
             Map<?, ?> response = JsonMapper.fromJson(raw, Map.class);
-            if (response == null || !Boolean.TRUE.equals(response.get("success"))) return List.of();
+            if (response == null || !Boolean.TRUE.equals(response.get("success"))) {
+                return List.of();
+            }
             Object data = response.get("data");
-            if (!(data instanceof List)) return List.of();
+            if (!(data instanceof List)) {
+                return List.of();
+            }
             String dataJson = JsonMapper.toJson(data);
             Auction[] auctions = JsonMapper.fromJson(dataJson, Auction[].class);
             return auctions != null ? java.util.Arrays.asList(auctions) : List.of();
@@ -401,32 +497,46 @@ public class ProfilePageViewModel {
     // ------------------------------------------------------------------ //
 
     private String formatTimeLeft(LocalDateTime endTime) {
-        if (endTime == null) return "N/A";
+        if (endTime == null) {
+            return "N/A";
+        }
         java.time.Duration remaining = java.time.Duration.between(LocalDateTime.now(), endTime);
-        if (remaining.isNegative() || remaining.isZero()) return "Ended";
+        if (remaining.isNegative() || remaining.isZero()) {
+            return "Ended";
+        }
         long totalMinutes = remaining.toMinutes();
         long days = totalMinutes / (24 * 60);
         long hours = (totalMinutes % (24 * 60)) / 60;
         long minutes = totalMinutes % 60;
-        if (days > 0) return days + "d " + hours + "h left";
+        if (days > 0) {
+            return days + "d " + hours + "h left";
+        }
         return String.format("%02dh %02dm left", hours, minutes);
     }
 
     private String formatUpcomingStart(LocalDateTime startTime) {
-        if (startTime == null) return "N/A";
-        if (startTime.isBefore(LocalDateTime.now())) return "Starting soon";
+        if (startTime == null) {
+            return "N/A";
+        }
+        if (startTime.isBefore(LocalDateTime.now())) {
+            return "Starting soon";
+        }
         return "Starts " + startTime.format(TIME_LEFT_FORMAT);
     }
 
     private String formatEnded(LocalDateTime endTime) {
-        if (endTime == null) return "Ended";
+        if (endTime == null) {
+            return "Ended";
+        }
         return "Ended " + endTime.format(DateTimeFormatter.ofPattern("dd MMM"));
     }
 
     private boolean waitForSocket(NetworkService ns) {
         long waited = 0;
         while (!ns.getClient().isOpen() && waited < NETWORK_TIMEOUT_MS) {
-            try { Thread.sleep(100); } catch (InterruptedException e) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 return false;
             }
@@ -443,42 +553,110 @@ public class ProfilePageViewModel {
     //  Property accessors                                                  //
     // ------------------------------------------------------------------ //
 
-    public StringProperty displayNameProperty()     { return displayName; }
-    public StringProperty userIdTagProperty()       { return userIdTag; }
-    public StringProperty emailProperty()           { return emailProperty; }
-    public StringProperty joinDateProperty()        { return joinDate; }
-    public StringProperty avatarInitialProperty()   { return avatarInitial; }
+    public StringProperty displayNameProperty() {
+        return displayName;
+    }
 
-    public DoubleProperty totalBalanceProperty()    { return totalBalance; }
-    public DoubleProperty lockedBalanceProperty()   { return lockedBalance; }
-    public DoubleProperty availableBalanceProperty(){ return availableBalance; }
+    public StringProperty userIdTagProperty() {
+        return userIdTag;
+    }
 
-    public IntegerProperty activeBidsCountProperty()    { return activeBidsCount; }
-    public IntegerProperty activeListingsCountProperty(){ return activeListingsCount; }
-    public IntegerProperty totalListingsCountProperty() { return totalListingsCount; }
-    public IntegerProperty soldListingsCountProperty()  { return soldListingsCount; }
+    public StringProperty emailProperty() {
+        return emailProperty;
+    }
 
-    public BooleanProperty isPublicViewProperty()   { return isPublicView; }
-    public boolean isPublicView()                   { return isPublicView.get(); }
-    public int getTargetUserId()                    { return targetUserId; }
+    public StringProperty joinDateProperty() {
+        return joinDate;
+    }
+
+    public StringProperty avatarInitialProperty() {
+        return avatarInitial;
+    }
+
+    public DoubleProperty totalBalanceProperty() {
+        return totalBalance;
+    }
+
+    public DoubleProperty lockedBalanceProperty() {
+        return lockedBalance;
+    }
+
+    public DoubleProperty availableBalanceProperty() {
+        return availableBalance;
+    }
+
+    public IntegerProperty activeBidsCountProperty() {
+        return activeBidsCount;
+    }
+
+    public IntegerProperty activeListingsCountProperty() {
+        return activeListingsCount;
+    }
+
+    public IntegerProperty totalListingsCountProperty() {
+        return totalListingsCount;
+    }
+
+    public IntegerProperty soldListingsCountProperty() {
+        return soldListingsCount;
+    }
+
+    public BooleanProperty isPublicViewProperty() {
+        return isPublicView;
+    }
+
+    public boolean isPublicView() {
+        return isPublicView.get();
+    }
+
+    public int getTargetUserId() {
+        return targetUserId;
+    }
 
     /** Formatted "$12,500.00" strings for UI labels. */
-    public String getFormattedTotalBalance()     { return "$" + MONEY_FORMAT.format(totalBalance.get()); }
-    public String getFormattedLockedBalance()    { return "$" + MONEY_FORMAT.format(lockedBalance.get()); }
-    public String getFormattedAvailableBalance() { return "$" + MONEY_FORMAT.format(availableBalance.get()); }
+    public String getFormattedTotalBalance() {
+        return "$" + MONEY_FORMAT.format(totalBalance.get());
+    }
+
+    public String getFormattedLockedBalance() {
+        return "$" + MONEY_FORMAT.format(lockedBalance.get());
+    }
+
+    public String getFormattedAvailableBalance() {
+        return "$" + MONEY_FORMAT.format(availableBalance.get());
+    }
 
     /** Seller success rate as "75%" string. */
     public String getSellerSuccessRate() {
         int total = totalListingsCount.get();
-        if (total == 0) return "—";
+        if (total == 0) {
+            return "—";
+        }
         return Math.round(100.0 * soldListingsCount.get() / total) + "%";
     }
 
     /** Lists are returned as unmodifiable snapshots for thread safety. */
-    public List<ProfileAuctionCardUiModel> getActiveBids()      { return List.copyOf(activeBids); }
-    public List<ProfileAuctionCardUiModel> getWonAuctions()     { return List.copyOf(wonAuctions); }
-    public List<ProfileAuctionCardUiModel> getLiveListings()    { return List.copyOf(liveListings); }
-    public List<ProfileAuctionCardUiModel> getPendingListings() { return List.copyOf(pendingListings); }
-    public List<ProfileAuctionCardUiModel> getSoldListings()    { return List.copyOf(soldListings); }
-    public List<ProfileAuctionCardUiModel> getUnsoldListings()  { return List.copyOf(unsoldListings); }
+    public List<ProfileAuctionCardUiModel> getActiveBids() {
+        return List.copyOf(activeBids);
+    }
+
+    public List<ProfileAuctionCardUiModel> getWonAuctions() {
+        return List.copyOf(wonAuctions);
+    }
+
+    public List<ProfileAuctionCardUiModel> getLiveListings() {
+        return List.copyOf(liveListings);
+    }
+
+    public List<ProfileAuctionCardUiModel> getPendingListings() {
+        return List.copyOf(pendingListings);
+    }
+
+    public List<ProfileAuctionCardUiModel> getSoldListings() {
+        return List.copyOf(soldListings);
+    }
+
+    public List<ProfileAuctionCardUiModel> getUnsoldListings() {
+        return List.copyOf(unsoldListings);
+    }
 }

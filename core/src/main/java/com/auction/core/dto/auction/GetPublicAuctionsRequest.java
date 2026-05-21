@@ -9,7 +9,8 @@ public class GetPublicAuctionsRequest {
 
     public GetPublicAuctionsRequest() {}
 
-    public GetPublicAuctionsRequest(int page, int size, String status, boolean includeEndingSoon, boolean includeTrending) {
+    public GetPublicAuctionsRequest(
+            int page, int size, String status, boolean includeEndingSoon, boolean includeTrending) {
         this.page = page;
         this.size = size;
         this.status = status;
@@ -17,18 +18,43 @@ public class GetPublicAuctionsRequest {
         this.includeTrending = includeTrending;
     }
 
-    public int getPage() {return page; }
-    public void setPage(int page) {this.page = page; }
+    public int getPage() {
+        return page;
+    }
 
-    public int getSize() {return size;}
-    public void setSize(int size) {this.size = size; }
+    public void setPage(int page) {
+        this.page = page;
+    }
 
-    public String getStatus() {return status; }
-    public void setStatus(String status) {this.status = status;}
+    public int getSize() {
+        return size;
+    }
 
-    public boolean isIncludeEndingSoon() {return includeEndingSoon; }
-    public void setIncludeEndingSoon(boolean includeEndingSoon) {this.includeEndingSoon = includeEndingSoon;}
+    public void setSize(int size) {
+        this.size = size;
+    }
 
-    public boolean isIncludeTrending() {return includeTrending; }
-    public void setIncludeTrending(boolean includeTrending) {this.includeTrending = includeTrending; }
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
+    }
+
+    public boolean isIncludeEndingSoon() {
+        return includeEndingSoon;
+    }
+
+    public void setIncludeEndingSoon(boolean includeEndingSoon) {
+        this.includeEndingSoon = includeEndingSoon;
+    }
+
+    public boolean isIncludeTrending() {
+        return includeTrending;
+    }
+
+    public void setIncludeTrending(boolean includeTrending) {
+        this.includeTrending = includeTrending;
+    }
 }

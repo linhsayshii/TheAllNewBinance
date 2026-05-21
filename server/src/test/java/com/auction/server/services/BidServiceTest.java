@@ -2,13 +2,19 @@ package com.auction.server.services;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.*;
 
+import com.auction.core.auction.Auction;
+import com.auction.core.auction.Bid;
+import com.auction.core.dto.bid.PlaceBid;
+import com.auction.core.services.IAuctionService;
+import com.auction.core.users.User;
+import com.auction.core.dto.auction.AuctionDetailsDto;
+import com.auction.server.dao.impl.IBidDao;
+import com.auction.server.dao.impl.IUserDao;
 import java.time.LocalDateTime;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,31 +22,18 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import com.auction.core.auction.Auction;
-import com.auction.core.auction.Bid;
-import com.auction.core.dto.bid.PlaceBid;
-import com.auction.core.services.IAuctionService;
-import com.auction.core.users.User;
-import com.auction.server.dao.impl.IBidDao;
-import com.auction.server.dao.impl.IUserDao;
-
 @ExtendWith(MockitoExtension.class)
 public class BidServiceTest {
 
-    @Mock
-    private IBidDao bidDao;
+    @Mock private IBidDao bidDao;
 
-    @Mock
-    private IAuctionService auctionService;
+    @Mock private IAuctionService auctionService;
 
-    @Mock
-    private IUserDao userDao;
+    @Mock private IUserDao userDao;
 
-    @Mock
-    private BidQueueManager bidQueueManager;
+    @Mock private BidQueueManager bidQueueManager;
 
-    @InjectMocks
-    private BidService bidService;
+    @InjectMocks private BidService bidService;
 
     private User testUser;
     private Auction testAuction;
@@ -48,7 +41,16 @@ public class BidServiceTest {
 
     @BeforeEach
     void setUp() {
-        testUser = new User(2, "bidder", "pass", "Bidder User", "bidder@test.com", 1000.0, User.Role.STANDARD, true);
+        testUser =
+                new User(
+                        2,
+                        "bidder",
+                        "pass",
+                        "Bidder User",
+                        "bidder@test.com",
+                        1000.0,
+                        User.Role.STANDARD,
+                        true);
         testAuction = new Auction();
         testAuction.setId(1);
         testAuction.setStatus(Auction.Status.ACTIVE);
@@ -64,7 +66,8 @@ public class BidServiceTest {
 
     @Test
     void testPlaceBid_ValidBid() {
-        CompletableFuture<Auction> auctionFuture = CompletableFuture.completedFuture(testAuction);
+        CompletableFuture<AuctionDetailsDto> auctionFuture =
+                CompletableFuture.completedFuture(new AuctionDetailsDto(testAuction, null, null));
         CompletableFuture<Integer> sellerFuture = CompletableFuture.completedFuture(1);
 
         when(userDao.findById(2)).thenReturn(testUser);
@@ -89,7 +92,8 @@ public class BidServiceTest {
     @Test
     void testPlaceBid_InvalidBid_AuctionEnded() {
         testAuction.setEndTime(LocalDateTime.now().minusHours(1)); // Auction ended
-        CompletableFuture<Auction> auctionFuture = CompletableFuture.completedFuture(testAuction);
+        CompletableFuture<AuctionDetailsDto> auctionFuture =
+                CompletableFuture.completedFuture(new AuctionDetailsDto(testAuction, null, null));
         CompletableFuture<Integer> sellerFuture = CompletableFuture.completedFuture(1);
 
         when(userDao.findById(2)).thenReturn(testUser);
@@ -107,7 +111,8 @@ public class BidServiceTest {
 
     @Test
     void testPlaceBid_InvalidBid_InsufficientBalanceForDeposit() {
-        CompletableFuture<Auction> auctionFuture = CompletableFuture.completedFuture(testAuction);
+        CompletableFuture<AuctionDetailsDto> auctionFuture =
+                CompletableFuture.completedFuture(new AuctionDetailsDto(testAuction, null, null));
         CompletableFuture<Integer> sellerFuture = CompletableFuture.completedFuture(1);
 
         when(userDao.findById(2)).thenReturn(testUser);
@@ -129,7 +134,8 @@ public class BidServiceTest {
     void testPlaceBid_InvalidBid_ShillBidding() {
         placeBidRequest.setBidderId(1); // Bidder is the same as seller
         testUser.setId(1);
-        CompletableFuture<Auction> auctionFuture = CompletableFuture.completedFuture(testAuction);
+        CompletableFuture<AuctionDetailsDto> auctionFuture =
+                CompletableFuture.completedFuture(new AuctionDetailsDto(testAuction, null, null));
         CompletableFuture<Integer> sellerFuture = CompletableFuture.completedFuture(1);
 
         when(userDao.findById(1)).thenReturn(testUser);
@@ -148,7 +154,8 @@ public class BidServiceTest {
     @Test
     void testPlaceBid_InvalidBid_AmountLessOrEqualZero() {
         placeBidRequest.setAmount(0.0);
-        CompletableFuture<Auction> auctionFuture = CompletableFuture.completedFuture(testAuction);
+        CompletableFuture<AuctionDetailsDto> auctionFuture =
+                CompletableFuture.completedFuture(new AuctionDetailsDto(testAuction, null, null));
         CompletableFuture<Integer> sellerFuture = CompletableFuture.completedFuture(1);
 
         when(userDao.findById(2)).thenReturn(testUser);
@@ -167,7 +174,8 @@ public class BidServiceTest {
     @Test
     void testPlaceBid_InvalidBid_AuctionNotActive() {
         testAuction.setStatus(Auction.Status.PENDING);
-        CompletableFuture<Auction> auctionFuture = CompletableFuture.completedFuture(testAuction);
+        CompletableFuture<AuctionDetailsDto> auctionFuture =
+                CompletableFuture.completedFuture(new AuctionDetailsDto(testAuction, null, null));
 
         when(userDao.findById(2)).thenReturn(testUser);
         when(auctionService.getAuctionDetails(1)).thenReturn(auctionFuture);

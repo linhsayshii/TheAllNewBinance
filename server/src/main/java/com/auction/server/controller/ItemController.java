@@ -1,13 +1,12 @@
 package com.auction.server.controller;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import com.auction.core.dto.item.GetUploadSignatureRequest;
 import com.auction.core.dto.item.GetUploadSignatureResponse;
 import com.auction.core.utils.JsonMapper;
 import com.cloudinary.Cloudinary;
 import com.cloudinary.utils.ObjectUtils;
+import java.util.HashMap;
+import java.util.Map;
 
 public class ItemController {
     // Cloudinary instance
@@ -16,11 +15,12 @@ public class ItemController {
     public ItemController() {
         // Cấu hình Cloudinary từ thông tin API (Môi trường/Variables)
         // Hard-code ở đây theo instruction (Thực tế nên đưa vào Config/Env)
-        cloudinary = new Cloudinary(ObjectUtils.asMap(
-            "cloud_name", "dpclmah9p",
-            "api_key", "453152866822858",
-            "api_secret", "6u0v6ubiLwNtEHIkACjr55HW5a4"
-        ));
+        cloudinary =
+                new Cloudinary(
+                        ObjectUtils.asMap(
+                                "cloud_name", "dpclmah9p",
+                                "api_key", "453152866822858",
+                                "api_secret", "6u0v6ubiLwNtEHIkACjr55HW5a4"));
     }
 
     public String getUploadSignature(String requestRaw) {
@@ -29,13 +29,17 @@ public class ItemController {
         }
 
         try {
-            GetUploadSignatureRequest request = JsonMapper.fromJson(requestRaw, GetUploadSignatureRequest.class);
+            GetUploadSignatureRequest request =
+                    JsonMapper.fromJson(requestRaw, GetUploadSignatureRequest.class);
             if (request == null) {
                 return JsonMapper.toJson(errorResponse("Invalid payload"));
             }
 
             long timestamp = System.currentTimeMillis() / 1000L;
-            String folder = request.getFolder() != null && !request.getFolder().isBlank() ? request.getFolder() : "auction_items";
+            String folder =
+                    request.getFolder() != null && !request.getFolder().isBlank()
+                            ? request.getFolder()
+                            : "auction_items";
 
             Map<String, Object> paramsToSign = new HashMap<>();
             paramsToSign.put("timestamp", timestamp);
@@ -44,11 +48,8 @@ public class ItemController {
             // Băm tạo chữ ký từ Cloudinary SDK
             String signature = cloudinary.apiSignRequest(paramsToSign, cloudinary.config.apiSecret);
 
-            GetUploadSignatureResponse responseDto = new GetUploadSignatureResponse(
-                signature,
-                timestamp,
-                cloudinary.config.apiKey
-            );
+            GetUploadSignatureResponse responseDto =
+                    new GetUploadSignatureResponse(signature, timestamp, cloudinary.config.apiKey);
 
             return JsonMapper.toJson(successResponse(responseDto));
         } catch (Exception ex) {

@@ -19,6 +19,8 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <!-- Keep local builds safe. Override this property on CI/CD with -Dcheckstyle.failOnViolation=true -->
+        <checkstyle.failOnViolation>true</checkstyle.failOnViolation>
     </properties>
 
     <!-- Nơi chứa TẤT CẢ các thư viện với phiên bản cụ thể cho toàn dự án -->
@@ -110,6 +112,58 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <!-- Spotless plugin for 100% logic-safe automatic code formatting -->
+            <plugin>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>2.43.0</version>
+                <configuration>
+                    <java>
+                        <!-- Enforce 4-spaces indentation Google AOSP standard style -->
+                        <googleJavaFormat>
+                            <version>1.17.0</version>
+                            <style>AOSP</style>
+                            <reflowLongStrings>true</reflowLongStrings>
+                        </googleJavaFormat>
+                        <!-- Automatically clean up unused imports -->
+                        <removeUnusedImports/>
+                    </java>
+                </configuration>
+            </plugin>
+            <!-- Checkstyle plugin configuration for static analysis -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-checkstyle-plugin</artifactId>
+                <version>3.3.1</version>
+                <dependencies>
+                    <!-- Upgrade checkstyle core version to support Java 21 features natively -->
+                    <dependency>
+                        <groupId>com.puppycrawl.tools</groupId>
+                        <artifactId>checkstyle</artifactId>
+                        <version>10.12.5</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <!-- Resolve multi-module relative path issues cleanly using absolute directory -->
+                    <configLocation>${maven.multiModuleProjectDirectory}/custom_checks.xml</configLocation>
+                    <!-- Pass root directory as config.dir property for loading suppressions.xml -->
+                    <propertyExpansion>config.dir=${maven.multiModuleProjectDirectory}</propertyExpansion>
+                    <encoding>UTF-8</encoding>
+                    <consoleOutput>true</consoleOutput>
+                    <failsOnError>${checkstyle.failOnViolation}</failsOnError>
+                    <failOnViolation>${checkstyle.failOnViolation}</failOnViolation>
+                    <includeTestSourceDirectory>true</includeTestSourceDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>validate-checkstyle</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

@@ -1,15 +1,13 @@
 package com.auction.client.page.productdetail;
 
+import com.auction.core.auction.Auction;
+import com.auction.core.auction.Bid;
+import com.auction.core.products.Item;
 import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-
-import com.auction.core.auction.Auction;
-import com.auction.core.auction.Bid;
-import com.auction.core.products.Item;
-
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -50,22 +48,32 @@ public class ProductDetailPageViewModel {
     private final StringProperty currentBidDisplay = new SimpleStringProperty("$0.00");
     private final StringProperty bidderCountText = new SimpleStringProperty("0 people bidding");
     private final StringProperty countdownText = new SimpleStringProperty("00d 00h 00m 00s");
-    private final StringProperty loginPrompt = new SimpleStringProperty("Please log in or sign up to place a bid");
+    private final StringProperty loginPrompt =
+            new SimpleStringProperty("Please log in or sign up to place a bid");
 
-    private final ObjectProperty<LocalDateTime> endTime = new SimpleObjectProperty<>(LocalDateTime.now());
+    private final ObjectProperty<LocalDateTime> endTime =
+            new SimpleObjectProperty<>(LocalDateTime.now());
     private final DoubleProperty currentBidAmount = new SimpleDoubleProperty(0.0);
     private final DoubleProperty bidIncrement = new SimpleDoubleProperty(1.0);
     private final BooleanProperty biddingEnabled = new SimpleBooleanProperty(true);
 
     private final ObservableList<Bid> bids = FXCollections.observableArrayList();
 
-    public void applyAuctionData(Auction auction, Item item, String seller, Integer currentBidderId, List<Bid> bidHistory) {
+    public void applyAuctionData(
+            Auction auction,
+            Item item,
+            String seller,
+            Integer currentBidderId,
+            List<Bid> bidHistory) {
         if (auction != null) {
             auctionId.set(auction.getId() != null ? auction.getId() : 0);
-            currentBidAmount.set(auction.getCurrentPrice() != null ? auction.getCurrentPrice() : 0.0);
+            currentBidAmount.set(
+                    auction.getCurrentPrice() != null ? auction.getCurrentPrice() : 0.0);
             bidIncrement.set(auction.getBidIncrement() != null ? auction.getBidIncrement() : 1.0);
             endTime.set(auction.getEndTime() != null ? auction.getEndTime() : LocalDateTime.now());
-            biddingEnabled.set(auction.getStatus() != Auction.Status.ENDED && auction.getStatus() != Auction.Status.CANCELLED);
+            biddingEnabled.set(
+                    auction.getStatus() != Auction.Status.ENDED
+                            && auction.getStatus() != Auction.Status.CANCELLED);
         }
 
         if (item != null) {
@@ -74,7 +82,7 @@ public class ProductDetailPageViewModel {
             description.set(safe(item.getDescription(), "No description"));
             if (item.getImageUrl() != null && !item.getImageUrl().isBlank()) {
                 imageUrl.set(item.getImageUrl());
-                imageText.set(""); 
+                imageText.set("");
             } else {
                 imageUrl.set(null);
                 imageText.set("Item Image");
@@ -96,8 +104,12 @@ public class ProductDetailPageViewModel {
         }
 
         bidHistory.stream()
-            .sorted(Comparator.comparing(Bid::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
-            .forEach(bids::add);
+                .sorted(
+                        Comparator.comparing(
+                                        Bid::getCreatedAt,
+                                        Comparator.nullsLast(Comparator.naturalOrder()))
+                                .reversed())
+                .forEach(bids::add);
 
         bidderCountText.set(bids.size() + " people bidding");
         Bid latest = bids.get(0);
@@ -208,5 +220,4 @@ public class ProductDetailPageViewModel {
     public StringProperty imageUrlProperty() {
         return imageUrl;
     }
-
 }

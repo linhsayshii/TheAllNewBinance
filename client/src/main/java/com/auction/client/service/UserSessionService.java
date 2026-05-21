@@ -5,8 +5,8 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 
 /**
- * Holds the authenticated user's data for the current session.
- * Use login(user) after a successful LOGIN response and logout() on sign-out.
+ * Holds the authenticated user's data for the current session. Use login(user) after a successful
+ * LOGIN response and logout() on sign-out.
  */
 public class UserSessionService {
 
@@ -48,10 +48,8 @@ public class UserSessionService {
                 if (userId != null) {
                     payload.put("userId", userId);
                 }
-                com.auction.client.service.NetworkService.getInstance().sendRequest(
-                    com.auction.core.protocol.EventType.LOGOUT,
-                    payload
-                );
+                com.auction.client.service.NetworkService.getInstance()
+                        .sendRequest(com.auction.core.protocol.EventType.LOGOUT, payload);
             }
         } catch (Exception e) {
             System.err.println("Error during network logout: " + e.getMessage());

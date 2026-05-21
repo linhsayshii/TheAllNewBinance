@@ -1,20 +1,19 @@
 package com.auction.server.services;
 
-import java.util.List;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.TimeoutException;
-
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
-import com.auction.server.dao.impl.IBidDao;
-import com.auction.server.dao.impl.IUserDao;
 import com.auction.core.dto.bid.GetBidByAuctionIdRequest;
 import com.auction.core.dto.bid.GetBidByBidderIdRequest;
 import com.auction.core.dto.bid.PlaceBid;
 import com.auction.core.services.IAuctionService;
 import com.auction.core.services.IBidService;
 import com.auction.core.users.User;
+import com.auction.server.dao.impl.IBidDao;
+import com.auction.server.dao.impl.IUserDao;
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 public class BidService implements IBidService {
     private static final int BID_TIMEOUT_SECONDS = 5;
@@ -24,7 +23,11 @@ public class BidService implements IBidService {
     private final IUserDao userDao;
     private final BidQueueManager bidQueueManager;
 
-    public BidService(IBidDao bid, IAuctionService auctionService, IUserDao userDao, BidQueueManager bidQueueManager) {
+    public BidService(
+            IBidDao bid,
+            IAuctionService auctionService,
+            IUserDao userDao,
+            BidQueueManager bidQueueManager) {
         this.bidDao = bid;
         this.auctionService = auctionService;
         this.userDao = userDao;
@@ -35,46 +38,57 @@ public class BidService implements IBidService {
     public CompletableFuture<Bid> placeBid(PlaceBid request) {
         // Pha 1: Pre-validation (parallel — no serialization needed)
         return CompletableFuture.supplyAsync(() -> preValidate(request))
-            .thenCompose(task -> {
-                // Pha 2: Submit to per-auction queue (serial per auction)
-                return bidQueueManager.submitBid(task);
-            })
-            .orTimeout(BID_TIMEOUT_SECONDS, TimeUnit.SECONDS)
-            .exceptionally(ex -> {
-                Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-                if (cause instanceof TimeoutException) {
-                    throw new RuntimeException("Bid processing timed out, please retry");
-                }
-                if (cause instanceof IllegalArgumentException || cause instanceof IllegalStateException) {
-                    throw (RuntimeException) cause;
-                }
-                throw new RuntimeException(cause.getMessage(), cause);
-            });
+                .thenCompose(
+                        task -> {
+                            // Pha 2: Submit to per-auction queue (serial per auction)
+                            return bidQueueManager.submitBid(task);
+                        })
+                .orTimeout(BID_TIMEOUT_SECONDS, TimeUnit.SECONDS)
+                .exceptionally(
+                        ex -> {
+                            Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+                            if (cause instanceof TimeoutException) {
+                                throw new RuntimeException(
+                                        "Bid processing timed out, please retry");
+                            }
+                            if (cause instanceof IllegalArgumentException
+                                    || cause instanceof IllegalStateException) {
+                                throw (RuntimeException) cause;
+                            }
+                            throw new RuntimeException(cause.getMessage(), cause);
+                        });
     }
 
     /**
-     * Pha 1: Pre-validate bid request on caller thread.
-     * Quick checks that don't need serialization: user exists, auction active, shill bidding, deposit hold.
-     * Returns a BidTask ready for queue submission.
+     * Pha 1: Pre-validate bid request on caller thread. Quick checks that don't need serialization:
+     * user exists, auction active, shill bidding, deposit hold. Returns a BidTask ready for queue
+     * submission.
      */
     private BidTask preValidate(PlaceBid request) {
-        if (request == null) throw new IllegalArgumentException("Request is required");
+        if (request == null) {
+            throw new IllegalArgumentException("Request is required");
+        }
         if (auctionService == null || userDao == null || bidDao == null) {
             throw new IllegalStateException("Services are not initialized");
         }
 
         // Validate User
         User user = userDao.findById(request.getBidderId());
-        if (user == null) throw new IllegalArgumentException("User not found");
+        if (user == null) {
+            throw new IllegalArgumentException("User not found");
+        }
 
-                // .join() để chờ kết quả bất đồng bộ trong cùng thread pool
-                com.auction.core.dto.auction.AuctionDetailsDto details = auctionService.getAuctionDetails(request.getAuctionId()).join();
-                if (details == null || details.getAuction() == null) throw new IllegalArgumentException("Auction not found");
-                Auction auction = details.getAuction();
-                
-                if (auction.getStatus() != Auction.Status.ACTIVE) {
-                    throw new IllegalArgumentException("Auction is not active");
-                }
+        // .join() to wait for asynchronous results in the same thread pool
+        com.auction.core.dto.auction.AuctionDetailsDto details =
+                auctionService.getAuctionDetails(request.getAuctionId()).join();
+        if (details == null || details.getAuction() == null) {
+            throw new IllegalArgumentException("Auction not found");
+        }
+        Auction auction = details.getAuction();
+
+        if (auction.getStatus() != Auction.Status.ACTIVE) {
+            throw new IllegalArgumentException("Auction is not active");
+        }
 
         // Shill Bidding check (seller cannot bid on own auction)
         Integer sellerId = auctionService.getSellerId(request.getAuctionId()).join();
@@ -97,7 +111,9 @@ public class BidService implements IBidService {
         if (!hasBidBefore) {
             double depositAmount = auction.getStartingPrice() * 0.3;
             boolean held = userDao.holdBalance(user.getId(), depositAmount);
-            if (!held) throw new IllegalArgumentException("Insufficient balance for deposit");
+            if (!held) {
+                throw new IllegalArgumentException("Insufficient balance for deposit");
+            }
         }
 
         // Build task with pre-validated snapshot
@@ -107,15 +123,21 @@ public class BidService implements IBidService {
 
     @Override
     public CompletableFuture<Boolean> validateUserBid(Integer auctionId, User user) {
-        return auctionService.getAuctionDetails(auctionId).thenApply(details -> {
-            if (details == null || details.getAuction() == null) return false;
-            Auction auction = details.getAuction();
-            return user.getBalance() >= (auction.getStartingPrice() * 0.3);
-        });
+        return auctionService
+                .getAuctionDetails(auctionId)
+                .thenApply(
+                        details -> {
+                            if (details == null || details.getAuction() == null) {
+                                return false;
+                            }
+                            Auction auction = details.getAuction();
+                            return user.getBalance() >= (auction.getStartingPrice() * 0.3);
+                        });
     }
 
     @Override
-    public CompletableFuture<Void> automaticallyPlaceBid(Integer auctionId, double increment, double maxAmount) {
+    public CompletableFuture<Void> automaticallyPlaceBid(
+            Integer auctionId, double increment, double maxAmount) {
         // implementation waiting
         return CompletableFuture.completedFuture(null);
     }

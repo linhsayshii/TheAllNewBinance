@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<!DOCTYPE suppressions PUBLIC
+    "-//Checkstyle//DTD Suppressions 1.1//EN"
+    "https://checkstyle.org/dtds/suppressions_1_1.dtd">
+
+<suppressions>
+    <!-- Ignore auto-generated sources in target directories (e.g., Protobuf, annotation processors) -->
+    <suppress files="[\\/]target[\\/]" checks="[a-zA-Z0-9]*"/>
+    <!-- Ignore configuration files and external assets -->
+    <suppress files=".*\.xml" checks="[a-zA-Z0-9]*"/>
+    <suppress files=".*\.fxml" checks="[a-zA-Z0-9]*"/>
+    <suppress files=".*\.css" checks="[a-zA-Z0-9]*"/>
+    <suppress files=".*\.sql" checks="[a-zA-Z0-9]*"/>
+    <!-- Allow underscores in test method names (e.g., testMethod_Scenario_Behavior) -->
+    <suppress files=".*Test\.java" checks="MethodName"/>
+    <!-- Ignore mock data provider which is solely for local simulation and mock testing -->
+    <suppress files="MockDataProvider\.java" checks="[a-zA-Z0-9]*"/>
+    <suppress files="MockAuctionClient\.java" checks="[a-zA-Z0-9]*"/>
+    <suppress files="RequestDispatcher\.java" checks="Indentation"/>
+</suppressions>

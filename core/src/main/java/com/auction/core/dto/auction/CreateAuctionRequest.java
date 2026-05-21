@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 
 public class CreateAuctionRequest {
     private Integer sellerId;
-    
+
     // Item details
     private String itemTitle;
     private String itemDescription;
@@ -19,10 +19,16 @@ public class CreateAuctionRequest {
 
     public CreateAuctionRequest() {}
 
-    public CreateAuctionRequest(Integer sellerId, String itemTitle, String itemDescription, 
-                                String itemCategory, String itemImageUrl, 
-                                Double startingPrice, Double bidIncrement, 
-                                LocalDateTime startTime, LocalDateTime endTime) {
+    public CreateAuctionRequest(
+            Integer sellerId,
+            String itemTitle,
+            String itemDescription,
+            String itemCategory,
+            String itemImageUrl,
+            Double startingPrice,
+            Double bidIncrement,
+            LocalDateTime startTime,
+            LocalDateTime endTime) {
         this.sellerId = sellerId;
         this.itemTitle = itemTitle;
         this.itemDescription = itemDescription;
@@ -34,30 +40,75 @@ public class CreateAuctionRequest {
         this.endTime = endTime;
     }
 
-    public Integer getSellerId() { return sellerId; }
-    public void setSellerId(Integer sellerId) { this.sellerId = sellerId; }
+    public Integer getSellerId() {
+        return sellerId;
+    }
 
-    public String getItemTitle() { return itemTitle; }
-    public void setItemTitle(String itemTitle) { this.itemTitle = itemTitle; }
+    public void setSellerId(Integer sellerId) {
+        this.sellerId = sellerId;
+    }
 
-    public String getItemDescription() { return itemDescription; }
-    public void setItemDescription(String itemDescription) { this.itemDescription = itemDescription; }
+    public String getItemTitle() {
+        return itemTitle;
+    }
 
-    public String getItemCategory() { return itemCategory; }
-    public void setItemCategory(String itemCategory) { this.itemCategory = itemCategory; }
+    public void setItemTitle(String itemTitle) {
+        this.itemTitle = itemTitle;
+    }
 
-    public String getItemImageUrl() { return itemImageUrl; }
-    public void setItemImageUrl(String itemImageUrl) { this.itemImageUrl = itemImageUrl; }
+    public String getItemDescription() {
+        return itemDescription;
+    }
 
-    public Double getStartingPrice() { return startingPrice; }
-    public void setStartingPrice(Double startingPrice) { this.startingPrice = startingPrice; }
+    public void setItemDescription(String itemDescription) {
+        this.itemDescription = itemDescription;
+    }
 
-    public Double getBidIncrement() { return bidIncrement; }
-    public void setBidIncrement(Double bidIncrement) { this.bidIncrement = bidIncrement; }
+    public String getItemCategory() {
+        return itemCategory;
+    }
 
-    public LocalDateTime getStartTime() { return startTime; }
-    public void setStartTime(LocalDateTime startTime) { this.startTime = startTime; }
+    public void setItemCategory(String itemCategory) {
+        this.itemCategory = itemCategory;
+    }
 
-    public LocalDateTime getEndTime() { return endTime; }
-    public void setEndTime(LocalDateTime endTime) { this.endTime = endTime; }
+    public String getItemImageUrl() {
+        return itemImageUrl;
+    }
+
+    public void setItemImageUrl(String itemImageUrl) {
+        this.itemImageUrl = itemImageUrl;
+    }
+
+    public Double getStartingPrice() {
+        return startingPrice;
+    }
+
+    public void setStartingPrice(Double startingPrice) {
+        this.startingPrice = startingPrice;
+    }
+
+    public Double getBidIncrement() {
+        return bidIncrement;
+    }
+
+    public void setBidIncrement(Double bidIncrement) {
+        this.bidIncrement = bidIncrement;
+    }
+
+    public LocalDateTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalDateTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalDateTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalDateTime endTime) {
+        this.endTime = endTime;
+    }
 }

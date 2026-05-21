@@ -1,13 +1,12 @@
 package com.auction.client.unit.page.auction;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.auction.client.page.auction.AuctionPageViewModel;
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
 import com.auction.core.products.Item;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -34,7 +33,8 @@ class AuctionPageViewModelTest {
         mockAuction.setStartTime(LocalDateTime.now().minusHours(1));
         mockAuction.setEndTime(LocalDateTime.now().plusHours(1));
 
-        Item mockItem = new Item(101, 1, "Test Product", "Description", "Category", "ImageUrl", false);
+        Item mockItem =
+                new Item(101, 1, "Test Product", "Description", "Category", "ImageUrl", false);
 
         viewModel.applyAuctionData(mockAuction, mockItem, "Seller", null, null);
 

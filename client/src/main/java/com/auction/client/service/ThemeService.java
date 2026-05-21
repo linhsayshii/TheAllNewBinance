@@ -1,7 +1,6 @@
 package com.auction.client.service;
 
 import com.auction.client.config.AppConfig;
-
 import javafx.scene.Scene;
 
 public class ThemeService {
@@ -26,8 +25,7 @@ public class ThemeService {
     private final ResourceLoader resourceLoader = new ResourceLoader();
     private Theme currentTheme = Theme.LIGHT;
 
-    private ThemeService() {
-    }
+    private ThemeService() {}
 
     public static ThemeService getInstance() {
         return INSTANCE;
@@ -73,11 +71,18 @@ public class ThemeService {
     private boolean containsStylesheet(Scene scene, Theme theme) {
         String baseUrl = resourceLoader.requireUrl(theme.stylesheet()).toExternalForm();
         return scene.getStylesheets().stream()
-            .anyMatch(stylesheet -> stylesheet.equals(baseUrl) || stylesheet.startsWith(baseUrl + "?v="));
+                .anyMatch(
+                        stylesheet ->
+                                stylesheet.equals(baseUrl)
+                                        || stylesheet.startsWith(baseUrl + "?v="));
     }
 
     private void removeStylesheet(Scene scene, String baseUrl) {
-        scene.getStylesheets().removeIf(stylesheet -> stylesheet.equals(baseUrl) || stylesheet.startsWith(baseUrl + "?v="));
+        scene.getStylesheets()
+                .removeIf(
+                        stylesheet ->
+                                stylesheet.equals(baseUrl)
+                                        || stylesheet.startsWith(baseUrl + "?v="));
     }
 
     private String withCacheBusting(String baseUrl) {

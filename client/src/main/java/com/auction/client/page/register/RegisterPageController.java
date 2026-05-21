@@ -1,8 +1,5 @@
 package com.auction.client.page.register;
 
-import java.net.URL;
-import java.util.ResourceBundle;
-
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.scene.LifecycleAwareController;
 import com.auction.client.scene.NavigationService;
@@ -11,7 +8,8 @@ import com.auction.client.service.UserSessionService;
 import com.auction.core.dto.user.RegisterRequest;
 import com.auction.core.protocol.EventType;
 import com.auction.core.users.User;
-
+import java.net.URL;
+import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -32,14 +30,15 @@ public class RegisterPageController implements Initializable, LifecycleAwareCont
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        NetworkService.getInstance().getClient()
-            .addResponseHandler(EventType.REGISTER, HANDLER_ID, this::onRegisterResponse);
+        NetworkService.getInstance()
+                .getClient()
+                .addResponseHandler(EventType.REGISTER, HANDLER_ID, this::onRegisterResponse);
     }
 
     @FXML
     private void handleRegister() {
         String username = txtUsername.getText();
-        String email    = txtEmail.getText();
+        String email = txtEmail.getText();
         String password = txtPassword.getText();
 
         if (!viewModel.validateRegistration(username, email, password)) {
@@ -64,24 +63,26 @@ public class RegisterPageController implements Initializable, LifecycleAwareCont
 
     private void onRegisterResponse(String rawJson) {
         User user = viewModel.parseRegisterResponse(rawJson);
-        Platform.runLater(() -> {
-            if (user != null) {
-                UserSessionService.getInstance().login(user);
-                if (NavigationService.getInstance().isPopupOpen()) {
-                    NavigationService.getInstance().closePopup();
-                    return;
-                }
-                NavigationService.getInstance().navigateTo(SceneRegistry.GENERAL_PAGE);
-            } else {
-                lblError.setText(viewModel.parseErrorMessage(rawJson));
-                lblError.setVisible(true);
-            }
-        });
+        Platform.runLater(
+                () -> {
+                    if (user != null) {
+                        UserSessionService.getInstance().login(user);
+                        if (NavigationService.getInstance().isPopupOpen()) {
+                            NavigationService.getInstance().closePopup();
+                            return;
+                        }
+                        NavigationService.getInstance().navigateTo(SceneRegistry.GENERAL_PAGE);
+                    } else {
+                        lblError.setText(viewModel.parseErrorMessage(rawJson));
+                        lblError.setVisible(true);
+                    }
+                });
     }
 
     @Override
     public void onUnload() {
-        NetworkService.getInstance().getClient()
-            .removeResponseHandler(EventType.REGISTER, HANDLER_ID);
+        NetworkService.getInstance()
+                .getClient()
+                .removeResponseHandler(EventType.REGISTER, HANDLER_ID);
     }
 }

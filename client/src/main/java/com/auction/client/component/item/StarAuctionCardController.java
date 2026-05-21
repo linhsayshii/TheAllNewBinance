@@ -1,15 +1,13 @@
 package com.auction.client.component.item;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.Map;
-
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.scene.NavigationService;
 import com.auction.client.service.ImageLoader;
 import com.auction.core.dto.auction.PublicAuctionDto;
-
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.fxml.FXML;
@@ -19,9 +17,8 @@ import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.StackPane;
 
 /**
- * Controller cho star-auction-card.fxml.
- * Layout 50:50: bên trái là info text, bên phải là thumbnail ảnh.
- * Nhận dữ liệu qua {@link #setData(PublicAuctionDto)}.
+ * Controller cho star-auction-card.fxml. Layout 50:50: bên trái là info text, bên phải là thumbnail
+ * ảnh. Nhận dữ liệu qua {@link #setData(PublicAuctionDto)}.
  */
 public class StarAuctionCardController {
 
@@ -51,12 +48,12 @@ public class StarAuctionCardController {
 
     @FXML
     private void handleOpenDetail(MouseEvent event) {
-        if (!isPrimaryClickOnly(event)) return;
+        if (!isPrimaryClickOnly(event)) {
+            return;
+        }
         if (auctionId != null) {
-            NavigationService.getInstance().navigateTo(
-                SceneRegistry.AUCTION_PAGE,
-                Map.of("auctionId", auctionId)
-            );
+            NavigationService.getInstance()
+                    .navigateTo(SceneRegistry.AUCTION_PAGE, Map.of("auctionId", auctionId));
         }
     }
 
@@ -65,20 +62,22 @@ public class StarAuctionCardController {
     }
 
     public void updatePrice(double newPrice) {
-        javafx.application.Platform.runLater(() -> {
-            if (currentDto != null) {
-                currentDto.setCurrentPrice(newPrice);
-            }
-            priceLabel.setText(String.format("$%,.2f", newPrice));
-        });
+        javafx.application.Platform.runLater(
+                () -> {
+                    if (currentDto != null) {
+                        currentDto.setCurrentPrice(newPrice);
+                    }
+                    priceLabel.setText(String.format("$%,.2f", newPrice));
+                });
     }
 
     /**
-     * Đổ dữ liệu từ {@link PublicAuctionDto} vào card.
-     * Gọi từ carousel controller sau khi load FXML.
+     * Populates the card with data from {@link PublicAuctionDto}. Called from carousel controller.
      */
     public void setData(PublicAuctionDto dto) {
-        if (dto == null) return;
+        if (dto == null) {
+            return;
+        }
 
         this.currentDto = dto;
         this.auctionId = dto.getAuctionId();
@@ -86,7 +85,7 @@ public class StarAuctionCardController {
         // Title
         titleLabel.setText(dto.getItemName() != null ? dto.getItemName() : "—");
 
-        // Description (promoted hoặc fallback text)
+        // Description (promoted or fallback text)
         String desc = dto.getPromotedDescription();
         descriptionLabel.setText(desc != null && !desc.isBlank() ? desc : "");
         descriptionLabel.setVisible(desc != null && !desc.isBlank());
@@ -116,22 +115,31 @@ public class StarAuctionCardController {
         if (cardTimeline != null) {
             cardTimeline.stop();
         }
-        cardTimeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), ev -> {
-            refreshTimeAndStatus();
-        }));
+        cardTimeline =
+                new Timeline(
+                        new KeyFrame(
+                                javafx.util.Duration.seconds(1),
+                                ev -> {
+                                    refreshTimeAndStatus();
+                                }));
         cardTimeline.setCycleCount(Timeline.INDEFINITE);
         cardTimeline.play();
 
         // Stop auto-scroll if carousel is detached from scene
-        titleLabel.sceneProperty().addListener((obs, oldScene, newScene) -> {
-            if (newScene == null && cardTimeline != null) {
-                cardTimeline.stop();
-            }
-        });
+        titleLabel
+                .sceneProperty()
+                .addListener(
+                        (obs, oldScene, newScene) -> {
+                            if (newScene == null && cardTimeline != null) {
+                                cardTimeline.stop();
+                            }
+                        });
     }
 
     private void refreshTimeAndStatus() {
-        if (currentDto == null) return;
+        if (currentDto == null) {
+            return;
+        }
 
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime startTime = currentDto.getStartTime();
@@ -186,11 +194,13 @@ public class StarAuctionCardController {
     }
 
     /**
-     * Set ảnh nền cho pane bên phải.
-     * Trong mock mode, thumbnailUrl rỗng → hiển thị gradient placeholder.
+     * Set background image for the right pane. In mock mode, if thumbnailUrl is empty -> displays a
+     * gradient placeholder.
      */
     private void applyThumbnail(String url) {
-        if (imageContainer == null) return;
+        if (imageContainer == null) {
+            return;
+        }
         if (imagePlaceholderLabel != null && !imagePlaceholderLabel.managedProperty().isBound()) {
             imagePlaceholderLabel.managedProperty().bind(imagePlaceholderLabel.visibleProperty());
         }
@@ -201,8 +211,8 @@ public class StarAuctionCardController {
     private boolean isPrimaryClickOnly(MouseEvent event) {
         long pressDurationMillis = (System.nanoTime() - pressStartedAtNanos) / 1_000_000L;
         return event != null
-            && event.getButton() == MouseButton.PRIMARY
-            && event.isStillSincePress()
-            && pressDurationMillis <= MAX_CLICK_DURATION_MILLIS;
+                && event.getButton() == MouseButton.PRIMARY
+                && event.isStillSincePress()
+                && pressDurationMillis <= MAX_CLICK_DURATION_MILLIS;
     }
 }

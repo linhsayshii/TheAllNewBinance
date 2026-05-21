@@ -10,7 +10,6 @@ import com.auction.client.service.HotReloadService;
 import com.auction.client.service.NetworkService;
 import com.auction.client.service.UserSessionService;
 import com.auction.core.users.User;
-
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -21,7 +20,7 @@ public class ClientApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         // Init network FIRST — controllers register handlers on initialize()
-        NetworkService.init("wss://binance.hvlsv.uk");
+        NetworkService.init("ws://localhost:8080");
 
         // ── Mock Mode ──────────────────────────────────────────────────
         if (AppConfig.isMockMode()) {
@@ -32,8 +31,12 @@ public class ClientApp extends Application {
                 User defaultUser = provider.getDefaultUser();
                 if (defaultUser != null) {
                     UserSessionService.getInstance().login(defaultUser);
-                    System.out.println("[MockMode] Auto-logged in as: "
-                        + defaultUser.getUsername() + " (id=" + defaultUser.getId() + ")");
+                    System.out.println(
+                            "[MockMode] Auto-logged in as: "
+                                    + defaultUser.getUsername()
+                                    + " (id="
+                                    + defaultUser.getId()
+                                    + ")");
                 }
             }
         }
@@ -71,13 +74,14 @@ public class ClientApp extends Application {
     }
 
     private static void printMockBanner() {
-        System.out.println("""
+        System.out.println(
+                """
 
             ╔══════════════════════════════════════════════════════╗
             ║           ⚠  MOCK MODE ACTIVE  ⚠                    ║
             ║  No server connection. Using local mock data.        ║
             ║  Run with: mvn javafx:run -pl client -Pmock          ║
             ╚══════════════════════════════════════════════════════╝
-            """);
+                """);
     }
 }

@@ -9,8 +9,7 @@ public class AuctionDetailsDto {
     private Item item;
     private User seller;
 
-    public AuctionDetailsDto() {
-    }
+    public AuctionDetailsDto() {}
 
     public AuctionDetailsDto(Auction auction, Item item, User seller) {
         this.auction = auction;

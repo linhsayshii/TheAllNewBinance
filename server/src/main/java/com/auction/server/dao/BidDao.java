@@ -1,5 +1,7 @@
 package com.auction.server.dao;
 
+import com.auction.core.auction.Bid;
+import com.auction.server.dao.impl.IBidDao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,16 +11,15 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.auction.core.auction.Bid;
-import com.auction.server.dao.impl.IBidDao;
-
 public class BidDao implements IBidDao {
     @Override
     public boolean saveBid(Bid bid) {
-        String sql = "INSERT INTO bids (auction_id, bidder_id, amount, created_at) VALUES (?, ?, ?, ?)";
+        String sql =
+                "INSERT INTO bids (auction_id, bidder_id, amount, created_at) VALUES (?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
+                PreparedStatement stmt =
+                        conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             stmt.setInt(1, bid.getAuctionId());
             stmt.setInt(2, bid.getBidderId());
             stmt.setDouble(3, bid.getAmount());
@@ -43,7 +44,7 @@ public class BidDao implements IBidDao {
         String sql = "SELECT * FROM bids WHERE bidder_id = ? ORDER BY amount DESC";
         List<Bid> bids = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, bidderId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -61,7 +62,7 @@ public class BidDao implements IBidDao {
         String sql = "SELECT * FROM bids WHERE auction_id = ? ORDER BY amount DESC";
         List<Bid> bids = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, auctionId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
@@ -78,7 +79,7 @@ public class BidDao implements IBidDao {
     public boolean hasBid(Integer auctionId, Integer bidderId) {
         String sql = "SELECT 1 FROM bids WHERE auction_id = ? AND bidder_id = ? LIMIT 1";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, auctionId);
             stmt.setInt(2, bidderId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -91,12 +92,12 @@ public class BidDao implements IBidDao {
     }
 
     private Bid mapBid(ResultSet rs) throws SQLException {
-        Bid bid = new Bid(
-            rs.getInt("bid_id"),
-            rs.getInt("auction_id"),
-            rs.getInt("bidder_id"),
-            rs.getDouble("amount")
-        );
+        Bid bid =
+                new Bid(
+                        rs.getInt("bid_id"),
+                        rs.getInt("auction_id"),
+                        rs.getInt("bidder_id"),
+                        rs.getDouble("amount"));
         Timestamp createdAt = rs.getTimestamp("created_at");
         if (createdAt != null) {
             bid.setCreatedAt(createdAt.toLocalDateTime());

@@ -1,8 +1,7 @@
 package com.auction.client.scene;
 
-import java.util.Map;
-
 import com.auction.client.config.SceneRegistry;
+import java.util.Map;
 
 public class NavigationService {
 

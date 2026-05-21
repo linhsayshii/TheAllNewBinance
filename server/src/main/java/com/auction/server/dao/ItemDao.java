@@ -1,5 +1,7 @@
 package com.auction.server.dao;
 
+import com.auction.core.products.Item;
+import com.auction.server.dao.impl.IItemDao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -7,18 +9,17 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
 
-import com.auction.core.products.Item;
-import com.auction.server.dao.impl.IItemDao;
-
 public class ItemDao implements IItemDao {
     @Override
     public boolean addItem(Item item) {
-        String sql = "INSERT INTO items (seller_id, name, description, category, image_url, is_deleted, created_at) " +
-                     "VALUES (?, ?, ?, ?, ?, ?, ?)";
-        
+        String sql =
+                "INSERT INTO items (seller_id, name, description, category, image_url, is_deleted,"
+                        + " created_at) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
         try (Connection conn = DBConnection.getConnection();
-            PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
+                PreparedStatement stmt =
+                        conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             stmt.setInt(1, item.getSellerId());
             stmt.setString(2, item.getName());
             stmt.setString(3, item.getDescription());
@@ -29,7 +30,7 @@ public class ItemDao implements IItemDao {
             stmt.setTimestamp(7, Timestamp.valueOf(item.getCreatedAt()));
             int rowsInserted = stmt.executeUpdate(); // Chạy lệnh INSERT
             if (rowsInserted > 0) {
-                // Nếu lưu thành công, MySQL sẽ sinh ra 1 ID. 
+                // Nếu lưu thành công, MySQL sẽ sinh ra 1 ID.
                 // Ta phải xin lại cái ID đó lắp vào cục Object trên bộ nhớ RAM.
                 try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
                     if (generatedKeys.next()) {
@@ -46,10 +47,12 @@ public class ItemDao implements IItemDao {
 
     @Override
     public boolean updateItem(Item item) {
-        String sql = "UPDATE items SET seller_id = ?, name = ?, description = ?, category = ?, image_url = ?, updated_at = ? WHERE item_id = ?";
+        String sql =
+                "UPDATE items SET seller_id = ?, name = ?, description = ?, category = ?, image_url"
+                        + " = ?, updated_at = ? WHERE item_id = ?";
 
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
 
             stmt.setInt(1, item.getSellerId());
             stmt.setString(2, item.getName());
@@ -70,7 +73,7 @@ public class ItemDao implements IItemDao {
     public boolean deleteItem(Item item) {
         String sql = "UPDATE items SET is_deleted = true, updated_at = ? WHERE item_id = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setTimestamp(1, Timestamp.valueOf(item.getUpdatedAt()));
             stmt.setInt(2, item.getId());
             return stmt.executeUpdate() > 0;
@@ -84,20 +87,20 @@ public class ItemDao implements IItemDao {
     public Item findById(int id) {
         String sql = "SELECT * FROM items WHERE item_id = ?";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
-            
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {
-                    Item item = new Item(
-                        rs.getInt("item_id"),
-                        rs.getInt("seller_id"),
-                        rs.getString("name"),
-                        rs.getString("description"),
-                        rs.getString("category"),
-                        rs.getString("image_url"),
-                        rs.getBoolean("is_deleted")
-                    );
+                    Item item =
+                            new Item(
+                                    rs.getInt("item_id"),
+                                    rs.getInt("seller_id"),
+                                    rs.getString("name"),
+                                    rs.getString("description"),
+                                    rs.getString("category"),
+                                    rs.getString("image_url"),
+                                    rs.getBoolean("is_deleted"));
                     return item;
                 }
             }

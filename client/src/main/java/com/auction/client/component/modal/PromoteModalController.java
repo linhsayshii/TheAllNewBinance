@@ -1,15 +1,13 @@
 package com.auction.client.component.modal;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
-import java.util.Map;
-
 import com.auction.client.service.NetworkService;
 import com.auction.client.service.UserSessionService;
 import com.auction.core.dto.auction.PromoteAuctionRequest;
 import com.auction.core.protocol.EventType;
 import com.auction.core.utils.JsonMapper;
-
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.util.Map;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -23,47 +21,49 @@ import javafx.scene.layout.StackPane;
 /**
  * Controller cho promote-modal.fxml.
  *
- * Flow:
- *  1. Gọi {@link #open(StackPane, Integer, String, Runnable)} để hiển thị modal
- *     lên overlay (StackPane của personal-profile-page).
- *  2. User chọn gói 1 ngày / 3 ngày → tính toán ngày kết thúc và chi phí.
- *  3. Bấm "Thanh toán" → gửi PROMOTE_AUCTION request → hiển thị kết quả.
- *  4. Bấm "Huỷ" hoặc click overlay → đóng modal, gọi onSuccess callback nếu thành công.
+ * <p>Flow: 1. Gọi {@link #open(StackPane, Integer, String, Runnable)} để hiển thị modal lên overlay
+ * (StackPane của personal-profile-page). 2. User chọn gói 1 ngày / 3 ngày → tính toán ngày kết thúc
+ * và chi phí. 3. Bấm "Thanh toán" → gửi PROMOTE_AUCTION request → hiển thị kết quả. 4. Bấm "Huỷ"
+ * hoặc click overlay → đóng modal, gọi onSuccess callback nếu thành công.
  */
 public class PromoteModalController {
 
-    private static final double PRICE_1_DAY  = 100.0;
+    private static final double PRICE_1_DAY = 100.0;
     private static final double PRICE_3_DAYS = 250.0;
-    private static final DateTimeFormatter END_DATE_FMT = DateTimeFormatter.ofPattern("dd/MM/yyyy 00:00");
+    private static final DateTimeFormatter END_DATE_FMT =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy 00:00");
     private static final int MAX_DESC_LENGTH = 200;
 
-    @FXML private Label        listingNameLabel;
-    @FXML private ToggleGroup  packageGroup;
+    @FXML private Label listingNameLabel;
+    @FXML private ToggleGroup packageGroup;
     @FXML private ToggleButton pkg1DayBtn;
     @FXML private ToggleButton pkg3DayBtn;
-    @FXML private Label        estimatedEndLabel;
-    @FXML private TextArea     descriptionArea;
-    @FXML private Label        costLabel;
-    @FXML private Label        balanceLabel;
-    @FXML private Button       confirmBtn;
-    @FXML private Label        resultLabel;
+    @FXML private Label estimatedEndLabel;
+    @FXML private TextArea descriptionArea;
+    @FXML private Label costLabel;
+    @FXML private Label balanceLabel;
+    @FXML private Button confirmBtn;
+    @FXML private Label resultLabel;
 
-    private Integer    auctionId;
-    private StackPane  hostOverlay;   // the StackPane in personal-profile-page that we are placed in
-    private javafx.scene.Node rootNode;  // the loaded root FXML node (StackPane overlay)
-    private Runnable   onSuccessCallback;
-    private boolean    submitted = false;
+    private Integer auctionId;
+    private StackPane hostOverlay; // the StackPane in personal-profile-page that we are placed in
+    private javafx.scene.Node rootNode; // the loaded root FXML node (StackPane overlay)
+    private Runnable onSuccessCallback;
+    private boolean submitted = false;
 
     // ── FXML Lifecycle ────────────────────────────────────────────────────
 
     @FXML
     private void initialize() {
         // Limit description to 200 chars
-        descriptionArea.textProperty().addListener((obs, old, val) -> {
-            if (val != null && val.length() > MAX_DESC_LENGTH) {
-                descriptionArea.setText(val.substring(0, MAX_DESC_LENGTH));
-            }
-        });
+        descriptionArea
+                .textProperty()
+                .addListener(
+                        (obs, old, val) -> {
+                            if (val != null && val.length() > MAX_DESC_LENGTH) {
+                                descriptionArea.setText(val.substring(0, MAX_DESC_LENGTH));
+                            }
+                        });
 
         // Default to 1-day package
         pkg1DayBtn.setSelected(true);
@@ -75,18 +75,23 @@ public class PromoteModalController {
     /**
      * Opens the promote modal over the given host StackPane.
      *
-     * @param host            StackPane of the profile page that will contain the overlay
-     * @param loadedRoot      root Node returned by FXMLLoader.load()
-     * @param auctionId       auction to promote
-     * @param listingTitle    display name of the listing
-     * @param onSuccess       callback invoked on the FX thread after successful promotion
+     * @param host StackPane of the profile page that will contain the overlay
+     * @param loadedRoot root Node returned by FXMLLoader.load()
+     * @param auctionId auction to promote
+     * @param listingTitle display name of the listing
+     * @param onSuccess callback invoked on the FX thread after successful promotion
      */
-    public void open(StackPane host, javafx.scene.Node loadedRoot, Integer auctionId, String listingTitle, Runnable onSuccess) {
+    public void open(
+            StackPane host,
+            javafx.scene.Node loadedRoot,
+            Integer auctionId,
+            String listingTitle,
+            Runnable onSuccess) {
         this.hostOverlay = host;
-        this.rootNode    = loadedRoot;
-        this.auctionId   = auctionId;
+        this.rootNode = loadedRoot;
+        this.auctionId = auctionId;
         this.onSuccessCallback = onSuccess;
-        this.submitted   = false;
+        this.submitted = false;
 
         listingNameLabel.setText(listingTitle != null ? listingTitle : "Auction #" + auctionId);
         pkg1DayBtn.setSelected(true);
@@ -99,7 +104,9 @@ public class PromoteModalController {
         double balance = 0.0;
         var user = UserSessionService.getInstance().getCurrentUser();
         if (user != null && user.getBalance() != null) {
-            balance = user.getBalance() - (user.getLockedBalance() != null ? user.getLockedBalance() : 0.0);
+            balance =
+                    user.getBalance()
+                            - (user.getLockedBalance() != null ? user.getLockedBalance() : 0.0);
         }
         balanceLabel.setText(String.format("$%,.2f", balance));
 
@@ -126,13 +133,15 @@ public class PromoteModalController {
         double cost = (days == 1) ? PRICE_1_DAY : PRICE_3_DAYS;
         costLabel.setText(String.format("$%,.0f", cost));
 
-        // featuredUntil = 00:00 của (ngày mai + days - 1) = hết ngày (days) kể từ hôm nay
+        // featuredUntil = 00:00 of (tomorrow + days - 1) = end of day (days) from today
         LocalDate expiry = LocalDate.now().plusDays(days + 1);
         estimatedEndLabel.setText(expiry.format(END_DATE_FMT));
     }
 
     private int selectedDays() {
-        if (pkg3DayBtn.isSelected()) return 3;
+        if (pkg3DayBtn.isSelected()) {
+            return 3;
+        }
         return 1;
     }
 
@@ -140,7 +149,9 @@ public class PromoteModalController {
 
     @FXML
     private void handleConfirm() {
-        if (submitted || auctionId == null) return;
+        if (submitted || auctionId == null) {
+            return;
+        }
         submitted = true;
         confirmBtn.setDisable(true);
 
@@ -151,9 +162,8 @@ public class PromoteModalController {
         req.setShortDescription(desc.isBlank() ? null : desc);
 
         String corr = NetworkService.getInstance().sendRequest(EventType.PROMOTE_AUCTION, req);
-        NetworkService.getInstance().addCorrelationHandler(corr, raw ->
-            Platform.runLater(() -> handleResponse(raw))
-        );
+        NetworkService.getInstance()
+                .addCorrelationHandler(corr, raw -> Platform.runLater(() -> handleResponse(raw)));
     }
 
     @FXML
@@ -182,25 +192,36 @@ public class PromoteModalController {
             boolean ok = Boolean.TRUE.equals(root.get("success"));
 
             if (ok) {
-                showResult(true, "✓ Promote thành công! Listing của bạn sẽ xuất hiện trên trang chủ.");
+                showResult(
+                        true,
+                        "✓ Promotion successful! Your listing will now appear on the home page.");
                 if (onSuccessCallback != null) {
                     // slight delay to let user read the success message, then close
-                    new Thread(() -> {
-                        try { Thread.sleep(1800); } catch (InterruptedException ignored) {}
-                        Platform.runLater(() -> {
-                            close(true);
-                            onSuccessCallback.run();
-                        });
-                    }).start();
+                    new Thread(
+                                    () -> {
+                                        try {
+                                            Thread.sleep(1800);
+                                        } catch (InterruptedException ignored) {
+                                        }
+                                        Platform.runLater(
+                                                () -> {
+                                                    close(true);
+                                                    onSuccessCallback.run();
+                                                });
+                                    })
+                            .start();
                 }
             } else {
-                String msg = root.get("message") instanceof String s ? s : "Promote thất bại, vui lòng thử lại.";
+                String msg =
+                        root.get("message") instanceof String s
+                                ? s
+                                : "Promotion failed, please try again.";
                 showResult(false, "✗ " + msg);
                 confirmBtn.setDisable(false);
                 submitted = false;
             }
         } catch (Exception e) {
-            showResult(false, "✗ Lỗi không xác định. Vui lòng thử lại.");
+            showResult(false, "✗ Unknown error. Please try again.");
             confirmBtn.setDisable(false);
             submitted = false;
         }

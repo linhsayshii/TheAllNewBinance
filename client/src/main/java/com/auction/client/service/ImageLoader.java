@@ -2,7 +2,6 @@ package com.auction.client.service;
 
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
-
 import javafx.application.Platform;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.WeakChangeListener;
@@ -10,7 +9,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Background;
 import javafx.scene.layout.StackPane;
 
 public class ImageLoader {
@@ -23,13 +21,19 @@ public class ImageLoader {
         loadImage(imageUrl, imageContainer, imageLabel, 350);
     }
 
-    public static void loadImage(String imageUrl, StackPane imageContainer, Label imageLabel, double targetWidth) {
-        if (imageContainer == null) return;
-        
+    public static void loadImage(
+            String imageUrl, StackPane imageContainer, Label imageLabel, double targetWidth) {
+        if (imageContainer == null) {
+            return;
+        }
+
         // Dọn sạch style cũ và các listener cũ bám trên Node này để tránh xung đột khi reuse Node
         imageContainer.setStyle("");
         String listenerKeyPrefix = "img-listener-";
-        imageContainer.getProperties().keySet().removeIf(key -> key.toString().startsWith(listenerKeyPrefix));
+        imageContainer
+                .getProperties()
+                .keySet()
+                .removeIf(key -> key.toString().startsWith(listenerKeyPrefix));
 
         if (imageUrl != null && !imageUrl.isBlank()) {
             if (imageLabel != null) {
@@ -37,13 +41,14 @@ public class ImageLoader {
             }
 
             String cacheKey = imageUrl + "@" + targetWidth;
-            
+
             // 1. Lấy hoặc khởi tạo ảnh nguyên tử
             Image loadingImage;
             try {
-                loadingImage = IMAGE_CACHE.computeIfAbsent(cacheKey, key -> 
-                    new Image(imageUrl, targetWidth, 0, true, true, true)
-                );
+                loadingImage =
+                        IMAGE_CACHE.computeIfAbsent(
+                                cacheKey,
+                                key -> new Image(imageUrl, targetWidth, 0, true, true, true));
             } catch (IllegalArgumentException e) {
                 // URL không hợp lệ (vd: "Image Url", text placeholder) → hiển thị fallback
                 System.err.println("[ImageLoader] Invalid image URL: " + imageUrl);
@@ -54,41 +59,48 @@ public class ImageLoader {
             // 2. Cập nhật thứ tự LRU Cache
             updateCacheOrder(cacheKey);
 
-            // 3. XỬ LÝ ĐA TRẠNG THÁI VÒNG ĐỜI ẢNH
+            // 3. HANDLE IMAGE LIFECYCLE STATES
             if (loadingImage.isError()) {
                 clearImageFromCache(cacheKey);
                 handleLoadFailed(imageContainer, imageLabel);
-            } 
-            // TRƯỜNG HỢP ẢNH ĐÃ TẢI XONG (ImageView giúp hiển thị ngay lập tức, không bị CSS ghi đè)
-            else if (loadingImage.getProgress() == 1.0) {
+            } else if (loadingImage.getProgress() == 1.0) {
+                // CASE: IMAGE IS ALREADY FULLY LOADED (ImageView displays it immediately without
+                // CSS override)
                 applyImageToImageView(imageContainer, loadingImage);
-            } 
-            // TRƯỜNG HỢP ẢNH ĐANG TẢI DỞ DANG
-            else {
-                // Hiển thị background trống tạm thời trong lúc chờ
+            } else {
+                // CASE: IMAGE IS STILL LOADING
+                // Show placeholder background while waiting
                 applyImageToImageView(imageContainer, loadingImage);
-                
+
                 final Image finalImg = loadingImage;
-                ChangeListener<Number> progressListener = new ChangeListener<>() {
-                    @Override
-                    public void changed(javafx.beans.value.ObservableValue<? extends Number> obs, Number old, Number current) {
-                        if (current.doubleValue() == 1.0) {
-                            Platform.runLater(() -> {
-                                finalImg.progressProperty().removeListener(this);
-                                if (finalImg.isError()) {
-                                    clearImageFromCache(cacheKey);
-                                    if (isSameImage(imageContainer, finalImg)) {
-                                        handleLoadFailed(imageContainer, imageLabel);
-                                    }
-                                } else {
-                                    applyImageToImageView(imageContainer, finalImg);
+                ChangeListener<Number> progressListener =
+                        new ChangeListener<>() {
+                            @Override
+                            public void changed(
+                                    javafx.beans.value.ObservableValue<? extends Number> obs,
+                                    Number old,
+                                    Number current) {
+                                if (current.doubleValue() == 1.0) {
+                                    Platform.runLater(
+                                            () -> {
+                                                finalImg.progressProperty().removeListener(this);
+                                                if (finalImg.isError()) {
+                                                    clearImageFromCache(cacheKey);
+                                                    if (isSameImage(imageContainer, finalImg)) {
+                                                        handleLoadFailed(
+                                                                imageContainer, imageLabel);
+                                                    }
+                                                } else {
+                                                    applyImageToImageView(imageContainer, finalImg);
+                                                }
+                                            });
                                 }
-                            });
-                        }
-                    }
-                };
-                
-                loadingImage.progressProperty().addListener(new WeakChangeListener<>(progressListener));
+                            }
+                        };
+
+                loadingImage
+                        .progressProperty()
+                        .addListener(new WeakChangeListener<>(progressListener));
                 imageContainer.getProperties().put(listenerKeyPrefix + cacheKey, progressListener);
             }
 
@@ -100,7 +112,8 @@ public class ImageLoader {
             // Ẩn ImageView nếu có
             clearImageView(imageContainer);
             imageContainer.setBackground(null);
-            imageContainer.setStyle("-fx-background-color: linear-gradient(to bottom right, #1e3a5f, #0f172a);");
+            imageContainer.setStyle(
+                    "-fx-background-color: linear-gradient(to bottom right, #1e3a5f, #0f172a);");
         }
     }
 
@@ -132,23 +145,23 @@ public class ImageLoader {
                 break;
             }
         }
-        
+
         if (imageView == null) {
             imageView = new ImageView();
             imageView.setSmooth(true);
             imageView.setPreserveRatio(true);
-            
+
             // Tự động co giãn theo kích thước của StackPane container
             imageView.fitWidthProperty().bind(container.widthProperty());
             imageView.fitHeightProperty().bind(container.heightProperty());
-            
+
             // Thêm vào vị trí đầu tiên (dưới Label) để không che lấp text của Label
             container.getChildren().add(0, imageView);
         }
-        
+
         imageView.setImage(image);
         imageView.setVisible(true);
-        
+
         // Tránh bị CSS đè: đặt background của container thành trong suốt
         container.setBackground(null);
         container.setStyle("-fx-background-color: transparent;");
@@ -179,6 +192,7 @@ public class ImageLoader {
         }
         clearImageView(imageContainer);
         imageContainer.setBackground(null);
-        imageContainer.setStyle("-fx-background-color: linear-gradient(to bottom right, #1e3a5f, #0f172a);");
+        imageContainer.setStyle(
+                "-fx-background-color: linear-gradient(to bottom right, #1e3a5f, #0f172a);");
     }
 }

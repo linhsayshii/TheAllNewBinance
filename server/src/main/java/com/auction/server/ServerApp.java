@@ -20,7 +20,6 @@ import com.auction.server.network.SocketServer;
 import com.auction.server.services.AuctionService;
 import com.auction.server.services.BidQueueManager;
 import com.auction.server.services.BidService;
-import com.auction.server.services.FeaturedAuctionBatchJob;
 import com.auction.server.services.UserService;
 
 public class ServerApp {
@@ -46,13 +45,15 @@ public class ServerApp {
         ItemController itemCtrl = new ItemController();
 
         // 4. Instantiating RequestDispatcher
-        RequestDispatcher dispatcher = new RequestDispatcher(userCtrl, auctionCtrl, bidCtrl);
+        RequestDispatcher dispatcher =
+                new RequestDispatcher(userCtrl, auctionCtrl, bidCtrl, itemCtrl, userDao);
 
         // 6. Start Server
         int port = 8080;
         SocketServer server = new SocketServer(port, dispatcher);
         server.start();
 
-        System.out.println("TheAllNewBinance Auction Server is warming up and binding to port " + port);
+        System.out.println(
+                "TheAllNewBinance Auction Server is warming up and binding to port " + port);
     }
 }

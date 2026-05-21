@@ -1,9 +1,8 @@
 package com.auction.client.page.general;
 
-import java.util.List;
-
 import com.auction.client.dto.ProductCardUiModel;
 import com.auction.client.service.AuctionQueryService;
+import java.util.List;
 
 public class GeneralPageViewModel {
 

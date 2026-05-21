@@ -1,13 +1,12 @@
 package com.auction.server.controller;
 
+import com.auction.core.utils.JsonMapper;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.auction.core.utils.JsonMapper;
-
 /**
- * Centralized API response builder.
- * Eliminates duplicated errorResponse/successResponse across all controllers.
+ * Centralized API response builder. Eliminates duplicated errorResponse/successResponse across all
+ * controllers.
  */
 public final class ApiResponse {
 

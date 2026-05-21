@@ -1,17 +1,5 @@
 package com.auction.client.page.auction;
 
-import java.net.URL;
-import java.text.DecimalFormat;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
-
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.scene.DataReceivable;
 import com.auction.client.scene.LifecycleAwareController;
@@ -24,7 +12,17 @@ import com.auction.core.dto.auction.GetAuctionDetailsRequest;
 import com.auction.core.dto.bid.PlaceBid;
 import com.auction.core.protocol.EventType;
 import com.auction.core.utils.JsonMapper;
-
+import java.net.URL;
+import java.text.DecimalFormat;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -40,12 +38,14 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 
-public class AuctionPageController implements Initializable, LifecycleAwareController, DataReceivable {
+public class AuctionPageController
+        implements Initializable, LifecycleAwareController, DataReceivable {
 
     private static final String HANDLER_ID = "AUCTION_PAGE";
     private static final DecimalFormat MONEY_FORMAT = new DecimalFormat("#,##0.00");
     private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm:ss");
-    private static final DateTimeFormatter DAY_TIME_FORMAT = DateTimeFormatter.ofPattern("EEEE HH:mm");
+    private static final DateTimeFormatter DAY_TIME_FORMAT =
+            DateTimeFormatter.ofPattern("EEEE HH:mm");
 
     @FXML private LineChart<String, Number> bidHistoryChart;
     @FXML private CategoryAxis xAxisTime;
@@ -126,8 +126,10 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
 
     private void fetchAuctionDetailsFromServer(int auctionId) {
         GetAuctionDetailsRequest request = new GetAuctionDetailsRequest(auctionId);
-        String correlationId = NetworkService.getInstance().sendRequest(EventType.GET_AUCTION_DETAILS, request);
-        NetworkService.getInstance().addCorrelationHandler(correlationId, this::handleAuctionDetailsResponse);
+        String correlationId =
+                NetworkService.getInstance().sendRequest(EventType.GET_AUCTION_DETAILS, request);
+        NetworkService.getInstance()
+                .addCorrelationHandler(correlationId, this::handleAuctionDetailsResponse);
     }
 
     private void handleAuctionDetailsResponse(String rawJson) {
@@ -146,13 +148,25 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
                 return;
             }
             String dataJson = JsonMapper.toJson(data);
-            com.auction.core.dto.auction.AuctionDetailsDto dto = JsonMapper.fromJson(dataJson, com.auction.core.dto.auction.AuctionDetailsDto.class);
+            com.auction.core.dto.auction.AuctionDetailsDto dto =
+                    JsonMapper.fromJson(
+                            dataJson, com.auction.core.dto.auction.AuctionDetailsDto.class);
             if (dto != null && dto.getAuction() != null) {
-                Platform.runLater(() -> {
-                    String sellerName = dto.getSeller() != null ? (dto.getSeller().getFullName() != null && !dto.getSeller().getFullName().isBlank() ? dto.getSeller().getFullName() : dto.getSeller().getUsername()) : "Unknown Seller";
-                    viewModel.applyAuctionData(dto.getAuction(), dto.getItem(), sellerName, null, null);
-                    updateStatusViews();
-                });
+                Platform.runLater(
+                        () -> {
+                            String sellerName =
+                                    dto.getSeller() != null
+                                            ? (dto.getSeller().getFullName() != null
+                                                            && !dto.getSeller()
+                                                                    .getFullName()
+                                                                    .isBlank()
+                                                    ? dto.getSeller().getFullName()
+                                                    : dto.getSeller().getUsername())
+                                            : "Unknown Seller";
+                            viewModel.applyAuctionData(
+                                    dto.getAuction(), dto.getItem(), sellerName, null, null);
+                            updateStatusViews();
+                        });
             }
         } catch (Exception e) {
             System.err.println("Error processing auction details response: " + e.getMessage());
@@ -164,7 +178,9 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
     private void handleBidHistoryResponse(String rawJson) {
         try {
             Map<?, ?> response = JsonMapper.fromJson(rawJson, Map.class);
-            if (response == null || !response.containsKey("data") || !(response.get("data") instanceof List)) {
+            if (response == null
+                    || !response.containsKey("data")
+                    || !(response.get("data") instanceof List)) {
                 return;
             }
             String dataJson = JsonMapper.toJson(response.get("data"));
@@ -174,7 +190,8 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
                 Platform.runLater(() -> updateBidViews(bids));
             }
         } catch (Exception e) {
-            System.err.println("Error processing socket response in AuctionPage: " + e.getMessage());
+            System.err.println(
+                    "Error processing socket response in AuctionPage: " + e.getMessage());
         }
     }
 
@@ -197,15 +214,19 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
             }
             Platform.runLater(() -> mergeSingleBid(incomingBid));
         } catch (Exception e) {
-            System.err.println("Error processing place bid response in AuctionPage: " + e.getMessage());
+            System.err.println(
+                    "Error processing place bid response in AuctionPage: " + e.getMessage());
         }
     }
 
     private void fetchBidHistoryFromServer(int auctionId) {
-        Integer currentUserId = com.auction.client.service.UserSessionService.getInstance().isAuthenticated() 
-            ? com.auction.client.service.UserSessionService.getInstance().getCurrentUser().getId() 
-            : null;
-            
+        Integer currentUserId =
+                com.auction.client.service.UserSessionService.getInstance().isAuthenticated()
+                        ? com.auction.client.service.UserSessionService.getInstance()
+                                .getCurrentUser()
+                                .getId()
+                        : null;
+
         Map<String, Object> payload = new java.util.HashMap<>();
         payload.put("auctionId", auctionId);
         if (currentUserId != null) {
@@ -219,13 +240,19 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Lịch sử giá");
 
-        List<Bid> sorted = bids == null ? List.of() : bids.stream()
-            .sorted(Comparator.comparing(Bid::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())))
-            .toList();
+        List<Bid> sorted =
+                bids == null
+                        ? List.of()
+                        : bids.stream()
+                                .sorted(
+                                        Comparator.comparing(
+                                                Bid::getCreatedAt,
+                                                Comparator.nullsLast(Comparator.naturalOrder())))
+                                .toList();
 
         for (Bid bid : sorted) {
-            String timeLabel = bid.getCreatedAt() != null
-                ? bid.getCreatedAt().format(TIME_FORMAT) : "Unknown";
+            String timeLabel =
+                    bid.getCreatedAt() != null ? bid.getCreatedAt().format(TIME_FORMAT) : "Unknown";
             series.getData().add(new XYChart.Data<>(timeLabel, bid.getAmount()));
         }
         bidHistoryChart.getData().add(series);
@@ -241,8 +268,11 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
             showInfo("Login Required", "Please log in to place a bid.");
             return;
         }
-        
-        Integer currentUserId = com.auction.client.service.UserSessionService.getInstance().getCurrentUser().getId();
+
+        Integer currentUserId =
+                com.auction.client.service.UserSessionService.getInstance()
+                        .getCurrentUser()
+                        .getId();
 
         Double amount = parseBidInput();
         if (amount == null) {
@@ -257,7 +287,9 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
         }
 
         if (!networkReady) {
-            showInfo("Network unavailable", "Cannot place bid because server connection is unavailable.");
+            showInfo(
+                    "Network unavailable",
+                    "Cannot place bid because server connection is unavailable.");
             return;
         }
 
@@ -267,7 +299,9 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
 
     @FXML
     private void handleSetAutoBid() {
-        showInfo("Auto Bid", "Auto Bid popup will be implemented next. Local state strategy is ready.");
+        showInfo(
+                "Auto Bid",
+                "Auto Bid popup will be implemented next. Local state strategy is ready.");
     }
 
     private void setupBindings() {
@@ -275,10 +309,13 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
         viewModel.titleProperty().addListener((obs, oldVal, newVal) -> updateTitleText());
         descriptionLabel.textProperty().bind(viewModel.descriptionProperty());
 
-        viewModel.imageUrlProperty().addListener((obs, oldVal, newVal) -> {
-            ImageLoader.loadImage(newVal, imageContainer, imageLabel, 800);
-            updateStatusViews();
-        });
+        viewModel
+                .imageUrlProperty()
+                .addListener(
+                        (obs, oldVal, newVal) -> {
+                            ImageLoader.loadImage(newVal, imageContainer, imageLabel, 800);
+                            updateStatusViews();
+                        });
         ImageLoader.loadImage(viewModel.imageUrl(), imageContainer, imageLabel, 800);
 
         currentBidLabel.textProperty().bind(viewModel.currentBidDisplayProperty());
@@ -290,32 +327,46 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
         placeBidButton.disableProperty().bind(viewModel.biddingEnabledProperty().not());
 
         // Listen to biddingEnabled property changes to update status view dynamically
-        viewModel.biddingEnabledProperty().addListener((obs, oldVal, newVal) -> {
-            Platform.runLater(this::updateStatusViews);
-        });
+        viewModel
+                .biddingEnabledProperty()
+                .addListener(
+                        (obs, oldVal, newVal) -> {
+                            Platform.runLater(this::updateStatusViews);
+                        });
 
         // Listen to status property changes to update status view dynamically
-        viewModel.statusProperty().addListener((obs, oldVal, newVal) -> {
-            Platform.runLater(() -> {
-                updateStatusViews();
-                updateTitleText();
-            });
-        });
+        viewModel
+                .statusProperty()
+                .addListener(
+                        (obs, oldVal, newVal) -> {
+                            Platform.runLater(
+                                    () -> {
+                                        updateStatusViews();
+                                        updateTitleText();
+                                    });
+                        });
 
         // Current user session changes to show/hide login prompt box
-        com.auction.client.service.UserSessionService.getInstance().currentUserProperty().addListener((obs, oldUser, newUser) -> {
-            boolean loggedIn = (newUser != null);
-            loginPromptBox.setVisible(!loggedIn);
-            loginPromptBox.setManaged(!loggedIn);
-        });
-        boolean loggedIn = com.auction.client.service.UserSessionService.getInstance().isAuthenticated();
+        com.auction.client.service.UserSessionService.getInstance()
+                .currentUserProperty()
+                .addListener(
+                        (obs, oldUser, newUser) -> {
+                            boolean loggedIn = (newUser != null);
+                            loginPromptBox.setVisible(!loggedIn);
+                            loginPromptBox.setManaged(!loggedIn);
+                        });
+        boolean loggedIn =
+                com.auction.client.service.UserSessionService.getInstance().isAuthenticated();
         loginPromptBox.setVisible(!loggedIn);
         loginPromptBox.setManaged(!loggedIn);
 
         // Update bid amount input prompt text dynamically
-        viewModel.currentBidDisplayProperty().addListener((obs, oldVal, newVal) -> {
-            updateBidAmountPromptText();
-        });
+        viewModel
+                .currentBidDisplayProperty()
+                .addListener(
+                        (obs, oldVal, newVal) -> {
+                            updateBidAmountPromptText();
+                        });
         updateBidAmountPromptText();
 
         // Initial status view update
@@ -329,10 +380,16 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
 
     private void registerNetworkHandlers() {
         try {
-            NetworkService.getInstance().getClient()
-                .addResponseHandler(EventType.GET_BIDS_BY_AUCTION_ID, HANDLER_ID, this::handleBidHistoryResponse);
-            NetworkService.getInstance().getClient()
-                .addResponseHandler(EventType.PLACE_BID, HANDLER_ID, this::handlePlaceBidResponse);
+            NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            EventType.GET_BIDS_BY_AUCTION_ID,
+                            HANDLER_ID,
+                            this::handleBidHistoryResponse);
+            NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            EventType.PLACE_BID, HANDLER_ID, this::handlePlaceBidResponse);
             networkReady = true;
         } catch (IllegalStateException ex) {
             networkReady = false;
@@ -343,14 +400,19 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
         if (countdownTimeline != null) {
             countdownTimeline.stop();
         }
-        countdownTimeline = new Timeline(new KeyFrame(javafx.util.Duration.seconds(1), event -> {
-            LocalDateTime now = LocalDateTime.now();
-            viewModel.updateCountdown(now);
-            updateCountdownLabels(now);
-            if (viewModel.statusProperty().get() == Auction.Status.ENDED && countdownTimeline != null) {
-                countdownTimeline.stop();
-            }
-        }));
+        countdownTimeline =
+                new Timeline(
+                        new KeyFrame(
+                                javafx.util.Duration.seconds(1),
+                                event -> {
+                                    LocalDateTime now = LocalDateTime.now();
+                                    viewModel.updateCountdown(now);
+                                    updateCountdownLabels(now);
+                                    if (viewModel.statusProperty().get() == Auction.Status.ENDED
+                                            && countdownTimeline != null) {
+                                        countdownTimeline.stop();
+                                    }
+                                }));
         countdownTimeline.setCycleCount(Timeline.INDEFINITE);
         countdownTimeline.play();
         // Initial update
@@ -359,8 +421,10 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
 
     @FXML
     private void handleGoToSellerProfile() {
-        NavigationService.getInstance().navigateTo(SceneRegistry.PUBLIC_SELLER_PAGE,
-                java.util.Map.of("sellerId", viewModel.getSellerId()));
+        NavigationService.getInstance()
+                .navigateTo(
+                        SceneRegistry.PUBLIC_SELLER_PAGE,
+                        java.util.Map.of("sellerId", viewModel.getSellerId()));
     }
 
     private void updateCountdownLabels(LocalDateTime now) {
@@ -440,12 +504,27 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
     }
 
     private void refreshBidHistoryList(List<Bid> bids) {
-        List<String> rows = bids.stream().map(bid -> {
-            String time = bid.getCreatedAt() == null ? "Unknown" : bid.getCreatedAt().format(TIME_FORMAT);
-            String bidder = bid.getBidderId() == null ? "#-" : "#" + bid.getBidderId();
-            String amount = "$" + MONEY_FORMAT.format(bid.getAmount() == null ? 0.0 : bid.getAmount());
-            return time + "  |  Bidder " + bidder + "  |  " + amount;
-        }).toList();
+        List<String> rows =
+                bids.stream()
+                        .map(
+                                bid -> {
+                                    String time =
+                                            bid.getCreatedAt() == null
+                                                    ? "Unknown"
+                                                    : bid.getCreatedAt().format(TIME_FORMAT);
+                                    String bidder =
+                                            bid.getBidderId() == null
+                                                    ? "#-"
+                                                    : "#" + bid.getBidderId();
+                                    String amount =
+                                            "$"
+                                                    + MONEY_FORMAT.format(
+                                                            bid.getAmount() == null
+                                                                    ? 0.0
+                                                                    : bid.getAmount());
+                                    return time + "  |  Bidder " + bidder + "  |  " + amount;
+                                })
+                        .toList();
         bidHistoryList.getItems().setAll(rows);
     }
 
@@ -465,9 +544,12 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
     private void updateImageContainer(String imageUrl) {
         if (imageUrl != null && !imageUrl.isBlank() && !"Item Image".equals(imageUrl)) {
             imageLabel.setVisible(false);
-            String bgValue = "-fx-background-image: url('" + imageUrl + "'); " +
-                             "-fx-background-size: cover; " +
-                             "-fx-background-position: center center;";
+            String bgValue =
+                    "-fx-background-image: url('"
+                            + imageUrl
+                            + "'); "
+                            + "-fx-background-size: cover; "
+                            + "-fx-background-position: center center;";
             imageContainer.setStyle(bgValue);
         } else {
             imageLabel.setVisible(true);
@@ -490,7 +572,7 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
         if (titleText == null) {
             titleText = "";
         }
-        
+
         // Strip any existing prefixes first
         String cleanTitle = titleText;
         if (cleanTitle.startsWith("[ENDED] ")) {
@@ -517,18 +599,21 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
         Auction.Status status = viewModel.statusProperty().get();
 
         // 1. Remove overlays on image container
-        imageContainer.getChildren().removeIf(node -> "ended-overlay-label".equals(node.getId()) || "upcoming-overlay-label".equals(node.getId()));
+        imageContainer
+                .getChildren()
+                .removeIf(
+                        node ->
+                                "ended-overlay-label".equals(node.getId())
+                                        || "upcoming-overlay-label".equals(node.getId()));
 
         if (status == Auction.Status.PENDING) {
             Label upcomingOverlay = new Label("UPCOMING");
             upcomingOverlay.setId("upcoming-overlay-label");
-            upcomingOverlay.setStyle("-fx-background-color: transparent; " +
-                                  "-fx-text-fill: white; " +
-                                  "-fx-font-family: 'Montserrat'; " +
-                                  "-fx-font-weight: 800; " +
-                                  "-fx-font-size: 26px; " +
-                                  "-fx-padding: 12 30 12 30; " +
-                                  "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 0);");
+            upcomingOverlay.setStyle(
+                    "-fx-background-color: transparent; -fx-text-fill: white; -fx-font-family:"
+                        + " 'Montserrat'; -fx-font-weight: 800; -fx-font-size: 26px; -fx-padding:"
+                        + " 12 30 12 30; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5),"
+                        + " 10, 0, 0, 0);");
             imageContainer.getChildren().add(upcomingOverlay);
 
             // Update title text to include [UPCOMING]
@@ -549,13 +634,11 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
         } else if (status == Auction.Status.ENDED || status == Auction.Status.CANCELLED) {
             Label endedOverlay = new Label("ENDED");
             endedOverlay.setId("ended-overlay-label");
-            endedOverlay.setStyle("-fx-background-color: transparent; " +
-                                  "-fx-text-fill: white; " +
-                                  "-fx-font-family: 'Montserrat'; " +
-                                  "-fx-font-weight: 800; " +
-                                  "-fx-font-size: 26px; " +
-                                  "-fx-padding: 12 30 12 30; " +
-                                  "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5), 10, 0, 0, 0);");
+            endedOverlay.setStyle(
+                    "-fx-background-color: transparent; -fx-text-fill: white; -fx-font-family:"
+                        + " 'Montserrat'; -fx-font-weight: 800; -fx-font-size: 26px; -fx-padding:"
+                        + " 12 30 12 30; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.5),"
+                        + " 10, 0, 0, 0);");
             imageContainer.getChildren().add(endedOverlay);
 
             // Update title text to include [ENDED]
@@ -609,8 +692,11 @@ public class AuctionPageController implements Initializable, LifecycleAwareContr
         if (!networkReady) {
             return;
         }
-        NetworkService.getInstance().getClient().removeResponseHandler(EventType.GET_BIDS_BY_AUCTION_ID, HANDLER_ID);
-        NetworkService.getInstance().getClient().removeResponseHandler(EventType.PLACE_BID, HANDLER_ID);
+        NetworkService.getInstance()
+                .getClient()
+                .removeResponseHandler(EventType.GET_BIDS_BY_AUCTION_ID, HANDLER_ID);
+        NetworkService.getInstance()
+                .getClient()
+                .removeResponseHandler(EventType.PLACE_BID, HANDLER_ID);
     }
 }
-

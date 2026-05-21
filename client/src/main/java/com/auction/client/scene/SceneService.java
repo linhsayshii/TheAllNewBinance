@@ -1,16 +1,14 @@
 package com.auction.client.scene;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import com.auction.client.config.AppConfig;
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.exception.SceneLoadException;
 import com.auction.client.service.ResourceLoader;
 import com.auction.client.service.ThemeService;
-
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -48,12 +46,12 @@ public class SceneService {
         try {
             FXMLLoader loader = new FXMLLoader(resourceLoader.requireUrl(sceneRegistry.fxmlPath()));
             Parent root = loader.load();
-            
+
             // Clean up old controller
             if (currentController instanceof LifecycleAwareController) {
                 ((LifecycleAwareController) currentController).onUnload();
             }
-            
+
             // Keep reference to new controller
             currentController = loader.getController();
 
@@ -68,7 +66,7 @@ public class SceneService {
                 sceneHost = new StackPane();
             }
             sceneHost.getChildren().setAll(root);
-            
+
             // Reuse existing scene if sceneHost is already the root of one
             Scene scene = sceneHost.getScene();
             if (scene == null) {
@@ -182,7 +180,9 @@ public class SceneService {
     }
 
     public boolean isPopupOpen() {
-        return sceneHost != null && modalOverlay != null && sceneHost.getChildren().contains(modalOverlay);
+        return sceneHost != null
+                && modalOverlay != null
+                && sceneHost.getChildren().contains(modalOverlay);
     }
 
     public void toggleTheme() {
@@ -201,7 +201,10 @@ public class SceneService {
     private void applyStylesheets(Scene scene, boolean cacheBust) {
         for (String stylesheet : stylesheets) {
             String baseUrl = resourceLoader.requireUrl(stylesheet).toExternalForm();
-            scene.getStylesheets().removeIf(current -> current.equals(baseUrl) || current.startsWith(baseUrl + "?v="));
+            scene.getStylesheets()
+                    .removeIf(
+                            current ->
+                                    current.equals(baseUrl) || current.startsWith(baseUrl + "?v="));
             scene.getStylesheets().add(withCacheBusting(baseUrl, cacheBust));
         }
     }
