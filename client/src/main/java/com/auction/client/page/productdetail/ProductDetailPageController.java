@@ -14,6 +14,7 @@ import java.util.ResourceBundle;
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.scene.LifecycleAwareController;
 import com.auction.client.scene.NavigationService;
+import com.auction.client.service.ImageLoader;
 import com.auction.client.service.NetworkService;
 import com.auction.core.auction.Bid;
 import com.auction.core.dto.bid.PlaceBid;
@@ -47,7 +48,8 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
     @FXML private NumberAxis yAxisPrice;
     @FXML private Label categoryLabel;
     @FXML private Label titleLabel;
-    @FXML private Label imagePlaceholderLabel;
+    @FXML private javafx.scene.layout.StackPane imageContainer;
+    @FXML private Label imageLabel;
     @FXML private Label descriptionLabel;
     @FXML private Label countdownLabel;
     @FXML private Label currentBidLabel;
@@ -195,7 +197,9 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
         categoryLabel.textProperty().bind(viewModel.categoryProperty());
         titleLabel.textProperty().bind(viewModel.titleProperty());
         descriptionLabel.textProperty().bind(viewModel.descriptionProperty());
-        imagePlaceholderLabel.textProperty().bind(viewModel.imageTextProperty());
+    
+        ImageLoader.loadImage(viewModel.imageUrl(), imageContainer, imageLabel, 800);
+        
         countdownLabel.textProperty().bind(viewModel.countdownTextProperty());
         currentBidLabel.textProperty().bind(viewModel.currentBidDisplayProperty());
         bidderCountLabel.textProperty().bind(viewModel.bidderCountTextProperty());

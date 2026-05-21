@@ -1,5 +1,8 @@
 package com.auction.client.service;
 
+import com.auction.client.config.AppConfig;
+import com.auction.client.mock.MockAuctionClient;
+import com.auction.client.mock.MockDataProvider;
 import com.auction.client.network.AuctionClient;
 import com.auction.core.protocol.EventType;
 
@@ -10,10 +13,19 @@ public class NetworkService {
     private static NetworkService instance;
     private final AuctionClient client;
 
+    /** Shared MockDataProvider so ClientApp can reuse it for auto-login. */
+    private MockDataProvider mockDataProvider;
+
     private NetworkService(String serverUri) {
         try {
-            client = new AuctionClient(new URI(serverUri));
-            client.connect();
+            if (AppConfig.isMockMode()) {
+                mockDataProvider = new MockDataProvider();
+                client = new MockAuctionClient(mockDataProvider);
+                System.out.println("[MockMode] NetworkService using MockAuctionClient — no server connection");
+            } else {
+                client = new AuctionClient(new URI(serverUri));
+                client.connect();
+            }
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize NetworkService", e);
         }
@@ -44,6 +56,14 @@ public class NetworkService {
         client.addCorrelationHandler(correlationId, handler);
     }
 
+    /**
+     * Returns the MockDataProvider if running in mock mode, otherwise null.
+     * Used by ClientApp for auto-login of the default mock user.
+     */
+    public MockDataProvider getMockDataProvider() {
+        return mockDataProvider;
+    }
+
     /** Gracefully close socket and stop reconnect executor on app shutdown. */
     public void shutdown() {
         try {
@@ -55,3 +75,4 @@ public class NetworkService {
         }
     }
 }
+

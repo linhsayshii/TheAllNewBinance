@@ -17,10 +17,10 @@ import com.auction.core.utils.JsonMapper;
 public class AuctionClient extends WebSocketClient {
 
     // Map: eventType -> (handlerId -> Handler)
-    private final Map<EventType, Map<String, Consumer<String>>> typedHandlers = new ConcurrentHashMap<>();
+    protected final Map<EventType, Map<String, Consumer<String>>> typedHandlers = new ConcurrentHashMap<>();
 
     // Map: correlationId -> One-time Handler
-    private final Map<String, Consumer<String>> correlationHandlers = new ConcurrentHashMap<>();
+    protected final Map<String, Consumer<String>> correlationHandlers = new ConcurrentHashMap<>();
 
     private final ScheduledExecutorService reconnectExecutor = Executors.newSingleThreadScheduledExecutor();
     private boolean isReconnecting = false;

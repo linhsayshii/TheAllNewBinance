@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    admin-auction-card.fxml
+    Compact card for admin Listing Management view (~280px wide).
+    Similar to profile-auction-card but with a [Force Promote] button instead of Promote.
+    isFeatured → button becomes "★ Featured" (disabled).
+-->
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.auction.client.component.item.AdminAuctionCardController"
+      onMousePressed="#handleMousePressed"
+      onMouseClicked="#handleOpenAuction"
+      styleClass="profile-card-root">
+
+    <!-- Image area -->
+    <StackPane fx:id="imageContainer" styleClass="profile-card-image">
+        <Label fx:id="imageLabel" text="Item Image" styleClass="profile-card-image-label" />
+    </StackPane>
+
+    <!-- Body -->
+    <VBox styleClass="profile-card-body" VBox.vgrow="ALWAYS">
+
+        <Label fx:id="titleLabel" text="Item Title"
+               styleClass="profile-card-title" maxWidth="Infinity" wrapText="true" />
+
+        <Label fx:id="sellerLabel" text="by Seller"
+               styleClass="admin-card-seller" maxWidth="Infinity">
+            <VBox.margin><Insets top="2" /></VBox.margin>
+        </Label>
+
+        <Region VBox.vgrow="ALWAYS" />
+
+        <!-- Price + badge row -->
+        <HBox alignment="BOTTOM_LEFT" spacing="8">
+            <VBox alignment="CENTER_LEFT" spacing="1">
+                <Label fx:id="priceCaptionLabel" text="Current bid" styleClass="profile-card-price-caption" />
+                <Label fx:id="priceLabel" text="\$0.00" styleClass="profile-card-price" />
+            </VBox>
+            <Region HBox.hgrow="ALWAYS" />
+            <Label fx:id="badgeLabel" text="LIVE" styleClass="profile-card-badge, badge-live">
+                <HBox.margin><Insets bottom="2" /></HBox.margin>
+            </Label>
+        </HBox>
+
+        <Label fx:id="timeLabel" text="" styleClass="profile-card-time" maxWidth="Infinity" />
+
+        <!-- Force Promote button -->
+        <Button fx:id="forcePromoteBtn"
+                text="★  Force Promote"
+                styleClass="admin-card-promote-btn"
+                onAction="#handleForcePromote"
+                focusTraversable="false"
+                visible="false"
+                managed="false">
+            <VBox.margin><Insets top="8" /></VBox.margin>
+        </Button>
+    </VBox>
+</VBox>

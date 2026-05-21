@@ -1,5 +1,5 @@
 .root {
-    -fx-background-color: -app-bg;
+    -fx-background-color: -theme-bg-main;
 }
 
 .label,

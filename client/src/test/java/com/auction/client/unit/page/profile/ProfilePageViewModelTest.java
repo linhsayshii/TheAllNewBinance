@@ -9,6 +9,6 @@ class ProfilePageViewModelTest {
     @Test
     void shouldReturnDisplayName() {
         ProfilePageViewModel viewModel = new ProfilePageViewModel();
-        Assertions.assertEquals("Guest", viewModel.displayName());
+        Assertions.assertEquals("Guest", viewModel.displayNameProperty().get());
     }
 }

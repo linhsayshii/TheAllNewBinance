@@ -404,4 +404,130 @@ public class AuctionDao implements IAuctionDao {
         }
         return result;
     }
+
+    @Override
+    public boolean promoteAuction(Integer auctionId, java.time.LocalDateTime featuredUntil, String promotedDescription) {
+        String sql = "UPDATE auctions SET is_featured = true, featured_until = ?, promoted_description = ?, updated_at = ? WHERE auction_id = ? AND is_deleted = false";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setTimestamp(1, Timestamp.valueOf(featuredUntil));
+            stmt.setString(2, promotedDescription);
+            stmt.setTimestamp(3, Timestamp.valueOf(LocalDateTime.now()));
+            stmt.setInt(4, auctionId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error: Cannot promote auction! " + e.getMessage());
+        }
+        return false;
+    }
+
+    @Override
+    public List<com.auction.core.dto.auction.PublicAuctionDto> getFeaturedAuctions(int limit) {
+        // Dùng ORDER BY RAND() để xáo trộn ngẫu nhiên, giới hạn pool
+        String sql =
+            "SELECT a.auction_id, a.item_id, i.name as item_name, i.image_url as thumbnail_url, " +
+            "a.current_price, a.start_time, a.end_time, a.status, u.full_name as seller_display_name, " +
+            "a.is_featured, a.featured_until, a.promoted_description, i.description as item_description " +
+            "FROM auctions a " +
+            "JOIN items i ON a.item_id = i.item_id " +
+            "JOIN users u ON i.seller_id = u.user_id " +
+            "WHERE a.is_featured = true AND a.status = 'ACTIVE' AND a.end_time > NOW() AND a.is_deleted = false " +
+            "ORDER BY RAND() LIMIT ?";
+        List<com.auction.core.dto.auction.PublicAuctionDto> result = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, limit);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    com.auction.core.dto.auction.PublicAuctionDto dto = new com.auction.core.dto.auction.PublicAuctionDto();
+                    dto.setAuctionId(rs.getInt("auction_id"));
+                    dto.setItemId(rs.getInt("item_id"));
+                    dto.setItemName(rs.getString("item_name"));
+                    dto.setThumbnailUrl(rs.getString("thumbnail_url"));
+                    dto.setCurrentPrice(rs.getDouble("current_price"));
+                    dto.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+                    dto.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+                    dto.setStatus(rs.getString("status"));
+                    dto.setSellerDisplayName(rs.getString("seller_display_name"));
+                    dto.setIsFeatured(rs.getBoolean("is_featured"));
+                    Timestamp featuredUntil = rs.getTimestamp("featured_until");
+                    if (featuredUntil != null) dto.setFeaturedUntil(featuredUntil.toLocalDateTime());
+                    // Fallback: nếu promotedDescription trống, dùng 100 ký tự đầu của item description
+                    String promoted = rs.getString("promoted_description");
+                    if (promoted == null || promoted.isBlank()) {
+                        String itemDesc = rs.getString("item_description");
+                        if (itemDesc != null && !itemDesc.isBlank()) {
+                            promoted = itemDesc.length() > 100 ? itemDesc.substring(0, 100) + "..." : itemDesc;
+                        }
+                    }
+                    dto.setPromotedDescription(promoted);
+                    result.add(dto);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error: Cannot get featured auctions! " + e.getMessage());
+        }
+        return result;
+    }
+
+    @Override
+    public int resetExpiredFeaturedAuctions() {
+        String sql = "UPDATE auctions SET is_featured = false, featured_until = NULL WHERE is_featured = true AND featured_until IS NOT NULL AND featured_until <= NOW()";
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            int affected = stmt.executeUpdate();
+            if (affected > 0) {
+                System.out.println("[BatchJob] Reset " + affected + " expired featured auctions.");
+            }
+            return affected;
+        } catch (SQLException e) {
+            System.err.println("Error: Cannot reset expired featured auctions! " + e.getMessage());
+        }
+        return 0;
+    }
+
+    @Override
+    public List<com.auction.core.dto.auction.PublicAuctionDto> getAllAuctionsForAdmin(List<String> statuses, int offset, int limit) {
+        List<String> safeStatuses = (statuses == null || statuses.isEmpty()) ? List.of("ACTIVE", "PENDING", "ENDED", "CANCELLED") : statuses;
+        String statusPlaceholders = safeStatuses.stream().map(s -> "?").collect(java.util.stream.Collectors.joining(", "));
+        String sql =
+            "SELECT a.auction_id, a.item_id, i.name as item_name, i.image_url as thumbnail_url, " +
+            "a.current_price, a.start_time, a.end_time, a.status, u.full_name as seller_display_name, " +
+            "a.is_featured, a.featured_until, a.promoted_description " +
+            "FROM auctions a " +
+            "JOIN items i ON a.item_id = i.item_id " +
+            "JOIN users u ON i.seller_id = u.user_id " +
+            "WHERE a.status IN (" + statusPlaceholders + ") AND a.is_deleted = false " +
+            "ORDER BY a.auction_id DESC LIMIT ? OFFSET ?";
+        List<com.auction.core.dto.auction.PublicAuctionDto> result = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            int idx = 1;
+            for (String s : safeStatuses) stmt.setString(idx++, s);
+            stmt.setInt(idx++, limit);
+            stmt.setInt(idx, offset);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    com.auction.core.dto.auction.PublicAuctionDto dto = new com.auction.core.dto.auction.PublicAuctionDto();
+                    dto.setAuctionId(rs.getInt("auction_id"));
+                    dto.setItemId(rs.getInt("item_id"));
+                    dto.setItemName(rs.getString("item_name"));
+                    dto.setThumbnailUrl(rs.getString("thumbnail_url"));
+                    dto.setCurrentPrice(rs.getDouble("current_price"));
+                    dto.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+                    dto.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+                    dto.setStatus(rs.getString("status"));
+                    dto.setSellerDisplayName(rs.getString("seller_display_name"));
+                    dto.setIsFeatured(rs.getBoolean("is_featured"));
+                    Timestamp featuredUntil = rs.getTimestamp("featured_until");
+                    if (featuredUntil != null) dto.setFeaturedUntil(featuredUntil.toLocalDateTime());
+                    dto.setPromotedDescription(rs.getString("promoted_description"));
+                    result.add(dto);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error: Cannot get all auctions for admin! " + e.getMessage());
+        }
+        return result;
+    }
 }

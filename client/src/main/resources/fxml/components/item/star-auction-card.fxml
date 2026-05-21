@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    star-auction-card.fxml
+    Layout: 50 | 50 — Left: text info / Right: thumbnail image
+    Tỉ lệ cố định 50:50 nhờ HBox + HBox.hgrow=ALWAYS trên mỗi pane.
+    Width cố định bởi carousel parent (e.g. 900px) → mỗi side = 450px.
+-->
+<GridPane xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+          fx:controller="com.auction.client.component.item.StarAuctionCardController"
+          onMousePressed="#handleMousePressed"
+          onMouseClicked="#handleOpenDetail"
+          styleClass="sa-card-root">
+
+    <columnConstraints>
+        <ColumnConstraints percentWidth="50" hgrow="ALWAYS" />
+        <ColumnConstraints percentWidth="50" hgrow="ALWAYS" />
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints vgrow="ALWAYS" />
+    </rowConstraints>
+
+    <children>
+        <!-- ===== LEFT HALF: Text Info ===== -->
+        <VBox styleClass="sa-card-info-pane" spacing="0" GridPane.columnIndex="0">
+            <!-- Badge "Featured" -->
+            <HBox alignment="CENTER_LEFT" styleClass="sa-card-badge-row">
+                <Label text="★  FEATURED" styleClass="sa-card-badge" />
+            </HBox>
+
+            <Region VBox.vgrow="ALWAYS" />
+
+            <!-- Title -->
+            <Label fx:id="titleLabel" text="Auction Title" wrapText="true"
+                   styleClass="sa-card-title" maxWidth="Infinity" />
+
+            <!-- Description -->
+            <Label fx:id="descriptionLabel" text="Short description of the item..." wrapText="true"
+                   styleClass="sa-card-description" maxWidth="Infinity" />
+
+            <Region VBox.vgrow="ALWAYS" />
+
+            <!-- Price -->
+            <VBox spacing="2.0" styleClass="sa-card-price-block">
+                <Label fx:id="priceCaptionLabel" text="Current Bid" styleClass="sa-card-price-caption" />
+                <Label fx:id="priceLabel" text="\$0.00" styleClass="sa-card-price" />
+            </VBox>
+
+            <!-- Bottom meta row: Seller + Time -->
+            <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="sa-card-meta-row">
+                <Label fx:id="sellerLabel" text="by Seller" styleClass="sa-card-seller" />
+                <Region HBox.hgrow="ALWAYS" />
+                <Label fx:id="timeLabel" text="Ends in 2d 4h" styleClass="sa-card-time" />
+            </HBox>
+
+            <padding>
+                <Insets top="28" right="36" bottom="28" left="36" />
+            </padding>
+        </VBox>
+
+        <!-- ===== RIGHT HALF: Image ===== -->
+        <StackPane fx:id="imageContainer" styleClass="sa-card-image-pane" GridPane.columnIndex="1">
+            <!-- Image placeholder — controller will set -fx-background-image via setData -->
+            <Label fx:id="imagePlaceholderLabel" text="" styleClass="sa-card-image-placeholder" />
+        </StackPane>
+    </children>
+
+</GridPane>

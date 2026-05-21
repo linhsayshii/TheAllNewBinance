@@ -10,6 +10,7 @@ public final class AppConfig {
 
     private static final String DEV_MODE_KEY = "app.devMode";
     private static final String HOT_RELOAD_KEY = "app.hotReload";
+    private static final String MOCK_MODE_KEY = "app.mockMode";
     private static final Optional<Path> SOURCE_RESOURCE_ROOT = detectSourceResourceRoot();
 
     private AppConfig() {
@@ -41,6 +42,17 @@ public final class AppConfig {
 
     public static boolean isHotReloadEnabled() {
         return isDevMode() && Boolean.parseBoolean(System.getProperty(HOT_RELOAD_KEY, "false"));
+    }
+
+    /**
+     * Mock mode — replaces the WebSocket client with a local mock that returns
+     * pre-built JSON responses from resources/mockdata/*.json files.
+     * Activate via Maven profile: -Pmock
+     * or JVM argument: -Dapp.mockMode=true
+     * Can be combined with devMode for hot-reload + offline data simultaneously.
+     */
+    public static boolean isMockMode() {
+        return Boolean.parseBoolean(System.getProperty(MOCK_MODE_KEY, "false"));
     }
 
     public static boolean shouldUseSourceResources() {

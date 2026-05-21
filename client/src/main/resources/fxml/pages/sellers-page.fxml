@@ -18,7 +18,7 @@
         </VBox>
     </top>
     <center>
-        <StackPane styleClass="page-content-inset">
+        <StackPane>
             <children>
                 <Label text="Sellers Page" styleClass="page-title" />
             </children>

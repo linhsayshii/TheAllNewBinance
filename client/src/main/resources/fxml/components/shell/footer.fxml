@@ -11,7 +11,7 @@
       spacing="18"
       styleClass="app-footer">
     <children>
-        <Label text="© 2026 NewBinance" styleClass="app-footer-text" />
+        <Label text="© 2026 Alta Auction" styleClass="app-footer-text" />
         <Region HBox.hgrow="ALWAYS" />
         <Label text="Secure auctions. Verified sellers." styleClass="app-footer-text" />
     </children>

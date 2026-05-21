@@ -42,8 +42,10 @@ public class BidService implements IBidService {
                 if (user == null) throw new IllegalArgumentException("User not found");
 
                 // .join() để chờ kết quả bất đồng bộ trong cùng thread pool
-                Auction auction = auctionService.getAuctionDetails(request.getAuctionId()).join();
-                if (auction == null) throw new IllegalArgumentException("Auction not found");
+                com.auction.core.dto.auction.AuctionDetailsDto details = auctionService.getAuctionDetails(request.getAuctionId()).join();
+                if (details == null || details.getAuction() == null) throw new IllegalArgumentException("Auction not found");
+                Auction auction = details.getAuction();
+                
                 if (auction.getStatus() != Auction.Status.ACTIVE) {
                     throw new IllegalArgumentException("Auction is not active");
                 }
@@ -95,8 +97,9 @@ public class BidService implements IBidService {
 
     @Override
     public CompletableFuture<Boolean> validateUserBid(Integer auctionId, User user) {
-        return auctionService.getAuctionDetails(auctionId).thenApply(auction -> {
-            if (auction == null) return false;
+        return auctionService.getAuctionDetails(auctionId).thenApply(details -> {
+            if (details == null || details.getAuction() == null) return false;
+            Auction auction = details.getAuction();
             return user.getBalance() >= (auction.getStartingPrice() * 0.3);
         });
     }

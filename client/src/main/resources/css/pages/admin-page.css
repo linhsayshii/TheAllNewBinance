@@ -1,0 +1,156 @@
+/* ============================================================
+   Admin Page — specific styles on top of profile-page.css
+   ============================================================ */
+
+/* ── Sidebar Header ── */
+.admin-sidebar-header {
+    -fx-background-color: linear-gradient(to bottom, rgba(255,61,104,0.12), transparent);
+    -fx-border-color: -theme-secondary;
+    -fx-border-width: 0 0 1 0;
+}
+
+.admin-sidebar-icon {
+    -fx-font-size: 32px;
+    -fx-padding: 0 0 4 0;
+}
+
+.admin-sidebar-title {
+    -fx-font-family: "Lora";
+    -fx-font-size: 20px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -theme-text-main;
+}
+
+.admin-sidebar-subtitle {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-text-fill: -theme-accent;
+    -fx-padding: 2 0 0 0;
+}
+
+/* ── Back button ── */
+.admin-back-btn {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-background-color: transparent;
+    -fx-border-color: -theme-secondary;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: -theme-accent;
+    -fx-padding: 8 14 8 14;
+    -fx-cursor: hand;
+}
+
+.admin-back-btn:hover {
+    -fx-border-color: -theme-primary;
+    -fx-text-fill: -theme-primary;
+}
+
+/* ── Count badge ── */
+.admin-count-badge {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-background-color: rgba(255,61,104,0.12);
+    -fx-text-fill: -theme-primary;
+    -fx-padding: 4 10 4 10;
+    -fx-background-radius: 20;
+}
+
+/* ── TableView ── */
+.admin-table {
+    -fx-background-color: transparent;
+    -fx-border-color: -theme-secondary;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+}
+
+.admin-table .column-header-theme-bg-main {
+    -fx-background-color: -theme-bg-main;
+    -fx-background-radius: 8 8 0 0;
+}
+
+.admin-table .column-header .label {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -theme-accent;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.admin-table .table-row-cell {
+    -fx-background-color: -theme-bg-main;
+    -fx-border-color: transparent transparent -theme-secondary transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.admin-table .table-row-cell:hover {
+    -fx-background-color: derive(-theme-bg-main, 5%);
+}
+
+.admin-table .table-row-cell:selected {
+    -fx-background-color: rgba(255,61,104,0.10);
+}
+
+.admin-table .table-cell {
+    -fx-text-fill: -theme-text-main;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-padding: 10 8 10 8;
+}
+
+/* ── Admin header button ── */
+.gp-admin-btn {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-background-color: rgba(255,61,104,0.15);
+    -fx-border-color: -theme-primary;
+    -fx-border-width: 1;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: -theme-primary;
+    -fx-padding: 6 14 6 14;
+    -fx-cursor: hand;
+}
+
+.gp-admin-btn:hover {
+    -fx-background-color: -theme-primary;
+    -fx-text-fill: white;
+}
+
+/* ── Admin card seller label ── */
+.admin-card-seller {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-text-fill: -theme-accent;
+}
+
+/* ── Admin Force Promote button ── */
+.admin-card-promote-btn {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-background-color: rgba(255,61,104,0.12);
+    -fx-border-color: -theme-primary;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: -theme-primary;
+    -fx-padding: 5 12 5 12;
+    -fx-cursor: hand;
+    -fx-max-width: Infinity;
+}
+
+.admin-card-promote-btn:hover {
+    -fx-background-color: -theme-primary;
+    -fx-text-fill: white;
+}
+
+.admin-card-promote-btn:disabled {
+    -fx-opacity: 0.6;
+}

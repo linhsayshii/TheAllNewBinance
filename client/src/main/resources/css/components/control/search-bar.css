@@ -1,4 +1,4 @@
 .search-bar-root .text-field {
-    -fx-background-color: -surface-bg;
-    -fx-border-color: -border-color;
+    -fx-background-color: -theme-bg-main;
+    -fx-border-color: -theme-secondary;
 }

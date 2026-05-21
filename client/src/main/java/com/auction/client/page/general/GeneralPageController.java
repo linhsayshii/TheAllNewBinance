@@ -23,7 +23,7 @@ public class GeneralPageController {
 
     private static final String AUCTION_CARD_FXML = "/fxml/components/item/auction-card.fxml";
     private static final String UPCOMING_AUCTION_CARD_FXML = "/fxml/components/item/upcoming-auction-card.fxml";
-    private static final double TARGET_CARD_WIDTH = 300.0;
+    private static final double TARGET_CARD_WIDTH = 400.0;
 
     @FXML
     private HBox liveAuctionCards;
@@ -49,21 +49,29 @@ public class GeneralPageController {
 
     @FXML
     private void initialize() {
+        // Clear the client-side cache to ensure we get fresh status updates when navigating back
+        com.auction.client.service.AuctionQueryService.clearCache();
+
         liveAuctionCards.getChildren().clear();
         upcomingAuctionCards.getChildren().clear();
 
-        List<ProductCardUiModel> liveCards = viewModel.loadLiveFeaturedAuctions();
-        for (ProductCardUiModel card : liveCards) {
-            liveAuctionCards.getChildren().add(loadAuctionCard(card));
-        }
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            List<ProductCardUiModel> liveCards = viewModel.loadLiveFeaturedAuctions();
+            List<ProductCardUiModel> upcomingCards = viewModel.loadUpcomingFeaturedAuctions();
 
-        List<ProductCardUiModel> upcomingCards = viewModel.loadUpcomingFeaturedAuctions();
-        for (ProductCardUiModel card : upcomingCards) {
-            upcomingAuctionCards.getChildren().add(loadUpcomingAuctionCard(card));
-        }
+            Platform.runLater(() -> {
+                for (ProductCardUiModel card : liveCards) {
+                    liveAuctionCards.getChildren().add(loadAuctionCard(card));
+                }
 
-        setupCarousel(liveCarousel, liveCardsScrollPane, liveAuctionCards, liveBlockIndicators);
-        setupCarousel(upcomingCarousel, upcomingCardsScrollPane, upcomingAuctionCards, upcomingBlockIndicators);
+                for (ProductCardUiModel card : upcomingCards) {
+                    upcomingAuctionCards.getChildren().add(loadUpcomingAuctionCard(card));
+                }
+
+                setupCarousel(liveCarousel, liveCardsScrollPane, liveAuctionCards, liveBlockIndicators);
+                setupCarousel(upcomingCarousel, upcomingCardsScrollPane, upcomingAuctionCards, upcomingBlockIndicators);
+            });
+        });
     }
 
     @FXML

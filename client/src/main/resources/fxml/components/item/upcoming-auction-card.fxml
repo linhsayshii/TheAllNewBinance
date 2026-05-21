@@ -14,7 +14,7 @@
     onMouseClicked="#handleOpenProductDetail"
       spacing="10.0" styleClass="auction-card-root">
     <children>
-        <StackPane styleClass="auction-card-image">
+        <StackPane fx:id="imageContainer" styleClass="auction-card-image">
             <children>
                 <Label fx:id="imageLabel" text="Item Image" styleClass="auction-card-image-label" />
             </children>

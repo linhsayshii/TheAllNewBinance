@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!-- ProfileAuctionCard: compact card (~260×280px) used in the User Profile page.
+     Distinct from auction-card.fxml (general page carousel) — no progress bar,
+     adds a coloured status badge + optional Promote button for owner listings. -->
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.auction.client.component.item.ProfileAuctionCardController"
+      onMousePressed="#handleMousePressed"
+      onMouseClicked="#handleOpenAuction"
+      styleClass="profile-card-root">
+
+    <!-- Image placeholder -->
+    <StackPane fx:id="imageContainer" styleClass="profile-card-image">
+        <Label fx:id="imageLabel" text="Item Image" styleClass="profile-card-image-label" />
+    </StackPane>
+
+    <!-- Body: title, price row, time -->
+    <VBox styleClass="profile-card-body" VBox.vgrow="ALWAYS">
+
+        <!-- Title -->
+        <Label fx:id="titleLabel"
+               text="Item Title"
+               styleClass="profile-card-title"
+               maxWidth="Infinity"
+               wrapText="true" />
+
+        <Region VBox.vgrow="ALWAYS" />
+
+        <!-- Price row + badge -->
+        <HBox alignment="BOTTOM_LEFT" spacing="8">
+            <VBox alignment="CENTER_LEFT" spacing="1">
+                <Label fx:id="priceCaptionLabel"
+                       text="Current bid"
+                       styleClass="profile-card-price-caption" />
+                <Label fx:id="priceLabel"
+                       text="\$0.00"
+                       styleClass="profile-card-price" />
+            </VBox>
+            <Region HBox.hgrow="ALWAYS" />
+            <!-- Status badge — style class set dynamically -->
+            <Label fx:id="badgeLabel"
+                   text="LIVE"
+                   styleClass="profile-card-badge, badge-live">
+                <HBox.margin><Insets bottom="2" /></HBox.margin>
+            </Label>
+        </HBox>
+
+        <!-- Time info -->
+        <Label fx:id="timeLabel"
+               text="02h 31m left"
+               styleClass="profile-card-time"
+               maxWidth="Infinity" />
+
+        <!-- Promote button — only visible for owner's LIVE / PENDING listings -->
+        <Button fx:id="promoteBtn"
+                text="★  Promote"
+                styleClass="profile-card-promote-btn"
+                onAction="#handlePromote"
+                focusTraversable="false"
+                visible="false"
+                managed="false">
+            <VBox.margin><Insets top="8" /></VBox.margin>
+        </Button>
+    </VBox>
+
+</VBox>

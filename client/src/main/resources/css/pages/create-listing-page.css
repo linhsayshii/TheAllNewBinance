@@ -1,0 +1,111 @@
+.create-listing-root {
+    -fx-background-color: -bg-color;
+}
+
+.create-listing-scroll {
+    -fx-background-color: transparent;
+    -fx-control-inner-background: transparent;
+}
+
+.create-listing-container {
+    -fx-background-color: -card-bg;
+    -fx-background-radius: 12;
+    /* -fx-border-color: -theme-secondary;
+    -fx-border-radius: 12;
+    -fx-border-width: 1; */
+    -fx-max-width: 800;
+    -fx-padding: 40;
+}
+
+.create-listing-title {
+    -fx-font-family: 'Lora';
+    -fx-font-size: 28px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -text-color;
+}
+
+.create-listing-subtitle {
+    -fx-font-family: 'Montserrat';
+    -fx-font-size: 14px;
+    -fx-text-fill: -text-muted;
+}
+
+.create-listing-section-label {
+    -fx-font-family: 'Lora';
+    -fx-font-size: 18px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -text-color;
+    -fx-padding: 10 0 10 0;
+    -fx-border-color: transparent transparent -theme-secondary transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.create-listing-field-label {
+    -fx-font-family: 'Montserrat';
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -text-muted;
+}
+
+.create-listing-input, .create-listing-textarea, .create-listing-combo, .create-listing-datepicker {
+    -fx-background-color: -input-bg;
+    -fx-text-fill: -text-color;
+    -fx-prompt-text-fill: -text-muted;
+    -fx-border-color: -input-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-font-family: 'Montserrat';
+    -fx-font-size: 14px;
+    -fx-padding: 10 12;
+}
+
+.create-listing-input:focused, .create-listing-textarea:focused, .create-listing-combo:focused, .create-listing-datepicker:focused {
+    -fx-border-color: -theme-primary-color;
+    -fx-effect: dropshadow(gaussian, -theme-primary-shadow, 4, 0, 0, 0);
+}
+
+.create-listing-back-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: -text-muted;
+    -fx-font-family: 'Montserrat';
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+    -fx-padding: 0 0 16 0;
+}
+
+.create-listing-back-btn:hover {
+    -fx-text-fill: -theme-primary-color;
+}
+
+.create-listing-submit-btn {
+    -fx-background-color: -theme-primary-color;
+    /* -fx-text-fill: white; */
+    -fx-font-family: 'Montserrat';
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 24;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.create-listing-submit-btn:hover {
+    -fx-background-color: -theme-primary-hover;
+}
+
+.create-listing-cancel-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: -text-color;
+    -fx-border-color: -input-border;
+    -fx-border-radius: 6;
+    -fx-border-width: 1;
+    -fx-font-family: 'Montserrat';
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-padding: 9 24;
+    -fx-cursor: hand;
+}
+
+.create-listing-cancel-btn:hover {
+    -fx-background-color: -hover-bg;
+}

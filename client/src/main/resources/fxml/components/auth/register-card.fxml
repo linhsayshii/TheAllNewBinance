@@ -17,9 +17,9 @@
 
             <Label text="Đăng ký tài khoản" styleClass="page-title"/>
 
-            <TextField fx:id="txtUsername" promptText="Tên đăng nhập" styleClass="input-field"/>
-            <TextField fx:id="txtEmail" promptText="Email" styleClass="input-field"/>
-            <PasswordField fx:id="txtPassword" promptText="Mật khẩu (≥ 6 ký tự)" styleClass="input-field"/>
+            <TextField fx:id="txtUsername" promptText="Tên đăng nhập" styleClass="input-field" onAction="#handleRegister"/>
+            <TextField fx:id="txtEmail" promptText="Email" styleClass="input-field" onAction="#handleRegister"/>
+            <PasswordField fx:id="txtPassword" promptText="Mật khẩu (≥ 6 ký tự)" styleClass="input-field" onAction="#handleRegister"/>
 
             <Label fx:id="lblError" styleClass="error-label" visible="false" managed="false" wrapText="true"/>
 

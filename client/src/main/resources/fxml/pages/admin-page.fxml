@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+    admin-page.fxml
+    Admin Portal — tái sử dụng layout 2 cột của personal-profile-page.
+    Left: sidebar nav (User Management, Listing Management).
+    Right: content area (TableView users / FlowPane listings).
+-->
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.auction.client.page.admin.AdminPageController"
+            styleClass="profile-page-root">
+
+    <!-- Header + Navbar -->
+    <top>
+        <VBox>
+            <fx:include source="../components/shell/header.fxml" />
+            <fx:include source="../components/shell/navbar.fxml" />
+        </VBox>
+    </top>
+
+    <!-- 2-column layout -->
+    <center>
+        <HBox styleClass="profile-layout">
+
+            <!-- ====== LEFT: Sidebar ====== -->
+            <VBox styleClass="profile-sidebar">
+
+                <!-- Title block -->
+                <VBox styleClass="admin-sidebar-header">
+                    <padding><Insets top="24" right="20" bottom="16" left="20" /></padding>
+                    <Label text="⚙" styleClass="admin-sidebar-icon" />
+                    <Label text="Admin Portal" styleClass="admin-sidebar-title" />
+                    <Label text="System Management" styleClass="admin-sidebar-subtitle" />
+                </VBox>
+
+                <!-- Nav toggle group -->
+                <fx:define>
+                    <ToggleGroup fx:id="navGroup" />
+                </fx:define>
+                <VBox styleClass="profile-nav-menu" VBox.vgrow="ALWAYS">
+                    <Label text="MODULES" styleClass="profile-nav-section-label" />
+
+                    <ToggleButton fx:id="navUsers"
+                                  text="👤  User Management"
+                                  styleClass="profile-nav-btn"
+                                  toggleGroup="$navGroup"
+                                  onAction="#handleNavUsers"
+                                  maxWidth="Infinity" />
+
+                    <ToggleButton fx:id="navListings"
+                                  text="📋  Listing Management"
+                                  styleClass="profile-nav-btn"
+                                  toggleGroup="$navGroup"
+                                  onAction="#handleNavListings"
+                                  maxWidth="Infinity" />
+                </VBox>
+
+                <!-- Back to profile -->
+                <Button text="← Back to Profile" styleClass="admin-back-btn"
+                        onAction="#handleBackToProfile">
+                    <VBox.margin><Insets top="16" right="20" bottom="20" left="20" /></VBox.margin>
+                </Button>
+            </VBox>
+
+            <!-- ====== RIGHT: Content ====== -->
+            <ScrollPane styleClass="profile-cards-scroll"
+                        fitToWidth="true"
+                        HBox.hgrow="ALWAYS">
+                <StackPane fx:id="contentArea" styleClass="profile-content-area">
+
+                    <!-- == USER MANAGEMENT == -->
+                    <VBox fx:id="usersSection" spacing="12" visible="true" managed="true">
+
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="User Management" styleClass="profile-section-title" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label fx:id="userCountLabel" text="" styleClass="admin-count-badge" />
+                        </HBox>
+                        <Label text="All registered users" styleClass="profile-section-subtitle" />
+                        <Region styleClass="profile-divider" maxWidth="Infinity" />
+
+                        <TableView fx:id="usersTable" styleClass="admin-table">
+                            <columns>
+                                <TableColumn fx:id="colUserId"       text="ID"       prefWidth="60" />
+                                <TableColumn fx:id="colUsername"     text="Username" prefWidth="140" />
+                                <TableColumn fx:id="colEmail"        text="Email"    prefWidth="200" />
+                                <TableColumn fx:id="colRole"         text="Role"     prefWidth="90" />
+                                <TableColumn fx:id="colBalance"      text="Balance"  prefWidth="110" />
+                                <TableColumn fx:id="colUserStatus"   text="Status"   prefWidth="90" />
+                            </columns>
+                        </TableView>
+                    </VBox>
+
+                    <!-- == LISTING MANAGEMENT == -->
+                    <VBox fx:id="listingsSection" spacing="12" visible="false" managed="false">
+
+                        <HBox alignment="CENTER_LEFT">
+                            <Label text="Listing Management" styleClass="profile-section-title" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label fx:id="listingCountLabel" text="" styleClass="admin-count-badge" />
+                        </HBox>
+                        <Label text="All auctions across the platform" styleClass="profile-section-subtitle" />
+                        <Region styleClass="profile-divider" maxWidth="Infinity" />
+
+                        <!-- Sub-tabs -->
+                        <fx:define>
+                            <ToggleGroup fx:id="listingTabGroup" />
+                        </fx:define>
+                        <HBox styleClass="profile-tab-bar" spacing="4">
+                            <ToggleButton fx:id="tabActive"   text="Active"             styleClass="profile-tab-btn" toggleGroup="$listingTabGroup" selected="true"  onAction="#handleTabActive" />
+                            <ToggleButton fx:id="tabPending"  text="Pending"            styleClass="profile-tab-btn" toggleGroup="$listingTabGroup"                  onAction="#handleTabPending" />
+                            <ToggleButton fx:id="tabSold"     text="Sold"               styleClass="profile-tab-btn" toggleGroup="$listingTabGroup"                  onAction="#handleTabSold" />
+                            <ToggleButton fx:id="tabUnsold"   text="Unsold / Cancelled" styleClass="profile-tab-btn" toggleGroup="$listingTabGroup"                  onAction="#handleTabUnsold" />
+                        </HBox>
+
+                        <FlowPane fx:id="listingsContainer" styleClass="profile-cards-flow" hgap="16" vgap="16" />
+                        <Label fx:id="listingsEmptyLabel" text="No listings in this category."
+                               styleClass="profile-empty-state" maxWidth="Infinity"
+                               visible="true" managed="true" />
+                    </VBox>
+
+                </StackPane>
+            </ScrollPane>
+        </HBox>
+    </center>
+
+    <bottom>
+        <fx:include source="../components/shell/footer.fxml" />
+    </bottom>
+
+</BorderPane>

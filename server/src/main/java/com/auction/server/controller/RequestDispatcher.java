@@ -5,16 +5,21 @@ import java.util.Map;
 
 import com.auction.core.protocol.EventType;
 import com.auction.core.utils.JsonMapper;
+import com.auction.server.dao.impl.IUserDao;
 
 public class RequestDispatcher {
     private final UserController userCtrl;
     private final AuctionController auctionCtrl;
     private final BidController bidCtrl;
+    private final ItemController itemCtrl;
+    private final IUserDao userDao; // dùng để xác minh quyền Admin phía Server
 
-    public RequestDispatcher(UserController userCtrl, AuctionController auctionCtrl, BidController bidCtrl) {
+    public RequestDispatcher(UserController userCtrl, AuctionController auctionCtrl, BidController bidCtrl, ItemController itemCtrl, IUserDao userDao) {
         this.userCtrl = userCtrl;
         this.auctionCtrl = auctionCtrl;
         this.bidCtrl = bidCtrl;
+        this.itemCtrl = itemCtrl;
+        this.userDao = userDao;
     }
 
     public String dispatch(Integer sessionUserId, String rawJson) {
@@ -100,6 +105,25 @@ public class RequestDispatcher {
                 case EventType.GET_PUBLIC_AUCTIONS -> auctionCtrl == null
                         ? error("Auction controller is not configured")
                         : auctionCtrl.getPublicAuctions(payload);
+                case EventType.GET_FEATURED_AUCTIONS -> auctionCtrl == null
+                        ? error("Auction controller is not configured")
+                        : auctionCtrl.getFeaturedAuctions(payload);
+                case EventType.PROMOTE_AUCTION -> auctionCtrl == null
+                        ? error("Auction controller is not configured")
+                        : auctionCtrl.promoteAuction(payload);
+                case EventType.GET_UPLOAD_SIGNATURE -> itemCtrl == null
+                        ? error("Item controller is not configured")
+                        : itemCtrl.getUploadSignature(payload);
+                case EventType.GET_ALL_AUCTIONS_ADMIN -> {
+                    // Kiểm tra quyền Admin phía Server trước khi xử lý
+                    if (!isAdminSession(sessionUserId)) {
+                        yield error("Forbidden: Admin access required.");
+                    }
+                    yield auctionCtrl == null
+                            ? error("Auction controller is not configured")
+                            : auctionCtrl.getAllAuctionsForAdmin(payload);
+                }
+                default -> error("Endpoint not implemented: " + type.name());
             };
         } catch (Exception ex) {
             System.err.println("Unhandled exception during dispatch: " + ex.getMessage());
@@ -122,9 +146,24 @@ public class RequestDispatcher {
 
     private boolean isAnonymousAllowed(EventType type) {
         return switch (type) {
-            case LOGIN, REGISTER, GET_AUCTION_DETAILS, GET_BIDS_BY_AUCTION_ID, GET_PUBLIC_AUCTIONS -> true;
+            case LOGIN, REGISTER, GET_AUCTION_DETAILS, GET_BIDS_BY_AUCTION_ID,
+                 GET_PUBLIC_AUCTIONS, GET_FEATURED_AUCTIONS -> true;
             default -> false;
         };
+    }
+
+    /**
+     * Kiểm tra user đang kết nối có phải Admin không bằng cách query DB thực tế.
+     * Client không thể giả mạo vì Server tự kiểm tra với userId từ Session.
+     */
+    private boolean isAdminSession(Integer sessionUserId) {
+        if (sessionUserId == null || userDao == null) return false;
+        try {
+            com.auction.core.users.User user = userDao.findById(sessionUserId);
+            return user != null && user.getRole() == com.auction.core.users.User.Role.ADMIN;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private void overridePayloadIdentity(EventType type, Map<String, Object> payload, Integer sessionUserId) {
@@ -132,6 +171,7 @@ public class RequestDispatcher {
             case PLACE_BID, GET_BIDS_BY_BIDDER_ID -> payload.put("bidderId", sessionUserId);
             case UPDATE_PROFILE, CHANGE_PASSWORD, LOGOUT -> payload.put("userId", sessionUserId);
             case CREATE_AUCTION, GET_AUCTIONS_BY_SELLER -> payload.put("sellerId", sessionUserId);
+            case PROMOTE_AUCTION -> payload.put("sellerId", sessionUserId); // server đè lên, bảo mật
             default -> {
                 // No identity override required for this event type.
             }

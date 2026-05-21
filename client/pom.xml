@@ -17,6 +17,7 @@
         <javafx.version>21.0.4</javafx.version>
         <app.devMode>false</app.devMode>
         <app.hotReload>false</app.hotReload>
+        <app.mockMode>false</app.mockMode>
     </properties>
 
     <dependencies>
@@ -106,6 +107,7 @@
                     <options>
                         <option>-Dapp.devMode=${app.devMode}</option>
                         <option>-Dapp.hotReload=${app.hotReload}</option>
+                        <option>-Dapp.mockMode=${app.mockMode}</option>
                     </options>
                 </configuration>
             </plugin>
@@ -118,6 +120,12 @@
             <properties>
                 <app.devMode>true</app.devMode>
                 <app.hotReload>true</app.hotReload>
+            </properties>
+        </profile>
+        <profile>
+            <id>mock</id>
+            <properties>
+                <app.mockMode>true</app.mockMode>
             </properties>
         </profile>
     </profiles>

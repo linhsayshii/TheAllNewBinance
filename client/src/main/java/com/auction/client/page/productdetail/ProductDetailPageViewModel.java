@@ -45,6 +45,7 @@ public class ProductDetailPageViewModel {
     private final StringProperty title = new SimpleStringProperty("Product detail placeholder");
     private final StringProperty description = new SimpleStringProperty("No description");
     private final StringProperty imageText = new SimpleStringProperty("Item Image");
+    private final StringProperty imageUrl = new SimpleStringProperty(null);
     private final StringProperty sellerName = new SimpleStringProperty("Unknown Seller");
     private final StringProperty currentBidDisplay = new SimpleStringProperty("$0.00");
     private final StringProperty bidderCountText = new SimpleStringProperty("0 people bidding");
@@ -71,7 +72,13 @@ public class ProductDetailPageViewModel {
             category.set(safeUpper(item.getCategory(), "CATEGORY"));
             title.set(safe(item.getName(), "Product detail placeholder"));
             description.set(safe(item.getDescription(), "No description"));
-            imageText.set(item.getImageUrl() != null && !item.getImageUrl().isBlank() ? item.getImageUrl() : "Item Image");
+            if (item.getImageUrl() != null && !item.getImageUrl().isBlank()) {
+                imageUrl.set(item.getImageUrl());
+                imageText.set(""); 
+            } else {
+                imageUrl.set(null);
+                imageText.set("Item Image");
+            }
         }
 
         sellerName.set(safe(seller, "Unknown Seller"));
@@ -192,6 +199,14 @@ public class ProductDetailPageViewModel {
 
     public boolean isBiddingEnabled() {
         return biddingEnabled.get();
+    }
+
+    public String imageUrl() {
+        return imageUrl.get();
+    }
+
+    public StringProperty imageUrlProperty() {
+        return imageUrl;
     }
 
 }

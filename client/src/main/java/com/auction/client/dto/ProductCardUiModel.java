@@ -9,10 +9,11 @@ public record ProductCardUiModel(
 		String seller,
 		String currentBid,
 		String timeLeft,
-		LocalDateTime sortTime) {
+		LocalDateTime sortTime,
+		String imageUrl) {
 
 	public ProductCardUiModel(String title, String seller, String currentBid, String timeLeft) {
-		this(null, null, title, seller, currentBid, timeLeft, null);
+		this(null, null, title, seller, currentBid, timeLeft, null, null);
 	}
 
 	public boolean isLive() {

@@ -17,8 +17,8 @@
 
             <Label text="Đăng nhập" styleClass="page-title"/>
 
-            <TextField fx:id="txtUsername" promptText="Tên đăng nhập" styleClass="input-field"/>
-            <PasswordField fx:id="txtPassword" promptText="Mật khẩu" styleClass="input-field"/>
+            <TextField fx:id="txtUsername" promptText="Tên đăng nhập" styleClass="input-field" onAction="#handleLogin"/>
+            <PasswordField fx:id="txtPassword" promptText="Mật khẩu" styleClass="input-field" onAction="#handleLogin"/>
 
             <Label fx:id="lblError" styleClass="error-label" visible="false" managed="false" wrapText="true"/>
 

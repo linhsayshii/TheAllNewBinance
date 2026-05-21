@@ -1,0 +1,232 @@
+/* ============================================================
+   Promote Modal — overlay + modal box for the Promote Listing feature
+   ============================================================ */
+
+/* Dim backdrop */
+.pm-overlay {
+    -fx-background-color: rgba(0, 0, 0, 0.55);
+    -fx-alignment: center;
+}
+
+/* Modal box */
+.pm-box {
+    -fx-background-color: -theme-bg-main;
+    -fx-background-radius: 16;
+    -fx-border-color: -theme-secondary;
+    -fx-border-width: 1;
+    -fx-border-radius: 16;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 32, 0, 0, 8);
+}
+
+/* Header */
+.pm-title {
+    -fx-font-family: "Lora";
+    -fx-font-size: 20px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -theme-text-main;
+}
+
+.pm-close-btn {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 18px;
+    -fx-text-fill: -theme-accent;
+    -fx-cursor: hand;
+    -fx-padding: 0 4 0 4;
+}
+
+.pm-close-btn:hover {
+    -fx-text-fill: -theme-primary;
+}
+
+/* Listing name */
+.pm-listing-name {
+    -fx-font-family: "Lora";
+    -fx-font-size: 15px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -theme-accent;
+    -fx-font-style: italic;
+}
+
+/* Section labels */
+.pm-section-label {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -theme-accent;
+    -fx-letter-spacing: 0.05em;
+}
+
+/* Package toggle buttons */
+.pm-pkg-btn {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+    -fx-background-color: -theme-bg-main;
+    -fx-border-color: -theme-secondary;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: -theme-text-main;
+    -fx-padding: 10 20 10 20;
+    -fx-cursor: hand;
+    -fx-min-width: 160;
+}
+
+.pm-pkg-btn:selected {
+    -fx-background-color: -theme-primary;
+    -fx-border-color: -theme-primary;
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(255,61,104,0.30), 8, 0, 0, 2);
+}
+
+.pm-pkg-btn:hover:selected {
+    -fx-border-color: -theme-primary;
+}
+
+/* Meta row (estimated end time) */
+.pm-meta-label {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-text-fill: -theme-accent;
+}
+
+.pm-meta-value {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -theme-text-main;
+}
+
+/* Description TextArea */
+.pm-desc-area {
+    -fx-font-family: "Lora";
+    -fx-font-size: 13px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -theme-text-main;
+    -fx-background-color: -bg-theme-secondary;
+    -fx-border-color: -theme-secondary;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-prompt-text-fill: -text-placeholder;
+    -fx-padding: 8 10 8 10;
+}
+
+.pm-hint {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-text-fill: -text-placeholder;
+}
+
+/* Cost row */
+.pm-cost-row {
+    -fx-padding: 12 16 12 16;
+    -fx-background-color: -bg-theme-secondary;
+    -fx-background-radius: 8;
+}
+
+.pm-cost-label {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-text-fill: -theme-accent;
+}
+
+.pm-cost-value {
+    -fx-font-family: "Lora";
+    -fx-font-size: 20px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -theme-primary;
+}
+
+.pm-balance-value {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -theme-success;
+}
+
+/* Action buttons */
+.pm-cancel-btn {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-font-weight: 500;
+    -fx-background-color: transparent;
+    -fx-border-color: -theme-secondary;
+    -fx-border-width: 1;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: -theme-accent;
+    -fx-padding: 10 24 10 24;
+    -fx-cursor: hand;
+}
+
+.pm-cancel-btn:hover {
+    -fx-border-color: -theme-accent;
+}
+
+.pm-confirm-btn {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-font-weight: 700;
+    -fx-background-color: -theme-primary;
+    -fx-border-color: transparent;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: white;
+    -fx-padding: 10 28 10 28;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(255,61,104,0.30), 8, 0, 0, 2);
+}
+
+.pm-confirm-btn:hover {
+    -fx-background-color: derive(-theme-primary, -15%);
+}
+
+.pm-confirm-btn:disabled {
+    -fx-opacity: 0.5;
+}
+
+/* Result feedback */
+.pm-result {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-padding: 10 14 10 14;
+    -fx-background-radius: 8;
+}
+
+.pm-result-ok {
+    -fx-text-fill: -theme-success;
+    -fx-background-color: rgba(34, 197, 94, 0.1);
+}
+
+.pm-result-err {
+    -fx-text-fill: -theme-error;
+    -fx-background-color: rgba(255, 61, 104, 0.1);
+}
+
+/* ── Promote button on profile-auction-card ── */
+.profile-card-promote-btn {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-background-color: transparent;
+    -fx-border-color: -theme-primary;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: -theme-primary;
+    -fx-padding: 5 12 5 12;
+    -fx-cursor: hand;
+    -fx-max-width: Infinity;
+}
+
+.profile-card-promote-btn:hover {
+    -fx-background-color: -theme-primary;
+    -fx-text-fill: white;
+}
+
+.profile-card-promote-btn-active {
+    -fx-border-color: -theme-success;
+    -fx-text-fill: -theme-success;
+}

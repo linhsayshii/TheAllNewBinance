@@ -5,8 +5,11 @@ public enum SceneRegistry {
     LOGIN_CARD("/fxml/components/auth/login-card.fxml", "Login"),
     REGISTER_CARD("/fxml/components/auth/register-card.fxml", "Register"),
     AUCTION_PAGE("/fxml/pages/auction-page.fxml", "Auction Detail"),
-    PROFILE_PAGE("/fxml/pages/profile-page.fxml", "Profile"),
-    SELLERS_PAGE("/fxml/pages/sellers-page.fxml", "Sellers");
+    PROFILE_PAGE("/fxml/pages/personal-profile-page.fxml", "My Profile"),
+    PUBLIC_SELLER_PAGE("/fxml/pages/public-seller-page.fxml", "Seller Profile"),
+    CREATE_LISTING_PAGE("/fxml/pages/create-listing-page.fxml", "Create Listing"),
+    SELLERS_PAGE("/fxml/pages/sellers-page.fxml", "Sellers"),
+    ADMIN_PAGE("/fxml/pages/admin-page.fxml", "Admin Portal");
 
     private final String fxmlPath;
     private final String title;

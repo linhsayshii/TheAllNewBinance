@@ -23,8 +23,8 @@ public class AuctionQueryService {
 
     private static final DecimalFormat PRICE_FORMAT = new DecimalFormat("#,##0.00");
     private static final int MAX_FEATURED_AUCTIONS = 12;
-    private static final long RESPONSE_TIMEOUT_MS = 3000;
-    private static final long OPEN_WAIT_TIMEOUT_MS = 1_500;
+    private static final long RESPONSE_TIMEOUT_MS = 5000;
+    private static final long OPEN_WAIT_TIMEOUT_MS = 5000;
     private static final long OPEN_WAIT_STEP_MS = 100;
     private static final long CLIENT_CACHE_TTL_MS = 10_000;
     private static final String STATUS_ACTIVE = "ACTIVE";
@@ -33,6 +33,11 @@ public class AuctionQueryService {
 
     private static volatile AuctionFeed cachedFeed = new AuctionFeed(List.of(), List.of());
     private static volatile long cacheExpiresAtMillis = 0L;
+
+    public static void clearCache() {
+        cacheExpiresAtMillis = 0L;
+        cachedFeed = new AuctionFeed(List.of(), List.of());
+    }
 
     public record AuctionFeed(List<ProductCardUiModel> liveAuctions, List<ProductCardUiModel> upcomingAuctions) {}
 
@@ -67,24 +72,40 @@ public class AuctionQueryService {
                 return new AuctionFeed(List.of(), List.of());
             }
 
-            CountDownLatch latch = new CountDownLatch(1);
-            AtomicReference<AuctionFeed> feedRef = new AtomicReference<>(new AuctionFeed(List.of(), List.of()));
-            String correlationId = java.util.UUID.randomUUID().toString();
+            CountDownLatch liveLatch = new CountDownLatch(1);
+            AtomicReference<List<ProductCardUiModel>> liveRef = new AtomicReference<>(List.of());
+            String liveCorr = java.util.UUID.randomUUID().toString();
 
-            // Register first to avoid missing very fast responses.
-            networkService.addCorrelationHandler(correlationId, raw -> {
-                feedRef.set(parsePublicAuctionCardList(raw));
-                latch.countDown();
+            networkService.addCorrelationHandler(liveCorr, raw -> {
+                liveRef.set(parsePublicAuctionCardList(raw).liveAuctions());
+                liveLatch.countDown();
+            });
+
+            CountDownLatch pendingLatch = new CountDownLatch(1);
+            AtomicReference<List<ProductCardUiModel>> pendingRef = new AtomicReference<>(List.of());
+            String pendingCorr = java.util.UUID.randomUUID().toString();
+
+            networkService.addCorrelationHandler(pendingCorr, raw -> {
+                pendingRef.set(parsePublicAuctionCardList(raw).upcomingAuctions());
+                pendingLatch.countDown();
             });
 
             networkService.getClient().sendRequest(
                 EventType.GET_PUBLIC_AUCTIONS,
-                correlationId,
-                new GetPublicAuctionsRequest(1, MAX_FEATURED_AUCTIONS, "ACTIVE,PENDING", true, false)
+                liveCorr,
+                new GetPublicAuctionsRequest(1, MAX_FEATURED_AUCTIONS, "ACTIVE", true, false)
             );
 
-            latch.await(RESPONSE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
-            return feedRef.get();
+            networkService.getClient().sendRequest(
+                EventType.GET_PUBLIC_AUCTIONS,
+                pendingCorr,
+                new GetPublicAuctionsRequest(1, MAX_FEATURED_AUCTIONS, "PENDING", true, false)
+            );
+
+            liveLatch.await(RESPONSE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+            pendingLatch.await(RESPONSE_TIMEOUT_MS, TimeUnit.MILLISECONDS);
+
+            return new AuctionFeed(liveRef.get(), pendingRef.get());
         } catch (Exception ex) {
             return new AuctionFeed(List.of(), List.of());
         }
@@ -164,9 +185,10 @@ public class AuctionQueryService {
             String timeLeft = STATUS_PENDING.equals(status)
                 ? formatUpcomingStart(startTime)
                 : formatTimeLeft(endTime);
+            String imageUrl = toSafeString(item.get("thumbnailUrl"));
 
             LocalDateTime sortTime = STATUS_PENDING.equals(status) ? startTime : endTime;
-            cards.add(new ProductCardUiModel(auctionId, status, title, seller, currentBid, timeLeft, sortTime));
+            cards.add(new ProductCardUiModel(auctionId, status, title, seller, currentBid, timeLeft, sortTime, imageUrl));
         }
         return cards;
     }
@@ -259,7 +281,7 @@ public class AuctionQueryService {
             ? formatUpcomingStart(auction.getStartTime())
             : formatTimeLeft(auction.getEndTime());
         LocalDateTime sortTime = STATUS_PENDING.equals(status) ? auction.getStartTime() : auction.getEndTime();
-        return new ProductCardUiModel(auction.getAuctionId(), status, title, seller, currentBid, timeLeft, sortTime);
+        return new ProductCardUiModel(auction.getAuctionId(), status, title, seller, currentBid, timeLeft, sortTime, auction.getThumbnailUrl());
     }
 
     private AuctionFeed splitAndSort(List<ProductCardUiModel> cards) {

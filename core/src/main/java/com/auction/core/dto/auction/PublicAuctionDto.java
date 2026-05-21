@@ -12,6 +12,10 @@ public class PublicAuctionDto {
     private LocalDateTime endTime;
     private String status;
     private String sellerDisplayName;
+    // Star Auction fields
+    private Boolean isFeatured;
+    private LocalDateTime featuredUntil;
+    private String promotedDescription;
 
     public PublicAuctionDto() {}
 
@@ -24,7 +28,10 @@ public class PublicAuctionDto {
         LocalDateTime startTime,
         LocalDateTime endTime,
         String status,
-        String sellerDisplayName
+        String sellerDisplayName,
+        Boolean isFeatured,
+        LocalDateTime featuredUntil,
+        String promotedDescription
     ) {
         this.auctionId = auctionId;
         this.itemId = itemId;
@@ -35,6 +42,9 @@ public class PublicAuctionDto {
         this.endTime = endTime;
         this.status = status;
         this.sellerDisplayName = sellerDisplayName;
+        this.isFeatured = isFeatured;
+        this.featuredUntil = featuredUntil;
+        this.promotedDescription = promotedDescription;
     }
 
     public Integer getAuctionId() {return auctionId; }
@@ -63,4 +73,13 @@ public class PublicAuctionDto {
 
     public String getSellerDisplayName() {return sellerDisplayName; }
     public void setSellerDisplayName(String sellerDisplayName) {this.sellerDisplayName = sellerDisplayName; }
+
+    public Boolean getIsFeatured() { return isFeatured; }
+    public void setIsFeatured(Boolean isFeatured) { this.isFeatured = isFeatured; }
+
+    public LocalDateTime getFeaturedUntil() { return featuredUntil; }
+    public void setFeaturedUntil(LocalDateTime featuredUntil) { this.featuredUntil = featuredUntil; }
+
+    public String getPromotedDescription() { return promotedDescription; }
+    public void setPromotedDescription(String promotedDescription) { this.promotedDescription = promotedDescription; }
 }

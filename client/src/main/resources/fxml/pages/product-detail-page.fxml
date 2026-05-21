@@ -40,7 +40,7 @@
                     <Label fx:id="categoryLabel" text="LUXURY WATCHES" styleClass="pdp-category" />
                     <Label fx:id="titleLabel" text="Product Name" wrapText="true" styleClass="pdp-title" />
 
-                    <StackPane styleClass="pdp-image-placeholder">
+                    <StackPane fx:id="imageContainer" styleClass="pdp-image-placeholder">
                       <children>
                         <Label fx:id="imagePlaceholderLabel" text="Item Image" styleClass="pdp-image-text" />
                       </children>

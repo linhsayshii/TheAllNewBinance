@@ -2,11 +2,14 @@ package com.auction.client.app;
 
 import com.auction.client.config.AppConfig;
 import com.auction.client.config.SceneRegistry;
+import com.auction.client.mock.MockDataProvider;
 import com.auction.client.scene.NavigationService;
 import com.auction.client.scene.SceneService;
 import com.auction.client.service.FontLoaderService;
 import com.auction.client.service.HotReloadService;
 import com.auction.client.service.NetworkService;
+import com.auction.client.service.UserSessionService;
+import com.auction.core.users.User;
 
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -17,8 +20,24 @@ public class ClientApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        // Init socket FIRST — controllers may register handlers on initialize()
+        // Init network FIRST — controllers register handlers on initialize()
         NetworkService.init("wss://binance.hvlsv.uk");
+
+        // ── Mock Mode ──────────────────────────────────────────────────
+        if (AppConfig.isMockMode()) {
+            printMockBanner();
+            // Auto-login the default mock user so header + profile work
+            MockDataProvider provider = NetworkService.getInstance().getMockDataProvider();
+            if (provider != null) {
+                User defaultUser = provider.getDefaultUser();
+                if (defaultUser != null) {
+                    UserSessionService.getInstance().login(defaultUser);
+                    System.out.println("[MockMode] Auto-logged in as: "
+                        + defaultUser.getUsername() + " (id=" + defaultUser.getId() + ")");
+                }
+            }
+        }
+        // ──────────────────────────────────────────────────────────────
 
         FontLoaderService.preloadProjectFonts();
 
@@ -30,6 +49,9 @@ public class ClientApp extends Application {
         primaryStage.setHeight(AppConfig.defaultHeight());
         primaryStage.setMinWidth(AppConfig.minWidth());
         primaryStage.setMinHeight(AppConfig.minHeight());
+        if (AppConfig.isMockMode()) {
+            primaryStage.setTitle("TheAllNewBinance [MOCK MODE]");
+        }
 
         navigationService.navigateTo(SceneRegistry.GENERAL_PAGE);
         hotReloadService.start();
@@ -46,5 +68,16 @@ public class ClientApp extends Application {
 
     public static void main(String[] args) {
         launch(args);
+    }
+
+    private static void printMockBanner() {
+        System.out.println("""
+
+            ╔══════════════════════════════════════════════════════╗
+            ║           ⚠  MOCK MODE ACTIVE  ⚠                    ║
+            ║  No server connection. Using local mock data.        ║
+            ║  Run with: mvn javafx:run -pl client -Pmock          ║
+            ╚══════════════════════════════════════════════════════╝
+            """);
     }
 }

@@ -1,6 +1,8 @@
 package com.auction.client.service;
 
 import com.auction.core.users.User;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 
 /**
  * Holds the authenticated user's data for the current session.
@@ -10,7 +12,7 @@ public class UserSessionService {
 
     private static UserSessionService instance;
 
-    private User currentUser;
+    private ObjectProperty<User> currentUserProperty = new SimpleObjectProperty<>();
 
     private UserSessionService() {}
 
@@ -22,19 +24,39 @@ public class UserSessionService {
     }
 
     public boolean isAuthenticated() {
-        return currentUser != null;
+        return currentUserProperty.get() != null;
     }
 
     public User getCurrentUser() {
-        return currentUser;
+        return currentUserProperty.get();
+    }
+
+    public ObjectProperty<User> currentUserProperty() {
+        return currentUserProperty;
     }
 
     /** Call after receiving a successful LOGIN/REGISTER response from the server. */
     public void login(User user) {
-        this.currentUser = user;
+        this.currentUserProperty.set(user);
     }
 
     public void logout() {
-        this.currentUser = null;
+        try {
+            if (isAuthenticated()) {
+                Integer userId = getCurrentUser().getId();
+                java.util.Map<String, Object> payload = new java.util.HashMap<>();
+                if (userId != null) {
+                    payload.put("userId", userId);
+                }
+                com.auction.client.service.NetworkService.getInstance().sendRequest(
+                    com.auction.core.protocol.EventType.LOGOUT,
+                    payload
+                );
+            }
+        } catch (Exception e) {
+            System.err.println("Error during network logout: " + e.getMessage());
+        } finally {
+            this.currentUserProperty.set(null);
+        }
     }
 }

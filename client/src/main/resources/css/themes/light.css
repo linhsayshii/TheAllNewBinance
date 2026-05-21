@@ -1,9 +1,30 @@
+/* light.css */
 .root {
-    -app-bg: #ececec;
-    -surface-bg: #f4f4f4;
-    -panel-bg: #c7c7c9;
-    -brand: #ff3d68;
-    -text-primary: #5d2d39;
-    -text-secondary: #ff6687;
-    -border-color: #ff3d68;
+    /* --- NỀN TẢNG (BACKGROUND & SURFACE) --- */
+    -theme-bg-main:      -color-neutral-50;  /* Trắng sáng nhất cho nền tổng */
+    -theme-bg-light-surface: -color-neutral-300; /* Bề mặt sáng, dùng cho thẻ, bảng, v.v. */
+    -theme-bg-surface:   -color-neutral-600; /* Card/Panel hơi xám nhẹ để nổi lên */
+    -theme-border:       -color-neutral-200; /* Viền siêu mỏng, nhẹ nhàng */
+
+    /* --- VĂN BẢN (TEXT) --- */
+    -theme-text-main:    -color-text-500;    /* Chữ đen chuẩn */
+    -theme-text-muted:   -color-text-300;    /* Chữ xám cho placeholder/mô tả phụ */
+    -theme-text-on-fill: -color-neutral-50;  /* Chữ trắng nằm trên các nút bấm đậm */
+
+    /* --- MÀU CHỦ ĐẠO (BRAND COLORS) --- */
+    -theme-primary:        -color-primary-500;
+    -theme-primary-hover:  -color-primary-600; /* Đậm hơn một chút khi hover */
+    -theme-primary-active: -color-primary-700; /* Đậm nhất khi click (pressed) */
+
+    -theme-secondary:        -color-secondary-500;
+    -theme-secondary-hover:  -color-secondary-600;
+
+    -theme-accent:         -color-accent-500;
+    
+    /* --- MÀU TRẠNG THÁI (STATE COLORS) --- */
+    -theme-error:          -color-error-500;
+    -theme-error-bg:       -color-error-50;    /* Nền nhạt cho thông báo lỗi */
+    -theme-success:        -color-success-500;
+    -theme-warning:        -color-warning-500;
+    -theme-info:           -color-info-500;
 }

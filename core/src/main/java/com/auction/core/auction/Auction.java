@@ -20,6 +20,10 @@ public class Auction extends Entity {
     private Status status;
     private int winnerId;
     private double finalPrice;
+    // Star Auction promotion fields
+    private Boolean isFeatured = false;
+    private LocalDateTime featuredUntil;
+    private String promotedDescription;
 
 
     public Auction() {
@@ -97,4 +101,13 @@ public class Auction extends Entity {
 
     public Double getFinalPrice() { return finalPrice; }
     public void setFinalPrice(Double finalPrice) { this.finalPrice = finalPrice; this.updateTimestamp(); }
+
+    public Boolean getIsFeatured() { return isFeatured != null && isFeatured; }
+    public void setIsFeatured(Boolean isFeatured) { this.isFeatured = isFeatured; this.updateTimestamp(); }
+
+    public LocalDateTime getFeaturedUntil() { return featuredUntil; }
+    public void setFeaturedUntil(LocalDateTime featuredUntil) { this.featuredUntil = featuredUntil; this.updateTimestamp(); }
+
+    public String getPromotedDescription() { return promotedDescription; }
+    public void setPromotedDescription(String promotedDescription) { this.promotedDescription = promotedDescription; this.updateTimestamp(); }
 }

@@ -1,29 +1,22 @@
 .general-page-root {
-    -fx-background-color: -app-bg;
+    -fx-background-color: -theme-bg-main;
 }
 
 .gp-scroll {
-    -fx-background-color: -app-bg;
-    -fx-background: -app-bg;
+    -fx-background-color: -theme-bg-main;
+    -fx-background: -theme-bg-main;
 }
 
 .gp-scroll > .viewport {
-    -fx-background-color: -app-bg;
+    -fx-background-color: -theme-bg-main;
 }
 
 .gp-content-root {
-    -fx-background-color: -app-bg;
+    -fx-background-color: -theme-bg-main;
 }
 
 .gp-banner-pane {
-    -fx-background-color: #FFD3DB;
-}
-
-.gp-banner-title {
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 42px;
-    -fx-font-weight: 800;
-    -fx-text-fill: -text-primary;
+    -fx-background-color: -theme-bg-main;
 }
 
 .gp-section-wrap {
@@ -31,15 +24,15 @@
 }
 
 .gp-section-title {
-    -fx-font-family: "Inria Serif";
+    -fx-font-family: "Lora";
     -fx-font-size: 40px;
-    -fx-font-weight: 700;
-    -fx-text-fill: -text-primary;
-    -fx-padding: 40 0 0 0;
+    -fx-font-weight: 400;
+    -fx-text-fill: -theme-primary;
+    -fx-padding: 0 0 0 0;
 }
 
 .gp-section-divider {
-    -fx-background-color: -text-primary;
+    -fx-background-color: -theme-text-main;
     -fx-padding: 0 0 0 0;
 }
 
@@ -73,7 +66,7 @@
 }
 
 .gp-cards-nav-icon {
-    -fx-icon-color: -brand;
+    -fx-icon-color: -theme-primary;
 }
 
 .gp-cards-nav-btn:disabled {
@@ -91,11 +84,11 @@
     -fx-min-height: 6;
     -fx-pref-height: 6;
     -fx-max-height: 6;
-    -fx-background-color: rgba(93, 45, 57, 0.25);
+    -fx-background-color: rgba(29, 12, 25, 0.25);
     -fx-background-radius: 999;
     -fx-cursor: hand;
 }
 
 .gp-block-indicator-active {
-    -fx-background-color: -brand;
+    -fx-background-color: -theme-primary;
 }

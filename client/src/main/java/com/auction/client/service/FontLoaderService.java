@@ -12,7 +12,13 @@ public final class FontLoaderService {
         "/fonts/InriaSerif-Bold.ttf",
         "/fonts/Montserrat-Regular.ttf",
         "/fonts/Montserrat-SemiBold.ttf",
-        "/fonts/Montserrat-Bold.ttf"
+        "/fonts/Montserrat-Bold.ttf",
+        "/fonts/Lora-Regular.ttf",
+        "/fonts/Lora-Medium.ttf",
+        "/fonts/Lora-SemiBold.ttf",
+        "/fonts/Lora-Bold.ttf",
+        "/fonts/Lora-Italic.ttf",
+        "/fonts/Lora-BoldItalic.ttf"
     );
 
     private FontLoaderService() {

@@ -5,6 +5,7 @@ import java.util.Map;
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.dto.ProductCardUiModel;
 import com.auction.client.scene.NavigationService;
+import com.auction.client.service.ImageLoader;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -15,6 +16,9 @@ import javafx.scene.layout.Region;
 public class AuctionCardComponentController {
 
 	private static final long MAX_CLICK_DURATION_MILLIS = 250;
+
+	@FXML
+	private javafx.scene.layout.StackPane imageContainer;
 
 	@FXML
 	private Label imageLabel;
@@ -72,7 +76,9 @@ public class AuctionCardComponentController {
 		}
 
 		this.auctionId = model.auctionId();
-		imageLabel.setText("Item Image");
+		
+		ImageLoader.loadImage(model.imageUrl(), imageContainer, imageLabel);
+
 		timeLeftLabel.setText("End in " + model.timeLeft());
 		titleLabel.setText(model.title());
 		priceLabel.setText(model.currentBid());

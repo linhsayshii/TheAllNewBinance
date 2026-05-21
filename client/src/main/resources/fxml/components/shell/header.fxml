@@ -9,6 +9,8 @@
 <?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
 <?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -18,12 +20,11 @@
         <Insets top="18.0" right="52.0" bottom="18.0" left="52.0" />
     </padding>
     <children>
-        <VBox alignment="CENTER_LEFT" spacing="0.0">
-            <children>
-                <Label text="LOGO" styleClass="gp-logo-line" onMouseClicked="#handleGoToGeneral" />
-                <Label text="NEWBINANCE" styleClass="gp-logo-line" onMouseClicked="#handleGoToGeneral" />
-            </children>
-        </VBox>
+        <ImageView fitHeight="40.0" pickOnBounds="true" preserveRatio="true" onMouseClicked="#handleGoToGeneral" styleClass="gp-logo-img">
+            <image>
+                <Image url="@../../../images/branding/logo.png" />
+            </image>
+        </ImageView>
         <TextField promptText="Search items and sellers" prefWidth="520.0" styleClass="gp-search-field" />
         <Region HBox.hgrow="ALWAYS" />
         <HBox fx:id="guestContainer" alignment="CENTER" spacing="20">
@@ -32,10 +33,12 @@
                 <Button text="Sign Up" onAction="#handleGoToRegister" styleClass="gp-signup-btn" />
             </children>
         </HBox>
-        <HBox fx:id="authContainer" alignment="CENTER" spacing="20" visible="false" managed="false">
+        <HBox fx:id="authContainer" alignment="CENTER" spacing="16" visible="false" managed="false">
             <children>
                 <Label text="Notifications" styleClass="gp-top-link" />
-                <Hyperlink fx:id="usernameLink" text="Username" onAction="#handleGoToProfile" styleClass="gp-top-link" />
+                <Hyperlink fx:id="usernameLink" text="Username" styleClass="gp-top-link" />
+                <Button fx:id="adminBtn" text="⚙ Admin" styleClass="gp-admin-btn"
+                        onAction="#handleGoToAdmin" visible="false" managed="false" />
             </children>
         </HBox>
         <Button onAction="#handleToggleTheme" styleClass="gp-theme-icon-btn">

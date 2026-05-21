@@ -47,9 +47,9 @@
                     </VBox>
 
                     <!-- Image Placeholder -->
-                    <StackPane styleClass="auction-image-box">
+                    <StackPane fx:id="imageContainer" styleClass="auction-image-box">
                       <children>
-                        <Label fx:id="imagePlaceholderLabel" text="Item Image" styleClass="auction-image-text" />
+                        <Label fx:id="imageLabel" text="Item Image" styleClass="auction-image-text" />
                       </children>
                     </StackPane>
 
@@ -91,8 +91,10 @@
                     <!-- Timer Panel -->
                     <VBox styleClass="auction-timer-panel">
                       <children>
-                        <HBox alignment="CENTER_RIGHT">
+                        <HBox alignment="CENTER_LEFT">
                           <children>
+                            <Label fx:id="statusTimePrefixLabel" text="End At" styleClass="auction-timer-date" />
+                            <Region HBox.hgrow="ALWAYS" />
                             <Label fx:id="dayLabel" text="Tuesday 03:06" styleClass="auction-timer-date" />
                           </children>
                         </HBox>
@@ -138,7 +140,7 @@
                         <!-- Current Bid -->
                         <VBox spacing="2">
                           <children>
-                            <Label text="Current Bid" styleClass="auction-bid-caption" />
+                            <Label fx:id="priceCaptionLabel" text="Current Bid" styleClass="auction-bid-caption" />
                             <Label fx:id="currentBidLabel" text="\$0.00" styleClass="auction-bid-price" />
                           </children>
                         </VBox>
@@ -169,19 +171,29 @@
                           </children>
                         </HBox>
 
-                        <!-- Bid Input -->
-                        <TextField fx:id="bidAmountInput" promptText="\$99.09 or up" styleClass="auction-bid-input" />
-
-                        <!-- Action Buttons -->
-                        <HBox spacing="10">
+                        <!-- Bidding Input Area (hidden when ended) -->
+                        <VBox fx:id="biddingInputArea" spacing="10">
                           <children>
-                            <Button fx:id="placeBidButton" text="Place Bid" onAction="#handlePlaceBid" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="auction-btn-outline" />
-                            <Button text="Set Auto Bid" onAction="#handleSetAutoBid" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="auction-btn-filled" />
+                            <TextField fx:id="bidAmountInput" promptText="\$99.09 or up" styleClass="auction-bid-input" />
+                            <HBox spacing="10">
+                              <children>
+                                <Button fx:id="placeBidButton" text="Place Bid" onAction="#handlePlaceBid" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="auction-btn-outline" />
+                                <Button text="Set Auto Bid" onAction="#handleSetAutoBid" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="auction-btn-filled" />
+                              </children>
+                            </HBox>
                           </children>
-                        </HBox>
+                        </VBox>
+
+                        <!-- Winner Box (shown only when ended) -->
+                        <VBox fx:id="winnerBox" spacing="8" styleClass="auction-winner-box" visible="false" managed="false">
+                          <children>
+                            <Label text="AUCTION ENDED" styleClass="auction-winner-title" />
+                            <Label fx:id="winnerLabel" text="Selected by Winner" styleClass="auction-winner-text" />
+                          </children>
+                        </VBox>
 
                         <!-- Login Prompt -->
-                        <StackPane styleClass="auction-login-prompt-box">
+                        <StackPane fx:id="loginPromptBox" styleClass="auction-login-prompt-box">
                           <children>
                             <Label fx:id="loginPromptLabel" text="Please log in or sign up to place a bid" styleClass="auction-login-prompt" />
                           </children>
