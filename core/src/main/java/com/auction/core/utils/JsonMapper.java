@@ -1,5 +1,7 @@
 package com.auction.core.utils;
 
+import com.auction.core.products.Item;
+import com.auction.core.products.serialization.ItemJsonDeserializer;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.TypeAdapter;
@@ -17,6 +19,7 @@ public class JsonMapper {
     private static final Gson GSON =
             new GsonBuilder()
                     .setDateFormat("yyyy-MM-dd HH:mm:ss")
+                    .registerTypeAdapter(Item.class, new ItemJsonDeserializer())
                     .registerTypeAdapter(
                             LocalDateTime.class,
                             new TypeAdapter<LocalDateTime>() {

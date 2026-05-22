@@ -288,15 +288,22 @@ public class MockDataProvider {
             if (req.getSellerId() == null) return errorJson("Missing sellerId");
 
             int newItemId = items.stream().mapToInt(Item::getId).max().orElse(0) + 1;
+            com.auction.core.products.CategoryType catEnum =
+                    com.auction.core.products.CategoryType.valueOf(
+                            req.getItemCategory().trim().toUpperCase());
+            java.util.Map<String, Object> attrs = new java.util.HashMap<>();
+            attrs.put("category", req.getItemCategory());
+
             Item newItem =
-                    new Item(
-                            newItemId,
-                            req.getSellerId(),
-                            req.getItemTitle(),
-                            req.getItemDescription(),
-                            req.getItemCategory(),
-                            req.getItemImageUrl(),
-                            false);
+                    com.auction.core.products.factory.ItemFactoryProvider.getFactory(catEnum)
+                            .createItem(
+                                    newItemId,
+                                    req.getSellerId(),
+                                    req.getItemTitle(),
+                                    req.getItemDescription(),
+                                    req.getItemImageUrl(),
+                                    false,
+                                    attrs);
             items.add(newItem);
 
             int newAuctionId = auctions.stream().mapToInt(Auction::getId).max().orElse(0) + 1;

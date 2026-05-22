@@ -33,8 +33,13 @@ class AuctionPageViewModelTest {
         mockAuction.setStartTime(LocalDateTime.now().minusHours(1));
         mockAuction.setEndTime(LocalDateTime.now().plusHours(1));
 
+        java.util.Map<String, Object> attrs = new java.util.HashMap<>();
+        attrs.put("category", "WATCHES");
         Item mockItem =
-                new Item(101, 1, "Test Product", "Description", "Category", "ImageUrl", false);
+                com.auction.core.products.factory.ItemFactoryProvider.getFactory(
+                                com.auction.core.products.CategoryType.WATCHES)
+                        .createItem(
+                                101, 1, "Test Product", "Description", "ImageUrl", false, attrs);
 
         viewModel.applyAuctionData(mockAuction, mockItem, "Seller", null, null);
 

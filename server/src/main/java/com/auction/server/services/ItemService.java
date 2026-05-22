@@ -1,8 +1,12 @@
 package com.auction.server.services;
 
+import com.auction.core.products.CategoryType;
 import com.auction.core.products.Item;
+import com.auction.core.products.factory.ItemFactoryProvider;
 import com.auction.core.services.IItemService;
 import com.auction.server.dao.impl.IItemDao;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class ItemService implements IItemService {
@@ -17,8 +21,20 @@ public class ItemService implements IItemService {
             int sellerId, String name, String description, String category, String imageUrl) {
         return CompletableFuture.supplyAsync(
                 () -> {
+                    CategoryType catEnum = CategoryType.valueOf(category.trim().toUpperCase());
+                    Map<String, Object> attrs = new HashMap<>();
+                    attrs.put("category", category);
+
                     Item item =
-                            new Item(null, sellerId, name, description, category, imageUrl, false);
+                            ItemFactoryProvider.getFactory(catEnum)
+                                    .createItem(
+                                            null,
+                                            sellerId,
+                                            name,
+                                            description,
+                                            imageUrl,
+                                            false,
+                                            attrs);
                     itemDao.addItem(item);
                     return item;
                 });

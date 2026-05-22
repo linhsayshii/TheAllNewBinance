@@ -4,11 +4,12 @@ package com.auction.core.exception;
  * Categorized numeric error codes for the distributed auction system.
  *
  * <p>Code ranges follow enterprise layering convention:
+ *
  * <ul>
- *   <li>1xxx - Infrastructure and network layer errors</li>
- *   <li>2xxx - Identity and access context (user authentication)</li>
- *   <li>25xx - Wallet and payment context (financial operations)</li>
- *   <li>3xxx - Auction and bidding domain invariant violations</li>
+ *   <li>1xxx - Infrastructure and network layer errors
+ *   <li>2xxx - Identity and access context (user authentication)
+ *   <li>25xx - Wallet and payment context (financial operations)
+ *   <li>3xxx - Auction and bidding domain invariant violations
  * </ul>
  */
 public enum ErrorCode {
@@ -46,8 +47,8 @@ public enum ErrorCode {
     }
 
     /**
-     * Resolves an ErrorCode from its integer value.
-     * Falls back to MALFORMED_REQUEST if the value is unrecognized.
+     * Resolves an ErrorCode from its integer value. Falls back to MALFORMED_REQUEST if the value is
+     * unrecognized.
      */
     public static ErrorCode fromValue(int value) {
         for (ErrorCode code : values()) {

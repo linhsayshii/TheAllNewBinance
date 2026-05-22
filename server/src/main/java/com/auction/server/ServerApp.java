@@ -1,5 +1,7 @@
 package com.auction.server;
 
+import com.auction.core.products.attribute.LuxuryAttributes;
+import com.auction.core.products.factory.ItemFactoryProvider;
 import com.auction.core.services.IAuctionService;
 import com.auction.core.services.IBidService;
 import com.auction.core.services.IUserService;
@@ -21,10 +23,35 @@ import com.auction.server.services.AuctionService;
 import com.auction.server.services.BidQueueManager;
 import com.auction.server.services.BidService;
 import com.auction.server.services.UserService;
+import java.util.logging.Logger;
 
 public class ServerApp {
+
+    private static final Logger LOGGER = Logger.getLogger(ServerApp.class.getName());
+
     public static void main(String[] args) {
-        // 1. Dependency Injection - Instantiating DAOs
+        // ── Phase 7: Application Startup Initialization ──────────────────────
+
+        // Step 1: Force JVM class-load of LuxuryAttributes to pre-populate the KEY_POOL.
+        // Without this, JVM lazy-loading may leave KEY_POOL empty when the first JSON
+        // arrives, causing AttributeKey.getByName() to return null silently.
+        // Using LuxuryAttributes.class.getName() (not a String literal) ensures the compiler
+        // catches any future package rename or class move immediately.
+        try {
+            Class.forName(LuxuryAttributes.class.getName());
+            LOGGER.info("LuxuryAttributes class loaded – KEY_POOL pre-populated.");
+        } catch (ClassNotFoundException e) {
+            LOGGER.severe("Failed to load LuxuryAttributes: " + e.getMessage());
+            return; // Cannot proceed safely without attribute keys
+        }
+
+        // Step 2: Scan SPI descriptors and freeze the ItemFactory registry.
+        // Must run before any DAO or WebSocket handler that creates Item instances.
+        ItemFactoryProvider.initialize();
+
+        // ── Dependency Injection ──────────────────────────────────────────────
+
+        // 1. Instantiating DAOs
         IUserDao userDao = new UserDao();
         IAuctionDao auctionDao = new AuctionDao();
         IBidDao bidDao = new BidDao();

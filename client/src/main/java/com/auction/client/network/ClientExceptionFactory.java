@@ -22,7 +22,7 @@ public final class ClientExceptionFactory {
      * Creates the most specific DomainException subclass for the given numeric error code.
      *
      * @param errorCodeValue the integer value transmitted in the JSON errorCode field
-     * @param message        the human-readable message received from the server
+     * @param message the human-readable message received from the server
      * @return a typed DomainException ready for pattern-matching dispatch in the UI layer
      */
     public static DomainException create(int errorCodeValue, String message) {

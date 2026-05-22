@@ -2,20 +2,35 @@ package com.auction.core.products;
 
 import com.auction.core.Entity;
 
-public class Item extends Entity {
-    private Integer id; // Khớp INT AUTO_INCREMENT
-    private Integer sellerId; // Người bán (FK)
+/**
+ * Abstract sealed base class for all auctionable products. Sealing this class gives the compiler
+ * full visibility of the type hierarchy, enabling exhaustiveness checking in Java 21 switch
+ * expressions across the codebase.
+ *
+ * <p>Three concrete subclasses cover all 8 product categories:
+ *
+ * <ul>
+ *   <li>{@link LuxuryCollectible} – WATCHES, FASHION, COLLECTIBLES, WINE
+ *   <li>{@link ArtisticCreation} – ART, MUSIC
+ *   <li>{@link PrecisionMechanical} – SPORTS, CAMERAS
+ * </ul>
+ */
+public abstract sealed class Item extends Entity
+        permits LuxuryCollectible, ArtisticCreation, PrecisionMechanical {
+
+    private Integer id;
+    private Integer sellerId;
     private String name;
     private String description;
-    private String category;
+    private CategoryType category;
     private String imageUrl;
 
-    public Item(
+    protected Item(
             Integer id,
             Integer sellerId,
             String name,
             String description,
-            String category,
+            CategoryType category,
             String imageUrl,
             Boolean isDeleted) {
         super();
@@ -29,9 +44,13 @@ public class Item extends Entity {
     }
 
     /**
-     * public Item(Integer id, Integer sellerId, String name, String description, String category,
-     * String imageUrl) { this(id, sellerId, name, description, category, imageUrl, false); }
+     * Returns a human-readable summary of the subclass-specific fields. Used for display and
+     * logging purposes.
      */
+    public abstract String getDetailedSpecs();
+
+    // ── Getters & Setters ────────────────────────────────────────────────────
+
     public Integer getId() {
         return id;
     }
@@ -66,11 +85,11 @@ public class Item extends Entity {
         updateTimestamp();
     }
 
-    public String getCategory() {
+    public CategoryType getCategory() {
         return category;
     }
 
-    public void setCategory(String category) {
+    public void setCategory(CategoryType category) {
         this.category = category;
         updateTimestamp();
     }

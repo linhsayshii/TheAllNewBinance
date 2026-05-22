@@ -4,10 +4,10 @@ import com.auction.core.exception.DomainException;
 import com.auction.core.exception.ErrorCode;
 
 /**
- * Sealed base for all auction and bidding domain violations.
- * Permits only known concrete auction exception types for compiler-enforced exhaustiveness.
+ * Sealed base for all auction and bidding domain violations. Permits only known concrete auction
+ * exception types for compiler-enforced exhaustiveness.
  */
-public sealed abstract class AuctionException extends DomainException
+public abstract sealed class AuctionException extends DomainException
         permits AuctionClosedException, InvalidBidException, ShillBiddingForbiddenException {
 
     protected AuctionException(ErrorCode errorCode) {

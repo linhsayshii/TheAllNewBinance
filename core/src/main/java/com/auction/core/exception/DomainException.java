@@ -4,13 +4,14 @@ package com.auction.core.exception;
  * Abstract base class for all domain business exceptions in the auction system.
  *
  * <p>Design rationale:
+ *
  * <ul>
  *   <li>Abstract: prevents direct instantiation; all concrete exceptions must belong to a
- *       recognized domain subdomain (auction, wallet, user).</li>
+ *       recognized domain subdomain (auction, wallet, user).
  *   <li>Sub-hierarchies are sealed at their own package level (AuctionException, WalletException,
- *       UserException) enforcing exhaustiveness checks at the subdomain switch level.</li>
- *   <li>Stackless: overrides fillInStackTrace() to prevent JVM stack capture, reducing
- *       network payload size and preventing server internals from leaking to the client.</li>
+ *       UserException) enforcing exhaustiveness checks at the subdomain switch level.
+ *   <li>Stackless: overrides fillInStackTrace() to prevent JVM stack capture, reducing network
+ *       payload size and preventing server internals from leaking to the client.
  * </ul>
  */
 public abstract class DomainException extends RuntimeException {

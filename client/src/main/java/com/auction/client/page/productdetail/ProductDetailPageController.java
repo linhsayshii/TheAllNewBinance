@@ -132,13 +132,13 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
             // Handle error response: parse errorCode and dispatch to typed UI handler
             if (!(success instanceof Boolean) || !((Boolean) success)) {
                 Object errCodeObj = response.get("errorCode");
-                String message = response.get("message") instanceof String msg
-                        ? msg
-                        : "An error occurred. Please try again.";
+                String message =
+                        response.get("message") instanceof String msg
+                                ? msg
+                                : "An error occurred. Please try again.";
 
                 if (errCodeObj instanceof Number errNum) {
-                    DomainException ex =
-                            ClientExceptionFactory.create(errNum.intValue(), message);
+                    DomainException ex = ClientExceptionFactory.create(errNum.intValue(), message);
                     Platform.runLater(() -> dispatchBidError(ex));
                 } else {
                     Platform.runLater(() -> showInfo("Bid Failed", message));
@@ -163,9 +163,9 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
     }
 
     /**
-     * Routes a typed DomainException to the appropriate UI action.
-     * Uses Java 21 Pattern Matching switch inside Platform.runLater() to guarantee
-     * thread safety and eliminate MatchException crashes from unhandled subtypes.
+     * Routes a typed DomainException to the appropriate UI action. Uses Java 21 Pattern Matching
+     * switch inside Platform.runLater() to guarantee thread safety and eliminate MatchException
+     * crashes from unhandled subtypes.
      */
     private void dispatchBidError(DomainException ex) {
         switch (ex) {
@@ -174,7 +174,8 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
                 showInfo("Auction Closed", e.getMessage());
             }
             case InsufficientBalanceException e -> {
-                showInfo("Insufficient Balance",
+                showInfo(
+                        "Insufficient Balance",
                         "Your balance is too low to hold the 30% deposit. Please top up.");
             }
             case ShillBiddingForbiddenException e -> {

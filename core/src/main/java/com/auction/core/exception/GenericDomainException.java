@@ -1,8 +1,8 @@
 package com.auction.core.exception;
 
 /**
- * Fallback domain exception for unrecognized or generic error codes received over the network.
- * Used exclusively on the client side when no specific subclass can be mapped.
+ * Fallback domain exception for unrecognized or generic error codes received over the network. Used
+ * exclusively on the client side when no specific subclass can be mapped.
  */
 public final class GenericDomainException extends DomainException {
 

@@ -39,9 +39,7 @@ public abstract class BaseController {
         } catch (DomainException ex) {
             System.err.printf(
                     "[DOMAIN ERROR] Code: %d | Type: %s | Message: %s%n",
-                    ex.getErrorCode().getValue(),
-                    ex.getClass().getSimpleName(),
-                    ex.getMessage());
+                    ex.getErrorCode().getValue(), ex.getClass().getSimpleName(), ex.getMessage());
             return ApiResponse.error(ex.getErrorCode(), ex.getMessage());
         } catch (IllegalArgumentException | IllegalStateException ex) {
             return ApiResponse.error(ex.getMessage());
@@ -91,9 +89,7 @@ public abstract class BaseController {
         } catch (DomainException ex) {
             System.err.printf(
                     "[DOMAIN ERROR] Code: %d | Type: %s | Message: %s%n",
-                    ex.getErrorCode().getValue(),
-                    ex.getClass().getSimpleName(),
-                    ex.getMessage());
+                    ex.getErrorCode().getValue(), ex.getClass().getSimpleName(), ex.getMessage());
             return CompletableFuture.completedFuture(
                     ApiResponse.error(ex.getErrorCode(), ex.getMessage()));
         } catch (IllegalArgumentException | IllegalStateException ex) {

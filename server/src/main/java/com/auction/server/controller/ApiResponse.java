@@ -36,8 +36,8 @@ public final class ApiResponse {
     }
 
     /**
-     * Typed domain error response. Serializes the numeric ErrorCode value so the client can
-     * perform type-safe dispatch via ClientExceptionFactory without brittle string matching.
+     * Typed domain error response. Serializes the numeric ErrorCode value so the client can perform
+     * type-safe dispatch via ClientExceptionFactory without brittle string matching.
      */
     public static String error(ErrorCode errorCode, String message) {
         Map<String, Object> response = new HashMap<>();

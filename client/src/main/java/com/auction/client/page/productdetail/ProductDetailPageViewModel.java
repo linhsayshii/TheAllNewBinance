@@ -77,7 +77,10 @@ public class ProductDetailPageViewModel {
         }
 
         if (item != null) {
-            category.set(safeUpper(item.getCategory(), "CATEGORY"));
+            category.set(
+                    item.getCategory() != null
+                            ? item.getCategory().getDisplayName().toUpperCase()
+                            : "CATEGORY");
             title.set(safe(item.getName(), "Product detail placeholder"));
             description.set(safe(item.getDescription(), "No description"));
             if (item.getImageUrl() != null && !item.getImageUrl().isBlank()) {
