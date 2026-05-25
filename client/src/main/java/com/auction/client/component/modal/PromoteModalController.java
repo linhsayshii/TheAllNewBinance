@@ -104,9 +104,9 @@ public class PromoteModalController {
         double balance = 0.0;
         var user = UserSessionService.getInstance().getCurrentUser();
         if (user != null && user.getBalance() != null) {
-            balance =
-                    user.getBalance()
-                            - (user.getLockedBalance() != null ? user.getLockedBalance() : 0.0);
+            double rawBalance = user.getBalance().doubleValue();
+            double rawLocked = user.getLockedBalance() != null ? user.getLockedBalance().doubleValue() : 0.0;
+            balance = rawBalance - rawLocked;
         }
         balanceLabel.setText(String.format("$%,.2f", balance));
 

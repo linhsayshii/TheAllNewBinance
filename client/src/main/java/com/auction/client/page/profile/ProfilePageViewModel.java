@@ -120,8 +120,8 @@ public class ProfilePageViewModel {
                         : "");
 
         // Finance
-        double balance = user.getBalance() != null ? user.getBalance() : 0.0;
-        double locked = user.getLockedBalance() != null ? user.getLockedBalance() : 0.0;
+        double balance = user.getBalance() != null ? user.getBalance().doubleValue() : 0.0;
+        double locked = user.getLockedBalance() != null ? user.getLockedBalance().doubleValue() : 0.0;
         totalBalance.set(balance);
         lockedBalance.set(locked);
         availableBalance.set(balance - locked);

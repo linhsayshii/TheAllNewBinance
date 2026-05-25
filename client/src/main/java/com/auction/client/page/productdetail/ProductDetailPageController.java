@@ -97,6 +97,11 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
 
         if (networkReady && viewModel.getAuctionId() > 0) {
             fetchBidHistoryFromServer(viewModel.getAuctionId());
+            // Đăng ký nhận broadcast cho phiên đấu giá này
+            NetworkService.getInstance()
+                    .sendRequest(
+                            EventType.SUBSCRIBE_AUCTION,
+                            Map.of("auctionId", viewModel.getAuctionId()));
         }
     }
 
@@ -155,7 +160,16 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
             if (incomingBid == null) {
                 return;
             }
-            Platform.runLater(() -> mergeSingleBid(incomingBid));
+            // Chỉ xóa ô nhập liệu khi gói tin là của chính mình (có correlationId)
+            boolean isOwnBid = response.containsKey("correlationId");
+
+            // Kiểm tra auctionId bằng .equals() (tránh so sánh reference của Integer với !=)
+            Integer incomingAuctionId = incomingBid.getAuctionId();
+            if (incomingAuctionId != null
+                    && !incomingAuctionId.equals(viewModel.getAuctionId())) {
+                return;
+            }
+            Platform.runLater(() -> mergeSingleBid(incomingBid, isOwnBid));
         } catch (Exception e) {
             System.err.println(
                     "Error processing place bid response in ProductDetail: " + e.getMessage());
@@ -318,11 +332,15 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
         refreshBidHistoryList(viewModel.bids());
     }
 
-    private void mergeSingleBid(Bid bid) {
+    private void mergeSingleBid(Bid bid, boolean isOwnBid) {
         List<Bid> merged = new ArrayList<>(viewModel.bids());
         merged.add(bid);
         updateBidViews(merged);
-        bidAmountInput.clear();
+        // Chỉ xóa ô nhập liệu khi gói tin là của chính mình để không làm gián đoạn
+        // người dùng khác đang gõ số tiền
+        if (isOwnBid) {
+            bidAmountInput.clear();
+        }
     }
 
     private void refreshBidHistoryList(List<Bid> bids) {
@@ -378,6 +396,13 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
         }
         if (!networkReady) {
             return;
+        }
+        // Hủy đăng ký broadcast room khi rời trang (tránh nhận data rác)
+        if (viewModel.getAuctionId() > 0) {
+            NetworkService.getInstance()
+                    .sendRequest(
+                            EventType.UNSUBSCRIBE_AUCTION,
+                            Map.of("auctionId", viewModel.getAuctionId()));
         }
         NetworkService.getInstance()
                 .getClient()

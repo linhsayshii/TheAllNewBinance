@@ -133,10 +133,23 @@ public class AuctionDao implements IAuctionDao {
                     auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
                     auction.setOriginalEndTime(
                             rs.getTimestamp("original_end_time").toLocalDateTime());
-                    auction.setStatus(
-                            rs.getString("status").equals("ACTIVE")
-                                    ? Auction.Status.ACTIVE
-                                    : Auction.Status.PENDING);
+
+                    // Safe Enum Parsing: phòng ngự trường hợp DB chứa status viết thường
+                    // hoặc dữ liệu không hợp lệ từ mock data
+                    String statusStr = rs.getString("status");
+                    Auction.Status status = Auction.Status.PENDING;
+                    if (statusStr != null) {
+                        try {
+                            status = Auction.Status.valueOf(statusStr.toUpperCase().trim());
+                        } catch (IllegalArgumentException e) {
+                            System.err.println(
+                                    "[AuctionDao] Warning: Invalid auction status in database: '"
+                                            + statusStr
+                                            + "'. Falling back to PENDING.");
+                        }
+                    }
+                    auction.setStatus(status);
+
                     auction.setWinnerId(rs.getInt("winner_id"));
                     auction.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                     return auction;

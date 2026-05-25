@@ -11,6 +11,7 @@ import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 
 public class SocketServer extends WebSocketServer {
+
     private final RequestDispatcher dispatcher;
     private final Map<WebSocket, Integer> userSessions = new ConcurrentHashMap<>();
 
@@ -29,10 +30,17 @@ public class SocketServer extends WebSocketServer {
         System.out.println(
                 "Connection closed: " + conn.getRemoteSocketAddress() + " with code " + code);
         userSessions.remove(conn);
+        // Giải phóng kết nối chết khỏi BroadcastBroker, bất kể nguyên nhân ngắt kết nối
+        BroadcastBroker.getInstance().unregister(conn);
     }
 
     @Override
     public void onMessage(WebSocket conn, String message) {
+        // Đánh chặn SUBSCRIBE/UNSUBSCRIBE trực tiếp tại tầng socket, không qua Dispatcher
+        if (interceptRoomSubscription(conn, message)) {
+            return;
+        }
+
         Integer userId = userSessions.get(conn);
 
         // dispatch() trả về CompletableFuture — full async
@@ -47,6 +55,9 @@ public class SocketServer extends WebSocketServer {
                             // Tự động map/unmap Session Socket dựa trên kết quả
                             // LOGIN/REGISTER/LOGOUT
                             interceptAuthSession(conn, userId, message, response);
+
+                            // Phát sóng kết quả đặt giá thành công tới tất cả client trong phòng
+                            interceptBidBroadcast(conn, message, response);
                         })
                 .exceptionally(
                         ex -> {
@@ -58,6 +69,75 @@ public class SocketServer extends WebSocketServer {
                             }
                             return null;
                         });
+    }
+
+    /**
+     * Đánh chặn yêu cầu đăng ký/hủy đăng ký phòng đấu giá. Trả về {@code true} nếu gói tin đã
+     * được xử lý và không cần chuyển tiếp sang Dispatcher.
+     */
+    private boolean interceptRoomSubscription(WebSocket conn, String message) {
+        try {
+            Map<?, ?> node = JsonMapper.fromJson(message, Map.class);
+            EventType type = EventType.fromWireValue(node.get("type"));
+
+            if (type == EventType.SUBSCRIBE_AUCTION) {
+                Object payload = node.get("payload");
+                if (payload instanceof Map<?, ?> payloadMap) {
+                    Object auctionIdObj = payloadMap.get("auctionId");
+                    if (auctionIdObj instanceof Number) {
+                        BroadcastBroker.getInstance()
+                                .register(((Number) auctionIdObj).intValue(), conn);
+                    }
+                }
+                return true;
+            }
+
+            if (type == EventType.UNSUBSCRIBE_AUCTION) {
+                BroadcastBroker.getInstance().unregister(conn);
+                return true;
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to intercept room subscription packet: " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Sau khi đặt giá thành công, phát sóng kết quả tới tất cả các client đang xem cùng phiên đấu
+     * giá đó (trừ người gửi đã nhận Unicast response kèm correlationId).
+     */
+    private void interceptBidBroadcast(WebSocket conn, String request, String response) {
+        try {
+            Map<?, ?> reqNode = JsonMapper.fromJson(request, Map.class);
+            EventType type = EventType.fromWireValue(reqNode.get("type"));
+            if (type != EventType.PLACE_BID) {
+                return;
+            }
+
+            Map<?, ?> respNode = JsonMapper.fromJson(response, Map.class);
+            if (!Boolean.TRUE.equals(respNode.get("success"))) {
+                return;
+            }
+
+            Object data = respNode.get("data");
+            if (data == null) {
+                return;
+            }
+
+            Object payloadObj = reqNode.get("payload");
+            if (!(payloadObj instanceof Map<?, ?> payloadMap)) {
+                return;
+            }
+            Object auctionIdObj = payloadMap.get("auctionId");
+            if (!(auctionIdObj instanceof Number)) {
+                return;
+            }
+            int auctionId = ((Number) auctionIdObj).intValue();
+
+            BroadcastBroker.getInstance().broadcastToRoom(auctionId, EventType.PLACE_BID, data, conn);
+        } catch (Exception e) {
+            System.err.println("Failed to intercept bid broadcast: " + e.getMessage());
+        }
     }
 
     /** Intercept auth-related responses to manage session mapping. */
@@ -103,6 +183,8 @@ public class SocketServer extends WebSocketServer {
                         + ex.getMessage());
         if (conn != null) {
             userSessions.remove(conn);
+            // Giải phóng kết nối lỗi khỏi BroadcastBroker để tránh rò rỉ bộ nhớ
+            BroadcastBroker.getInstance().unregister(conn);
         }
     }
 

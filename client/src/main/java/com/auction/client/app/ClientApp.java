@@ -9,7 +9,10 @@ import com.auction.client.service.FontLoaderService;
 import com.auction.client.service.HotReloadService;
 import com.auction.client.service.NetworkService;
 import com.auction.client.service.UserSessionService;
+import com.auction.core.products.attribute.LuxuryAttributes;
+import com.auction.core.products.factory.ItemFactoryProvider;
 import com.auction.core.users.User;
+
 import javafx.application.Application;
 import javafx.stage.Stage;
 
@@ -19,6 +22,17 @@ public class ClientApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
+        // 1. Ép JVM load lớp LuxuryAttributes an toàn với Try-Catch
+        try {
+            Class.forName(LuxuryAttributes.class.getName());
+            System.out.println("[ClientApp] LuxuryAttributes class loaded – KEY_POOL pre-populated.");
+        } catch (ClassNotFoundException e) {
+            System.err.println("[ClientApp] Failed to pre-load LuxuryAttributes: " + e.getMessage());
+        }
+
+        // 2. Quét SPI để đóng băng registry các Factory cho Item
+        ItemFactoryProvider.initialize();
+
         // Init network FIRST — controllers register handlers on initialize()
         NetworkService.init("ws://localhost:8080");
 

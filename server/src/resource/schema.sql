@@ -48,6 +48,16 @@ CREATE TABLE IF NOT EXISTS items (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
+    -- Polymorphic product attributes
+    brand VARCHAR(255) DEFAULT NULL,
+    item_condition VARCHAR(255) DEFAULT NULL,
+    warranty_months INT DEFAULT NULL,
+    custom_attributes TEXT DEFAULT NULL,
+    has_certificate BOOLEAN DEFAULT NULL,
+    artist VARCHAR(255) DEFAULT NULL,
+    year_created INT DEFAULT NULL,
+    model VARCHAR(255) DEFAULT NULL,
+
     CONSTRAINT fk_items_seller
         FOREIGN KEY (seller_id) REFERENCES users(user_id)
         ON UPDATE CASCADE

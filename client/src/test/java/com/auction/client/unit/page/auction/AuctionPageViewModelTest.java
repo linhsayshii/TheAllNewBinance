@@ -35,6 +35,7 @@ class AuctionPageViewModelTest {
 
         java.util.Map<String, Object> attrs = new java.util.HashMap<>();
         attrs.put("category", "WATCHES");
+        com.auction.core.products.factory.ItemFactoryProvider.initialize();
         Item mockItem =
                 com.auction.core.products.factory.ItemFactoryProvider.getFactory(
                                 com.auction.core.products.CategoryType.WATCHES)

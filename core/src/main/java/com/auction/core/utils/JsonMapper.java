@@ -20,6 +20,7 @@ public class JsonMapper {
             new GsonBuilder()
                     .setDateFormat("yyyy-MM-dd HH:mm:ss")
                     .registerTypeAdapter(Item.class, new ItemJsonDeserializer())
+                    .registerTypeAdapter(com.auction.core.users.User.class, new com.auction.core.users.serialization.UserJsonDeserializer())
                     .registerTypeAdapter(
                             LocalDateTime.class,
                             new TypeAdapter<LocalDateTime>() {

@@ -5,7 +5,7 @@ import com.auction.core.dto.user.RegisterRequest;
 import com.auction.core.dto.user.UpdatePasswordRequest;
 import com.auction.core.dto.user.UpdateProfileRequest;
 import com.auction.core.services.IUserService;
-import com.auction.core.users.StandardUser;
+import com.auction.core.users.UserFactory;
 import com.auction.core.users.User;
 import com.auction.core.utils.PasswordHasher;
 import com.auction.server.dao.impl.IUserDao;
@@ -34,14 +34,11 @@ public class UserService implements IUserService {
                         throw new IllegalArgumentException("Username already exists");
                     }
 
-                    User user =
-                            new StandardUser(
-                                    null,
+                    User user = UserFactory.createNewStandard(
                                     username,
                                     PasswordHasher.hash(request.getPassword()),
                                     request.getFullname().trim(),
-                                    request.getEmail().trim(),
-                                    0.0);
+                                    request.getEmail().trim());
 
                     if (!userDao.registerUser(user)) {
                         throw new IllegalStateException("Failed to register user");

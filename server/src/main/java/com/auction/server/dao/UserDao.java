@@ -1,7 +1,9 @@
 package com.auction.server.dao;
 
 import com.auction.core.users.User;
+import com.auction.core.users.UserFactory;
 import com.auction.server.dao.impl.IUserDao;
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -24,7 +26,7 @@ public class UserDao implements IUserDao {
             stmt.setString(2, user.getPassword()); // Password đã được hash ở user services
             stmt.setString(3, user.getFullName());
             stmt.setString(4, user.getEmail());
-            stmt.setDouble(5, user.getBalance());
+            stmt.setBigDecimal(5, user.getBalance());
             stmt.setString(6, user.getRole().name());
             stmt.setBoolean(7, user.getIsActive());
             stmt.setTimestamp(8, Timestamp.valueOf(user.getCreatedAt()));
@@ -120,6 +122,43 @@ public class UserDao implements IUserDao {
         return null;
     }
 
+    /**
+     * Khóa dòng vật lý tại Database Engine dành cho Transaction nguyên khối.
+     * Bắt buộc sử dụng Connection dùng chung của Transaction hiện hành (FOR UPDATE).
+     */
+    public User findByIdForUpdate(Connection conn, Integer id) throws SQLException {
+        String sql =
+                "SELECT user_id, username, password, full_name, email, balance,"
+                        + " locked_balance, role, is_active"
+                        + " FROM users WHERE user_id = ? FOR UPDATE";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapUser(rs);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Đồng bộ hóa số dư và số dư đóng băng từ Domain Model RAM xuống Database.
+     * Bắt buộc sử dụng Connection dùng chung của Transaction hiện hành.
+     */
+    public boolean updateBalanceAndLockedBalance(Connection conn, User user) throws SQLException {
+        String sql =
+                "UPDATE users SET balance = ?, locked_balance = ?, updated_at = ?"
+                        + " WHERE user_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setBigDecimal(1, user.getBalance());
+            stmt.setBigDecimal(2, user.getLockedBalance());
+            stmt.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
+            stmt.setInt(4, user.getId());
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
     @Override
     public boolean holdBalance(Integer userId, double amount) {
         String sql =
@@ -127,11 +166,11 @@ public class UserDao implements IUserDao {
                         + " updated_at = ? WHERE user_id = ? AND balance >= ?";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setDouble(1, amount);
-            stmt.setDouble(2, amount);
+            stmt.setBigDecimal(1, BigDecimal.valueOf(amount));
+            stmt.setBigDecimal(2, BigDecimal.valueOf(amount));
             stmt.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
             stmt.setInt(4, userId);
-            stmt.setDouble(5, amount);
+            stmt.setBigDecimal(5, BigDecimal.valueOf(amount));
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Error: Cannot hold balance! " + e.getMessage());
@@ -146,11 +185,11 @@ public class UserDao implements IUserDao {
                         + " updated_at = ? WHERE user_id = ? AND locked_balance >= ?";
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
-            stmt.setDouble(1, amount);
-            stmt.setDouble(2, amount);
+            stmt.setBigDecimal(1, BigDecimal.valueOf(amount));
+            stmt.setBigDecimal(2, BigDecimal.valueOf(amount));
             stmt.setTimestamp(3, new Timestamp(System.currentTimeMillis()));
             stmt.setInt(4, userId);
-            stmt.setDouble(5, amount);
+            stmt.setBigDecimal(5, BigDecimal.valueOf(amount));
             return stmt.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("Error: Cannot refund balance! " + e.getMessage());
@@ -159,17 +198,15 @@ public class UserDao implements IUserDao {
     }
 
     private User mapUser(ResultSet rs) throws SQLException {
-        User user =
-                new User(
-                        rs.getInt("user_id"),
-                        rs.getString("username"),
-                        rs.getString("password"),
-                        rs.getString("full_name"),
-                        rs.getString("email"),
-                        rs.getDouble("balance"),
-                        User.Role.valueOf(rs.getString("role")),
-                        rs.getBoolean("is_active"));
-        user.setLockedBalance(rs.getDouble("locked_balance"));
-        return user;
+        return UserFactory.rehydrateUser(
+                rs.getString("role"),
+                rs.getInt("user_id"),
+                rs.getString("username"),
+                rs.getString("password"),
+                rs.getString("full_name"),
+                rs.getString("email"),
+                rs.getBigDecimal("balance"),        // Đọc dữ liệu dạng BigDecimal chính xác
+                rs.getBigDecimal("locked_balance"), // Đọc dữ liệu dạng BigDecimal chính xác
+                rs.getBoolean("is_active"));
     }
 }

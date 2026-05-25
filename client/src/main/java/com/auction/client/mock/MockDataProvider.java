@@ -144,14 +144,15 @@ public class MockDataProvider {
         int newId =
                 users.stream().mapToInt(u -> u.getId() != null ? u.getId() : 0).max().orElse(0) + 1;
         User newUser =
-                new User(
+                com.auction.core.users.UserFactory.rehydrateUser(
+                        "STANDARD",
                         newId,
                         username,
                         str(map.get("password")),
                         str(map.get("fullName")),
                         str(map.get("email")),
-                        0.0,
-                        User.Role.STANDARD,
+                        java.math.BigDecimal.ZERO,
+                        java.math.BigDecimal.ZERO,
                         true);
         users.add(newUser);
         return successJson(newUser);

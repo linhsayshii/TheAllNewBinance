@@ -15,6 +15,7 @@ import com.auction.core.services.IBidService;
 import com.auction.core.users.User;
 import com.auction.server.dao.impl.IBidDao;
 import com.auction.server.dao.impl.IUserDao;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -135,7 +136,8 @@ public class BidService implements IBidService {
                                 return false;
                             }
                             Auction auction = details.getAuction();
-                            return user.getBalance() >= (auction.getStartingPrice() * 0.3);
+                            return user.getBalance().compareTo(
+                                        BigDecimal.valueOf(auction.getStartingPrice() * 0.3)) >= 0;
                         });
     }
 

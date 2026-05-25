@@ -192,7 +192,7 @@ public class AdminPageController implements LifecycleAwareController {
                                                             "$"
                                                                     + MONEY_FMT.format(
                                                                             u.getBalance() != null
-                                                                                    ? u.getBalance()
+                                                                                    ? u.getBalance().doubleValue()
                                                                                     : 0.0),
                                                             "Active"));
                                         }

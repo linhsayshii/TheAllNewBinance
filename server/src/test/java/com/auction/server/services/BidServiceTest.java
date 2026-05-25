@@ -53,14 +53,15 @@ public class BidServiceTest {
     @BeforeEach
     void setUp() {
         testUser =
-                new User(
+                com.auction.core.users.UserFactory.rehydrateUser(
+                        "STANDARD",
                         2,
                         "bidder",
                         "pass",
                         "Bidder User",
                         "bidder@test.com",
-                        1000.0,
-                        User.Role.STANDARD,
+                        java.math.BigDecimal.valueOf(1000.0),
+                        java.math.BigDecimal.ZERO,
                         true);
         testAuction = new Auction();
         testAuction.setId(1);
@@ -165,7 +166,17 @@ public class BidServiceTest {
     @Test
     void testPlaceBid_ShillBidding_ShouldThrowShillBiddingForbiddenException() {
         placeBidRequest.setBidderId(1); // Bidder is the same as seller
-        testUser.setId(1);
+        testUser =
+                com.auction.core.users.UserFactory.rehydrateUser(
+                        "STANDARD",
+                        1,
+                        "bidder",
+                        "pass",
+                        "Bidder User",
+                        "bidder@test.com",
+                        java.math.BigDecimal.valueOf(1000.0),
+                        java.math.BigDecimal.ZERO,
+                        true);
         CompletableFuture<AuctionDetailsDto> auctionFuture =
                 CompletableFuture.completedFuture(new AuctionDetailsDto(testAuction, null, null));
         CompletableFuture<Integer> sellerFuture = CompletableFuture.completedFuture(1);
