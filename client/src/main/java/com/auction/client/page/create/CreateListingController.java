@@ -1,11 +1,14 @@
 package com.auction.client.page.create;
 
 import com.auction.client.config.SceneRegistry;
+import com.auction.client.page.create.strategy.CategoryDisplayStrategy;
 import com.auction.client.scene.LifecycleAwareController;
 import com.auction.client.scene.NavigationService;
 import com.auction.client.service.NetworkService;
 import com.auction.client.service.UserSessionService;
 import com.auction.core.dto.auction.CreateAuctionRequest;
+import com.auction.core.dto.auction.ItemAttributesPayload;
+import com.auction.core.products.CategoryType;
 import com.auction.core.protocol.EventType;
 import com.auction.core.utils.JsonMapper;
 import java.net.URL;
@@ -13,8 +16,10 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeParseException;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;
+import java.util.ServiceLoader;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -24,6 +29,7 @@ import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.VBox;
 
 public class CreateListingController implements Initializable, LifecycleAwareController {
 
@@ -42,18 +48,49 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
     @FXML private DatePicker endDateInput;
     @FXML private TextField endTimeInput;
 
+    /** Container for dynamically rendered product-specific fields (managed by Strategy). */
+    @FXML private VBox dynamicFieldsContainer;
+
     private java.io.File selectedImageFile = null;
     private String uploadedImageUrl = null;
 
+    /**
+     * Strategy Registry: maps each CategoryType to its Strategy instance. Built at initialization
+     * via Java SPI (ServiceLoader). Each Strategy can handle multiple categories (1-to-Many),
+     * preventing NullPointerException from empty registry slots.
+     */
+    private final Map<CategoryType, CategoryDisplayStrategy> strategyRegistry = new HashMap<>();
+
     @Override
     public void initialize(URL location, ResourceBundle resources) {
+        // Load Strategies via SPI — iterate getSupportedCategoryTypes() for 1-to-Many mapping
+        ServiceLoader<CategoryDisplayStrategy> loader =
+                ServiceLoader.load(CategoryDisplayStrategy.class);
+        for (CategoryDisplayStrategy strategy : loader) {
+            for (CategoryType type : strategy.getSupportedCategoryTypes()) {
+                strategyRegistry.put(type, strategy);
+            }
+        }
+
+        // Populate ComboBox with display names from CategoryType enum (no magic strings)
         categoryInput.setItems(
                 FXCollections.observableArrayList(
-                        "Electronics", "Collectibles", "Art", "Fashion", "Automotive", "Other"));
+                        CategoryType.WATCHES.getDisplayName(),
+                        CategoryType.FASHION.getDisplayName(),
+                        CategoryType.ART.getDisplayName(),
+                        CategoryType.MUSIC.getDisplayName(),
+                        CategoryType.COLLECTIBLES.getDisplayName(),
+                        CategoryType.SPORTS.getDisplayName(),
+                        CategoryType.CAMERAS.getDisplayName(),
+                        CategoryType.WINE.getDisplayName()));
+
+        // Dynamic UI: re-render fields on category selection change
+        categoryInput
+                .valueProperty()
+                .addListener((obs, oldVal, newVal) -> handleCategoryChange(newVal));
 
         startDateInput.setValue(LocalDate.now());
         startTimeInput.setText(LocalTime.now().plusMinutes(5).withSecond(0).withNano(0).toString());
-
         endDateInput.setValue(LocalDate.now().plusDays(3));
         endTimeInput.setText(LocalTime.now().plusMinutes(5).withSecond(0).withNano(0).toString());
 
@@ -61,6 +98,26 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
                 .getClient()
                 .addResponseHandler(
                         EventType.CREATE_AUCTION, HANDLER_ID, this::handleCreateAuctionResponse);
+    }
+
+    /**
+     * Clears the dynamic fields container and renders fields for the newly selected category by
+     * delegating to the appropriate Strategy from the registry.
+     */
+    private void handleCategoryChange(String categoryStr) {
+        dynamicFieldsContainer.getChildren().clear();
+        if (categoryStr == null || categoryStr.isBlank()) {
+            return;
+        }
+        try {
+            CategoryType type = CategoryType.valueOf(categoryStr.trim().toUpperCase());
+            CategoryDisplayStrategy strategy = strategyRegistry.get(type);
+            if (strategy != null) {
+                strategy.renderFields(dynamicFieldsContainer);
+            }
+        } catch (IllegalArgumentException ignored) {
+            // Unknown category — leave container empty; validation will catch it
+        }
     }
 
     @FXML
@@ -84,14 +141,12 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
                                 "Image Files", "*.png", "*.jpg", "*.jpeg"));
         java.io.File file = fileChooser.showOpenDialog(titleInput.getScene().getWindow());
         if (file != null) {
-            // Validation: Size < 5MB
             if (file.length() > 5 * 1024 * 1024) {
                 showAlert("Validation Error", "Image size must be less than 5MB");
                 return;
             }
             selectedImageFile = file;
             imageUrlInput.setText(file.getName());
-            // Reset chuỗi URL đã upload
             uploadedImageUrl = null;
         }
     }
@@ -104,16 +159,39 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
         }
 
         String title = titleInput.getText();
-        String category = categoryInput.getValue();
-        String imageUrl = imageUrlInput.getText();
+
+        // Boundary Validation: guard against NullPointerException before toUpperCase() call
+        String selectedCategory = categoryInput.getValue();
+        if (selectedCategory == null || selectedCategory.trim().isEmpty()) {
+            showAlert("Validation Error", "Please select a product category.");
+            return;
+        }
+
         String description = descriptionInput.getText();
 
-        if (title == null
-                || title.isBlank()
-                || category == null
-                || description == null
-                || description.isBlank()) {
+        if (title == null || title.isBlank() || description == null || description.isBlank()) {
             showAlert("Validation Error", "Please fill in all required item details.");
+            return;
+        }
+
+        // Validate dynamic fields via Strategy
+        CategoryType categoryType;
+        try {
+            categoryType = CategoryType.valueOf(selectedCategory.trim().toUpperCase());
+        } catch (IllegalArgumentException e) {
+            showAlert("Validation Error", "Unknown product category selected.");
+            return;
+        }
+
+        CategoryDisplayStrategy strategy = strategyRegistry.get(categoryType);
+        if (strategy == null) {
+            showAlert("Validation Error", "No configuration found for the selected category.");
+            return;
+        }
+        if (!strategy.validateFields(dynamicFieldsContainer)) {
+            showAlert(
+                    "Validation Error",
+                    "Please fill in all required product-specific fields correctly.");
             return;
         }
 
@@ -152,24 +230,22 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
 
         Integer sellerId = UserSessionService.getInstance().getCurrentUser().getId();
 
-        // 1. Thêm validation ảnh: phải chọn ảnh mới hoặc đã có link cũ
         if (selectedImageFile == null && (uploadedImageUrl == null || uploadedImageUrl.isBlank())) {
             if (imageUrlInput.getText() != null && !imageUrlInput.getText().isBlank()) {
-                uploadedImageUrl =
-                        imageUrlInput.getText(); // Chấp nhận nếu gõ URL thủ công thay vì chọn File
+                uploadedImageUrl = imageUrlInput.getText();
             } else {
                 showAlert("Validation Error", "Please select an image or provide a URL.");
                 return;
             }
         }
 
-        // 2. Chuyển logic gửi Item vào hàm riêng (tránh lặp)
+        // Extract strongly-typed Payload from the Strategy (no Map conversion)
+        ItemAttributesPayload attributesPayload = strategy.extractFields(dynamicFieldsContainer);
+
         if (selectedImageFile != null && uploadedImageUrl == null) {
-            // Xin chữ ký từ mây
             com.auction.core.dto.item.GetUploadSignatureRequest req =
                     new com.auction.core.dto.item.GetUploadSignatureRequest("auction_items");
 
-            // Xóa handler lỡ có trước đó
             NetworkService.getInstance()
                     .getClient()
                     .removeResponseHandler(EventType.GET_UPLOAD_SIGNATURE, HANDLER_ID);
@@ -183,6 +259,7 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
                                 try {
                                     map = (Map<?, ?>) JsonMapper.fromJson((String) rs, Map.class);
                                 } catch (Exception e) {
+                                    // ignore parse error
                                 }
 
                                 if (map != null
@@ -195,7 +272,6 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
                                     long timestamp = ((Number) data.get("timestamp")).longValue();
                                     String apiKey = (String) data.get("apiKey");
 
-                                    // Chờ lấy được thì Post Cloudinary
                                     uploadToCloudinaryAsync(
                                             selectedImageFile,
                                             signature,
@@ -203,17 +279,18 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
                                             apiKey,
                                             "auction_items",
                                             (secureUrl) -> {
-                                                this.uploadedImageUrl = secureUrl; // cache
+                                                this.uploadedImageUrl = secureUrl;
                                                 sendCreateAuctionRequest(
                                                         sellerId,
                                                         title,
                                                         description,
-                                                        category,
+                                                        selectedCategory,
                                                         secureUrl,
                                                         startPrice,
                                                         increment,
                                                         startDateTime,
-                                                        endDateTime);
+                                                        endDateTime,
+                                                        attributesPayload);
                                             },
                                             (err) -> {
                                                 Platform.runLater(
@@ -238,12 +315,13 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
                     sellerId,
                     title,
                     description,
-                    category,
+                    selectedCategory,
                     uploadedImageUrl,
                     startPrice,
                     increment,
                     startDateTime,
-                    endDateTime);
+                    endDateTime,
+                    attributesPayload);
         }
     }
 
@@ -256,18 +334,19 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
             Double startPrice,
             Double increment,
             LocalDateTime startDateTime,
-            LocalDateTime endDateTime) {
-        CreateAuctionRequest request =
-                new CreateAuctionRequest(
-                        sellerId,
-                        title,
-                        description,
-                        category,
-                        imageUrl,
-                        startPrice,
-                        increment,
-                        startDateTime,
-                        endDateTime);
+            LocalDateTime endDateTime,
+            ItemAttributesPayload attributesPayload) {
+        CreateAuctionRequest request = new CreateAuctionRequest();
+        request.setSellerId(sellerId);
+        request.setItemTitle(title);
+        request.setItemDescription(description);
+        request.setItemCategory(category);
+        request.setItemImageUrl(imageUrl);
+        request.setStartingPrice(startPrice);
+        request.setBidIncrement(increment);
+        request.setStartTime(startDateTime);
+        request.setEndTime(endDateTime);
+        request.setAttributes(attributesPayload); // Polymorphic Payload — type-safe end-to-end
         NetworkService.getInstance().sendRequest(EventType.CREATE_AUCTION, request);
     }
 

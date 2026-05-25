@@ -1,30 +1,27 @@
 package com.auction.core.products.factory;
 
+import com.auction.core.dto.auction.ItemAttributesPayload;
+import com.auction.core.dto.auction.LuxuryCollectiblePayload;
 import com.auction.core.products.CategoryType;
+import com.auction.core.products.Item;
 import com.auction.core.products.LuxuryCollectible;
-import com.auction.core.products.attribute.AttributeKey;
-import java.util.Map;
+import com.auction.core.products.attribute.LuxuryAttributes;
 
 /**
  * Factory for LuxuryCollectible items (WATCHES, FASHION, COLLECTIBLES, WINE).
  *
- * <p>Fixed fields (brand, condition, hasCertificate) are extracted from the attrs map and passed to
- * the constructor. Dynamic AttributeKeys recognized in the KEY_POOL (e.g. BOTTLE_SIZE,
- * WATCH_MOVEMENT, FASHION_SIZE) are then pushed into the Heterogeneous Container.
+ * <p>Accepts a strongly-typed {@link LuxuryCollectiblePayload} and maps its fields directly onto
+ * the {@link LuxuryCollectible} constructor and Heterogeneous Container, eliminating all Map key
+ * string access and manual type casting (Polymorphic Flattening Regression prevention).
  */
 public class LuxuryCollectibleFactory implements ItemFactory {
 
     @Override
     public CategoryType getSupportedCategory() {
-        // This factory handles all 4 luxury categories.
-        // ItemFactoryProvider registers this factory once per category
-        // by iterating supportedCategories() if needed; for SPI single-instance,
-        // we return the primary category here. The provider will handle multi-category
-        // registration in its loop.
         return CategoryType.WATCHES;
     }
 
-    /** Returns all categories this factory handles, for multi-registration. */
+    /** Returns all categories this factory handles, for multi-registration in ItemFactoryProvider. */
     public CategoryType[] getSupportedCategories() {
         return new CategoryType[] {
             CategoryType.WATCHES, CategoryType.FASHION, CategoryType.COLLECTIBLES, CategoryType.WINE
@@ -32,63 +29,46 @@ public class LuxuryCollectibleFactory implements ItemFactory {
     }
 
     @Override
-    public LuxuryCollectible createItem(
+    public Item createItem(
             Integer id,
             Integer sellerId,
             String name,
             String description,
             String imageUrl,
             Boolean isDeleted,
-            Map<String, Object> attrs) {
+            ItemAttributesPayload payload) {
 
-        // Extract fixed constructor fields from attrs map
-        String brand = getStr(attrs, "brand");
-        String condition = getStr(attrs, "condition");
-        Boolean certObj = (Boolean) attrs.get("hasCertificate");
-        boolean hasCertificate = certObj != null && certObj;
-
-        // Category is passed via attrs so factories can read it when needed
-        String catStr = getStr(attrs, "category");
-        CategoryType category = CategoryType.WATCHES;
-        if (catStr != null) {
-            try {
-                category = CategoryType.valueOf(catStr.trim().toUpperCase());
-            } catch (IllegalArgumentException ignored) {
-                // fallback to WATCHES
-            }
+        if (!(payload instanceof LuxuryCollectiblePayload luxuryPayload)) {
+            throw new IllegalArgumentException(
+                    "LuxuryCollectibleFactory requires LuxuryCollectiblePayload, got: "
+                            + (payload == null ? "null" : payload.getClass().getSimpleName()));
         }
 
+        // Category will be set to WATCHES as default; actual category is persisted via the
+        // itemCategory string in the DB column — the domain object carries it for filtering.
         LuxuryCollectible item =
                 new LuxuryCollectible(
                         id,
                         sellerId,
                         name,
                         description,
-                        category,
+                        CategoryType.WATCHES,
                         imageUrl,
                         isDeleted,
-                        brand,
-                        condition,
-                        hasCertificate);
+                        luxuryPayload.getBrand(),
+                        luxuryPayload.getCondition(),
+                        luxuryPayload.isHasCertificate());
 
-        // Push dynamic attributes recognized in KEY_POOL into the Heterogeneous Container
-        for (Map.Entry<String, Object> entry : attrs.entrySet()) {
-            AttributeKey<?> key = AttributeKey.getByName(entry.getKey());
-            if (key != null && entry.getValue() != null) {
-                putAttributeHelper(item, key, entry.getValue());
-            }
+        // Push optional dynamic attributes into the Heterogeneous Container
+        if (luxuryPayload.getWatchMovement() != null) {
+            item.putAttribute(LuxuryAttributes.WATCH_MOVEMENT, luxuryPayload.getWatchMovement());
         }
-
+        if (luxuryPayload.getBottleSize() != null) {
+            item.putAttribute(LuxuryAttributes.BOTTLE_SIZE, luxuryPayload.getBottleSize());
+        }
+        if (luxuryPayload.getFashionSize() != null) {
+            item.putAttribute(LuxuryAttributes.FASHION_SIZE, luxuryPayload.getFashionSize());
+        }
         return item;
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> void putAttributeHelper(LuxuryCollectible lc, AttributeKey<T> key, Object value) {
-        lc.putAttribute(key, (T) value);
-    }
-
-    private String getStr(Map<String, Object> attrs, String key) {
-        Object val = attrs.get(key);
-        return val instanceof String ? (String) val : null;
     }
 }

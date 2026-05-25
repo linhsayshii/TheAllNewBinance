@@ -1,5 +1,7 @@
 package com.auction.core.utils;
 
+import com.auction.core.dto.auction.ItemAttributesPayload;
+import com.auction.core.dto.auction.serialization.ItemAttributesPayloadSerializer;
 import com.auction.core.products.Item;
 import com.auction.core.products.serialization.ItemJsonDeserializer;
 import com.google.gson.Gson;
@@ -21,6 +23,10 @@ public class JsonMapper {
                     .setDateFormat("yyyy-MM-dd HH:mm:ss")
                     .registerTypeAdapter(Item.class, new ItemJsonDeserializer())
                     .registerTypeAdapter(com.auction.core.users.User.class, new com.auction.core.users.serialization.UserJsonDeserializer())
+                    // Polymorphic Deserialization for ItemAttributesPayload subclasses.
+                    // Uses a Pristine Gson instance internally to prevent StackOverflowError.
+                    .registerTypeAdapter(
+                            ItemAttributesPayload.class, new ItemAttributesPayloadSerializer())
                     .registerTypeAdapter(
                             LocalDateTime.class,
                             new TypeAdapter<LocalDateTime>() {

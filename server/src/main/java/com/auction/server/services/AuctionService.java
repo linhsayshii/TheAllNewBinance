@@ -5,10 +5,12 @@ import com.auction.core.auction.Bid;
 import com.auction.core.dto.auction.CreateAuctionRequest;
 import com.auction.core.dto.auction.GetAuctionBySellerIdRequest;
 import com.auction.core.dto.auction.GetFeaturedAuctionsRequest;
+import com.auction.core.dto.auction.GetPublicAuctionsRequest;
 import com.auction.core.dto.auction.PromoteAuctionRequest;
 import com.auction.core.dto.auction.PublicAuctionDto;
 import com.auction.core.services.IAuctionService;
 import com.auction.server.dao.impl.IAuctionDao;
+import java.sql.Connection;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -48,20 +50,89 @@ public class AuctionService implements IAuctionService {
 
     @Override
     public CompletableFuture<Auction> createAuction(CreateAuctionRequest request) {
-        // THỰC TẾ: Đây vẫn là tác vụ độc lập nên supplyAsync là hợp lệ
+        // DB I/O must run on Platform Thread Pool (DBExecutor) — NOT on the calling Virtual Thread.
+        // Reason: JDBC Drivers (MySQL Connector/J, MariaDB Client) contain synchronized blocks in
+        // their Socket I/O layers, which would Pin the Virtual Thread to a Carrier Thread.
         return CompletableFuture.supplyAsync(
                 () -> {
-                    Auction auction =
-                            new Auction(
-                                    null,
-                                    null,
-                                    request.getStartingPrice(),
-                                    request.getBidIncrement(),
-                                    request.getStartTime(),
-                                    request.getEndTime());
-                    auctionDao.createAuction(auction);
-                    return auction;
-                });
+                    Connection conn = null;
+                    try {
+                        conn = com.auction.server.dao.DBConnection.getConnection();
+                        conn.setAutoCommit(false);
+
+                        // 1. Parse category and build Item via Factory (Type-Safe Payload)
+                        com.auction.core.products.CategoryType category =
+                                com.auction.core.products.CategoryType.valueOf(
+                                        request.getItemCategory().trim().toUpperCase());
+
+                        com.auction.core.products.Item item =
+                                com.auction.core.products.factory.ItemFactoryProvider.getFactory(
+                                                category)
+                                        .createItem(
+                                                null,
+                                                request.getSellerId(),
+                                                request.getItemTitle(),
+                                                request.getItemDescription(),
+                                                request.getItemImageUrl(),
+                                                false,
+                                                request.getAttributes());
+
+                        // 2. Persist Item on shared connection (Atomic Dual-Write, Step 1/2)
+                        boolean itemSaved = itemDao.addItemWithConnection(conn, item);
+                        if (!itemSaved || item.getId() == null) {
+                            throw new RuntimeException("Saving item failed — item_id not generated");
+                        }
+
+                        // 3. Create Auction linked to the generated item_id
+                        Auction auction =
+                                new Auction(
+                                        null,
+                                        item.getId(),
+                                        request.getStartingPrice(),
+                                        request.getBidIncrement(),
+                                        request.getStartTime(),
+                                        request.getEndTime());
+
+                        // Determine initial status: PENDING if start time is future, else ACTIVE
+                        // Auction constructor defaults to PENDING; override if past start time.
+                        if (request.getStartTime() != null
+                                && !request.getStartTime().isAfter(java.time.LocalDateTime.now())) {
+                            auction.setStatus(Auction.Status.ACTIVE);
+                        }
+
+                        // 4. Persist Auction on shared connection (Atomic Dual-Write, Step 2/2)
+                        boolean auctionSaved = auctionDao.createAuctionWithConnection(conn, auction);
+                        if (!auctionSaved) {
+                            throw new RuntimeException("Saving auction failed");
+                        }
+
+                        conn.commit(); // Both writes succeeded — commit atomically
+                        return auction;
+
+                    } catch (Exception e) {
+                        // Defensive Rollback: prevent rollback SQLException from suppressing the
+                        // original root cause exception using Suppressed Exception chaining.
+                        if (conn != null) {
+                            try {
+                                if (!conn.isClosed()) {
+                                    conn.rollback();
+                                }
+                            } catch (java.sql.SQLException se) {
+                                e.addSuppressed(se); // Preserve rollback failure trace
+                            }
+                        }
+                        throw new RuntimeException("createAuction transaction failed, rolled back", e);
+                    } finally {
+                        if (conn != null) {
+                            try {
+                                conn.close();
+                            } catch (java.sql.SQLException ignored) {
+                                // Best-effort close
+                            }
+                        }
+                    }
+                },
+                com.auction.server.concurrency.DBExecutor.getExecutor());
     }
 
     @Override
@@ -159,7 +230,7 @@ public class AuctionService implements IAuctionService {
 
     @Override
     public CompletableFuture<List<PublicAuctionDto>> getPublicAuctions(
-            com.auction.core.dto.auction.GetPublicAuctionsRequest request) {
+            GetPublicAuctionsRequest request) {
         return CompletableFuture.supplyAsync(
                 () -> {
                     List<String> statuses = normalizeStatuses(request.getStatus());

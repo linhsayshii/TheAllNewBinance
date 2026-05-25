@@ -292,8 +292,18 @@ public class MockDataProvider {
             com.auction.core.products.CategoryType catEnum =
                     com.auction.core.products.CategoryType.valueOf(
                             req.getItemCategory().trim().toUpperCase());
-            java.util.Map<String, Object> attrs = new java.util.HashMap<>();
-            attrs.put("category", req.getItemCategory());
+
+            // Use the strongly-typed payload from the request, falling back to a default if null
+            com.auction.core.dto.auction.ItemAttributesPayload attrs = req.getAttributes();
+            if (attrs == null) {
+                attrs = switch (catEnum) {
+                    case WATCHES, FASHION, COLLECTIBLES, WINE ->
+                            new com.auction.core.dto.auction.LuxuryCollectiblePayload();
+                    case ART, MUSIC ->
+                            new com.auction.core.dto.auction.ArtisticCreationPayload();
+                    default -> new com.auction.core.dto.auction.PrecisionMechanicalPayload();
+                };
+            }
 
             Item newItem =
                     com.auction.core.products.factory.ItemFactoryProvider.getFactory(catEnum)

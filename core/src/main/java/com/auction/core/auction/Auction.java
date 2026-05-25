@@ -7,8 +7,8 @@ import java.time.LocalDateTime;
 public class Auction extends Entity {
     private static final int THRESHOLD_SECONDS = 120;
     private static final int EXTENSION_SECONDS = 120;
-    private int id; // ID phiên đấu giá
-    private int itemId; // ID của sản phẩm (Item)
+    private Integer id; // ID phiên đấu giá
+    private Integer itemId; // ID của sản phẩm (Item)
     private double startingPrice; // Giá khởi điểm
     private double currentPrice; // Giá hiện tại
     private double bidIncrement; // Bước giá
@@ -24,8 +24,8 @@ public class Auction extends Entity {
     }
 
     private Status status;
-    private int winnerId;
-    private double finalPrice;
+    private Integer winnerId;
+    private Double finalPrice;
     // Star Auction promotion fields
     private Boolean isFeatured = false;
     private LocalDateTime featuredUntil;

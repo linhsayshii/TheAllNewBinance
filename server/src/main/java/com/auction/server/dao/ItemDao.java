@@ -1,11 +1,12 @@
 package com.auction.server.dao;
 
-import com.auction.core.products.ArtisticCreation;
+import com.auction.core.dto.auction.ArtisticCreationPayload;
+import com.auction.core.dto.auction.ItemAttributesPayload;
+import com.auction.core.dto.auction.LuxuryCollectiblePayload;
+import com.auction.core.dto.auction.PrecisionMechanicalPayload;
 import com.auction.core.products.CategoryType;
 import com.auction.core.products.Item;
 import com.auction.core.products.LuxuryCollectible;
-import com.auction.core.products.PrecisionMechanical;
-import com.auction.core.products.attribute.AttributeKey;
 import com.auction.core.products.attribute.LuxuryAttributes;
 import com.auction.core.products.factory.ItemFactoryProvider;
 import com.auction.core.utils.JsonMapper;
@@ -41,15 +42,31 @@ public class ItemDao implements IItemDao {
 
     @Override
     public boolean addItem(Item item) {
+        try (Connection conn = DBConnection.getConnection()) {
+            return addItemWithConnection(conn, item);
+        } catch (SQLException e) {
+            System.err.println("Error: Cannot open connection for addItem! " + e.getMessage());
+        }
+        return false;
+    }
+
+    /**
+     * Inserts an Item using a provided Connection — used by {@code AuctionService.createAuction}
+     * to share the same Transaction connection for atomic dual-write (Item + Auction).
+     *
+     * @param conn Active connection with autoCommit=false managed by the caller.
+     * @param item The fully-constructed Item subclass to persist.
+     * @return {@code true} if the row was inserted and the generated ID was set on the item.
+     */
+    public boolean addItemWithConnection(Connection conn, Item item) throws SQLException {
         String sql =
                 "INSERT INTO items (seller_id, name, description, category, image_url,"
                         + " is_deleted, created_at, brand, item_condition, has_certificate,"
                         + " artist, year_created, model, warranty_months, custom_attributes)"
                         + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt =
-                        conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement stmt =
+                conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             // Common fields
             stmt.setInt(1, item.getSellerId());
@@ -87,7 +104,7 @@ public class ItemDao implements IItemDao {
                     }
                     stmt.setString(15, dynAttrs.isEmpty() ? null : JsonMapper.toJson(dynAttrs));
                 }
-                case ArtisticCreation ac -> {
+                case com.auction.core.products.ArtisticCreation ac -> {
                     stmt.setNull(8, Types.VARCHAR); // brand
                     stmt.setNull(9, Types.VARCHAR); // item_condition
                     stmt.setNull(10, Types.BOOLEAN); // has_certificate
@@ -97,7 +114,7 @@ public class ItemDao implements IItemDao {
                     stmt.setNull(14, Types.INTEGER); // warranty_months
                     stmt.setNull(15, Types.VARCHAR); // custom_attributes
                 }
-                case PrecisionMechanical pm -> {
+                case com.auction.core.products.PrecisionMechanical pm -> {
                     stmt.setNull(8, Types.VARCHAR); // brand
                     stmt.setNull(9, Types.VARCHAR); // item_condition
                     stmt.setNull(10, Types.BOOLEAN); // has_certificate
@@ -118,8 +135,6 @@ public class ItemDao implements IItemDao {
                 }
                 return true;
             }
-        } catch (SQLException e) {
-            System.err.println("Error: Cannot save Item! " + e.getMessage());
         }
         return false;
     }
@@ -183,42 +198,64 @@ public class ItemDao implements IItemDao {
     /**
      * Maps a single JDBC ResultSet row to a fully-initialized polymorphic Item instance.
      *
-     * <p>Fixed subclass fields are read from their dedicated columns. Dynamic container attributes
-     * are parsed from the {@code custom_attributes} JSON column and re-inflated into the {@link
-     * LuxuryCollectible} container after factory construction (CRITICAL FIX: prevents silent data
-     * loss of dynamic attributes when loading from DB).
+     * <p>Fixed subclass fields are read from their dedicated columns and mapped into
+     * strongly-typed {@link ItemAttributesPayload} subclasses first. Dynamic container attributes
+     * are parsed from the {@code custom_attributes} JSON column and re-inflated into the payload.
+     * The payload is then passed directly to the factory — no Map key access or manual type casting
+     * at Domain Layer (Polymorphic Flattening Regression prevention).
      */
     private Item mapRowToItem(ResultSet rs) throws SQLException {
         String categoryStr = rs.getString("category");
         CategoryType category = CategoryType.valueOf(categoryStr.trim().toUpperCase());
 
-        Map<String, Object> attrs = new HashMap<>();
-        attrs.put("category", categoryStr);
-        attrs.put("brand", rs.getString("brand"));
-        attrs.put("condition", rs.getString("item_condition"));
-        // Use getObject with wrapper class to preserve null vs false distinction for BOOLEAN NULL
-        // columns
-        attrs.put("hasCertificate", rs.getObject("has_certificate", Boolean.class));
-        attrs.put("artist", rs.getString("artist"));
-        attrs.put("yearCreated", rs.getObject("year_created", Integer.class));
-        attrs.put("model", rs.getString("model"));
-        attrs.put("warrantyMonths", rs.getObject("warranty_months", Integer.class));
+        // Build strongly-typed payload based on category, eliminating raw Map access
+        ItemAttributesPayload payload;
+        switch (category) {
+            case WATCHES, FASHION, COLLECTIBLES, WINE -> {
+                LuxuryCollectiblePayload p = new LuxuryCollectiblePayload();
+                p.setBrand(rs.getString("brand"));
+                p.setCondition(rs.getString("item_condition"));
+                Boolean certObj = rs.getObject("has_certificate", Boolean.class);
+                p.setHasCertificate(certObj != null && certObj);
 
-        // Parse dynamic attributes JSON (separate tracking for container inflation step)
-        Map<String, Object> dynamicAttrs = new HashMap<>();
-        String jsonAttrs = rs.getString("custom_attributes");
-        if (jsonAttrs != null && !jsonAttrs.trim().isEmpty()) {
-            Map<?, ?> parsed = JsonMapper.fromJson(jsonAttrs, Map.class);
-            if (parsed != null) {
-                for (Map.Entry<?, ?> entry : parsed.entrySet()) {
-                    String key = String.valueOf(entry.getKey());
-                    dynamicAttrs.put(key, entry.getValue());
-                    attrs.put(key, entry.getValue());
+                // Parse dynamic JSON attributes into typed payload fields
+                String jsonAttrs = rs.getString("custom_attributes");
+                if (jsonAttrs != null && !jsonAttrs.trim().isEmpty()) {
+                    Map<?, ?> parsed = JsonMapper.fromJson(jsonAttrs, Map.class);
+                    if (parsed != null) {
+                        // Gson parses numbers as Double — use Number.doubleValue() safely
+                        Number sizeNum = (Number) parsed.get(LuxuryAttributes.BOTTLE_SIZE.getName());
+                        if (sizeNum != null) {
+                            p.setBottleSize(sizeNum.doubleValue());
+                        }
+                        Object movement = parsed.get(LuxuryAttributes.WATCH_MOVEMENT.getName());
+                        if (movement instanceof String s) {
+                            p.setWatchMovement(s);
+                        }
+                        Object fashionSize = parsed.get(LuxuryAttributes.FASHION_SIZE.getName());
+                        if (fashionSize instanceof String s) {
+                            p.setFashionSize(s);
+                        }
+                    }
                 }
+                payload = p;
             }
+            case ART, MUSIC -> {
+                ArtisticCreationPayload p = new ArtisticCreationPayload();
+                p.setArtist(rs.getString("artist"));
+                p.setYearCreated(rs.getObject("year_created", Integer.class));
+                payload = p;
+            }
+            case SPORTS, CAMERAS -> {
+                PrecisionMechanicalPayload p = new PrecisionMechanicalPayload();
+                p.setModel(rs.getString("model"));
+                p.setWarrantyMonths(rs.getObject("warranty_months", Integer.class));
+                payload = p;
+            }
+            default -> throw new IllegalArgumentException("Unknown category: " + category);
         }
 
-        // Create Item via factory
+        // Create Item via factory — payload is already strongly-typed, no flat Map conversion
         Item item =
                 ItemFactoryProvider.getFactory(category)
                         .createItem(
@@ -228,45 +265,8 @@ public class ItemDao implements IItemDao {
                                 rs.getString("description"),
                                 rs.getString("image_url"),
                                 rs.getBoolean("is_deleted"),
-                                attrs);
-
-        // CRITICAL FIX: Re-inflate dynamic attributes into Heterogeneous Container
-        // The factory only calls the constructor (fixed fields); the container would be empty
-        // without this step when rehydrating from the database.
-        if (item instanceof LuxuryCollectible lc) {
-            for (Map.Entry<String, Object> entry : dynamicAttrs.entrySet()) {
-                AttributeKey<?> key = AttributeKey.getByName(entry.getKey());
-                if (key != null && entry.getValue() != null) {
-                    Object safeVal = castToTargetType(entry.getValue(), key.getType());
-                    putAttributeHelper(lc, key, safeVal);
-                }
-            }
-        }
+                                payload);
 
         return item;
-    }
-
-    /**
-     * Converts a raw {@link Number} to the declared target type. Handles both Gson (Double) and
-     * JDBC (Integer, Long, BigDecimal) numeric types.
-     */
-    private Object castToTargetType(Object rawVal, Class<?> targetType) {
-        if (rawVal instanceof Number numberVal) {
-            if (targetType == Integer.class || targetType == int.class) {
-                return numberVal.intValue();
-            } else if (targetType == Long.class || targetType == long.class) {
-                return numberVal.longValue();
-            } else if (targetType == Float.class || targetType == float.class) {
-                return numberVal.floatValue();
-            } else if (targetType == Double.class || targetType == double.class) {
-                return numberVal.doubleValue();
-            }
-        }
-        return rawVal;
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T> void putAttributeHelper(LuxuryCollectible lc, AttributeKey<T> key, Object value) {
-        lc.putAttribute(key, (T) value);
     }
 }

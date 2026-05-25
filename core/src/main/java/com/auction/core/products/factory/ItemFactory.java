@@ -1,24 +1,20 @@
 package com.auction.core.products.factory;
 
+import com.auction.core.dto.auction.ItemAttributesPayload;
 import com.auction.core.products.CategoryType;
 import com.auction.core.products.Item;
-import java.util.Map;
 
 /**
  * Service Provider Interface for polymorphic Item creation. Each concrete factory handles one
  * product group and declares which {@link CategoryType} it supports via {@link
  * #getSupportedCategory()}.
  *
- * <p>The {@code attrs} map passed to {@link #createItem} contains a mix of:
+ * <p>The {@code payload} parameter is a strongly-typed {@link ItemAttributesPayload} subclass
+ * deserialized at the Socket boundary, ensuring 100% Type-Safety from Network Boundary through to
+ * Domain Layer. No manual casting or Map key access is required inside factory implementations.
  *
- * <ul>
- *   <li>Fixed subclass fields (e.g. "brand", "condition") – extracted by the factory and passed as
- *       constructor arguments.
- *   <li>Dynamic container attributes (e.g. "bottleSize") – pushed into the Heterogeneous Container
- *       after object construction.
- * </ul>
- *
- * Concrete factories are responsible for clearly separating these two concerns.
+ * <p>Concrete factories are responsible for downcasting {@code payload} to their expected subtype
+ * using Java 21 Pattern Matching ({@code instanceof} with binding variable).
  */
 public interface ItemFactory {
 
@@ -37,9 +33,11 @@ public interface ItemFactory {
      * @param description Full description.
      * @param imageUrl URL to the item image.
      * @param isDeleted Soft-delete flag.
-     * @param attrs Mixed map of fixed fields and dynamic attributes (all pre-normalized to target
-     *     types).
+     * @param payload Strongly-typed payload carrying product-group-specific attributes. The factory
+     *     implementation must downcast to the expected concrete subtype.
      * @return A fully constructed and populated Item instance.
+     * @throws IllegalArgumentException if the payload subtype does not match the factory's product
+     *     group.
      */
     Item createItem(
             Integer id,
@@ -48,5 +46,5 @@ public interface ItemFactory {
             String description,
             String imageUrl,
             Boolean isDeleted,
-            Map<String, Object> attrs);
+            ItemAttributesPayload payload);
 }

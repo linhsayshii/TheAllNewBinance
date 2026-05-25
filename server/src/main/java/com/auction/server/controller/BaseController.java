@@ -44,6 +44,7 @@ public abstract class BaseController {
         } catch (IllegalArgumentException | IllegalStateException ex) {
             return ApiResponse.error(ex.getMessage());
         } catch (Exception ex) {
+            ex.printStackTrace(); // CRITICAL for debugging server-side errors
             return ApiResponse.error(fallbackError);
         }
     }
@@ -84,6 +85,7 @@ public abstract class BaseController {
                                     return ApiResponse.error(
                                             domainEx.getErrorCode(), domainEx.getMessage());
                                 }
+                                cause.printStackTrace(); // CRITICAL for debugging server-side errors
                                 return ApiResponse.error(cause.getMessage());
                             });
         } catch (DomainException ex) {
@@ -95,6 +97,7 @@ public abstract class BaseController {
         } catch (IllegalArgumentException | IllegalStateException ex) {
             return CompletableFuture.completedFuture(ApiResponse.error(ex.getMessage()));
         } catch (Exception ex) {
+            ex.printStackTrace(); // CRITICAL for debugging server-side errors
             return CompletableFuture.completedFuture(ApiResponse.error(fallbackError));
         }
     }

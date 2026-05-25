@@ -1,12 +1,17 @@
 package com.auction.core.products.factory;
 
+import com.auction.core.dto.auction.ArtisticCreationPayload;
+import com.auction.core.dto.auction.ItemAttributesPayload;
 import com.auction.core.products.ArtisticCreation;
 import com.auction.core.products.CategoryType;
-import java.util.Map;
+import com.auction.core.products.Item;
 
 /**
- * Factory for ArtisticCreation items (ART, MUSIC). Extracts artist and yearCreated from the attrs
- * map as fixed constructor fields.
+ * Factory for ArtisticCreation items (ART, MUSIC).
+ *
+ * <p>Accepts a strongly-typed {@link ArtisticCreationPayload} and maps its fields directly onto the
+ * {@link ArtisticCreation} constructor, eliminating all Map key string access and manual type
+ * casting (Polymorphic Flattening Regression prevention).
  */
 public class ArtisticCreationFactory implements ItemFactory {
 
@@ -20,53 +25,32 @@ public class ArtisticCreationFactory implements ItemFactory {
     }
 
     @Override
-    public ArtisticCreation createItem(
+    public Item createItem(
             Integer id,
             Integer sellerId,
             String name,
             String description,
             String imageUrl,
             Boolean isDeleted,
-            Map<String, Object> attrs) {
+            ItemAttributesPayload payload) {
 
-        String artist = getStr(attrs, "artist");
-        Integer yearCreated = getInt(attrs, "yearCreated");
-
-        String catStr = getStr(attrs, "category");
-        CategoryType category = CategoryType.ART;
-        if (catStr != null) {
-            try {
-                category = CategoryType.valueOf(catStr.trim().toUpperCase());
-            } catch (IllegalArgumentException ignored) {
-                // fallback to ART
-            }
+        if (!(payload instanceof ArtisticCreationPayload artisticPayload)) {
+            throw new IllegalArgumentException(
+                    "ArtisticCreationFactory requires ArtisticCreationPayload, got: "
+                            + (payload == null ? "null" : payload.getClass().getSimpleName()));
         }
 
+        // Category will always be ART or MUSIC; default to ART — the caller sets itemCategory
+        // string separately for DB persistence, but the factory domain object uses ART as base.
         return new ArtisticCreation(
                 id,
                 sellerId,
                 name,
                 description,
-                category,
+                CategoryType.ART, // Category resolved at DAO insertion from itemCategory string
                 imageUrl,
                 isDeleted,
-                artist,
-                yearCreated);
-    }
-
-    private String getStr(Map<String, Object> attrs, String key) {
-        Object val = attrs.get(key);
-        return val instanceof String ? (String) val : null;
-    }
-
-    private Integer getInt(Map<String, Object> attrs, String key) {
-        Object val = attrs.get(key);
-        if (val instanceof Integer i) {
-            return i;
-        }
-        if (val instanceof Number n) {
-            return n.intValue();
-        }
-        return null;
+                artisticPayload.getArtist(),
+                artisticPayload.getYearCreated());
     }
 }

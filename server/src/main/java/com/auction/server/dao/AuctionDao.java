@@ -17,13 +17,23 @@ import java.util.stream.Collectors;
 public class AuctionDao implements IAuctionDao {
     @Override
     public boolean createAuction(Auction auction) {
+        try (Connection conn = DBConnection.getConnection()) {
+            return createAuctionWithConnection(conn, auction);
+        } catch (SQLException e) {
+            System.err.println("Error: Cannot open connection for createAuction! " + e.getMessage());
+        }
+        return false;
+    }
+
+    @Override
+    public boolean createAuctionWithConnection(Connection conn, Auction auction)
+            throws SQLException {
         String sql =
                 "INSERT INTO auctions (item_id, starting_price, bid_increment, start_time,"
                     + " original_end_time, extended_end_time, status, is_deleted, created_at,"
                     + " snipe_threshold, snipe_extension) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (Connection conn = DBConnection.getConnection();
-                PreparedStatement stmt =
-                        conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement stmt =
+                conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, auction.getItemId());
             stmt.setDouble(2, auction.getStartingPrice());
             stmt.setDouble(3, auction.getBidIncrement());
@@ -44,11 +54,10 @@ public class AuctionDao implements IAuctionDao {
                 }
                 return true;
             }
-        } catch (SQLException e) {
-            System.err.println("Error: Cannot create auction! " + e.getMessage());
         }
         return false;
     }
+
 
     @Override
     public boolean updateAuctionInformation(Auction auction) {

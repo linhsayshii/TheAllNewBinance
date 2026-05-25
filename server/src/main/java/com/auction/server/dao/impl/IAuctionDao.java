@@ -3,10 +3,18 @@ package com.auction.server.dao.impl;
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
 import com.auction.core.dto.auction.PublicAuctionDto;
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 
 public interface IAuctionDao {
     boolean createAuction(Auction auction);
+
+    /**
+     * Inserts an Auction using a caller-provided Connection for Transactional (Atomic) dual-write.
+     * The caller is responsible for commit/rollback lifecycle of the connection.
+     */
+    boolean createAuctionWithConnection(Connection conn, Auction auction) throws SQLException;
 
     boolean updateAuctionInformation(Auction auction);
 

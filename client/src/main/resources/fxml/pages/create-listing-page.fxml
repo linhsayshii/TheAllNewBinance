@@ -74,35 +74,39 @@
                                   prefRowCount="4" wrapText="true" styleClass="create-listing-textarea" />
                     </VBox>
 
-                    <!-- Auction Details Section -->
-                    <Region prefHeight="16" GridPane.rowIndex="4" GridPane.columnIndex="0" GridPane.columnSpan="2" />
-                    <Label text="Auction Settings" styleClass="create-listing-section-label"
-                           GridPane.rowIndex="5" GridPane.columnIndex="0" GridPane.columnSpan="2" />
+                    <!-- Dynamic Product-Specific Fields: rendered by CategoryDisplayStrategy via SPI -->
+                    <VBox fx:id="dynamicFieldsContainer" spacing="12"
+                          GridPane.rowIndex="4" GridPane.columnIndex="0" GridPane.columnSpan="2" />
 
-                    <VBox spacing="4" GridPane.rowIndex="6" GridPane.columnIndex="0">
+                    <!-- Auction Details Section -->
+                    <Region prefHeight="16" GridPane.rowIndex="5" GridPane.columnIndex="0" GridPane.columnSpan="2" />
+                    <Label text="Auction Settings" styleClass="create-listing-section-label"
+                           GridPane.rowIndex="6" GridPane.columnIndex="0" GridPane.columnSpan="2" />
+
+                    <VBox spacing="4" GridPane.rowIndex="7" GridPane.columnIndex="0">
                         <Label text="Starting Price ($)" styleClass="create-listing-field-label" />
                         <TextField fx:id="startingPriceInput" promptText="0.00" styleClass="create-listing-input" />
                     </VBox>
 
-                    <VBox spacing="4" GridPane.rowIndex="6" GridPane.columnIndex="1">
+                    <VBox spacing="4" GridPane.rowIndex="7" GridPane.columnIndex="1">
                         <Label text="Bid Increment ($)" styleClass="create-listing-field-label" />
                         <TextField fx:id="bidIncrementInput" promptText="0.00" styleClass="create-listing-input" />
                     </VBox>
 
-                    <VBox spacing="4" GridPane.rowIndex="7" GridPane.columnIndex="0">
+                    <VBox spacing="4" GridPane.rowIndex="8" GridPane.columnIndex="0">
                         <Label text="Start Date" styleClass="create-listing-field-label" />
                         <DatePicker fx:id="startDateInput" promptText="Select start date" styleClass="create-listing-datepicker" maxWidth="Infinity" />
                     </VBox>
-                    <VBox spacing="4" GridPane.rowIndex="7" GridPane.columnIndex="1">
+                    <VBox spacing="4" GridPane.rowIndex="8" GridPane.columnIndex="1">
                         <Label text="Start Time (HH:mm)" styleClass="create-listing-field-label" />
                         <TextField fx:id="startTimeInput" promptText="09:00" styleClass="create-listing-input" />
                     </VBox>
 
-                    <VBox spacing="4" GridPane.rowIndex="8" GridPane.columnIndex="0">
+                    <VBox spacing="4" GridPane.rowIndex="9" GridPane.columnIndex="0">
                         <Label text="End Date" styleClass="create-listing-field-label" />
                         <DatePicker fx:id="endDateInput" promptText="Select end date" styleClass="create-listing-datepicker" maxWidth="Infinity" />
                     </VBox>
-                    <VBox spacing="4" GridPane.rowIndex="8" GridPane.columnIndex="1">
+                    <VBox spacing="4" GridPane.rowIndex="9" GridPane.columnIndex="1">
                         <Label text="End Time (HH:mm)" styleClass="create-listing-field-label" />
                         <TextField fx:id="endTimeInput" promptText="18:00" styleClass="create-listing-input" />
                     </VBox>

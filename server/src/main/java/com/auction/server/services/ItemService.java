@@ -1,12 +1,14 @@
 package com.auction.server.services;
 
+import com.auction.core.dto.auction.ArtisticCreationPayload;
+import com.auction.core.dto.auction.ItemAttributesPayload;
+import com.auction.core.dto.auction.LuxuryCollectiblePayload;
+import com.auction.core.dto.auction.PrecisionMechanicalPayload;
 import com.auction.core.products.CategoryType;
 import com.auction.core.products.Item;
 import com.auction.core.products.factory.ItemFactoryProvider;
 import com.auction.core.services.IItemService;
 import com.auction.server.dao.impl.IItemDao;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class ItemService implements IItemService {
@@ -22,8 +24,26 @@ public class ItemService implements IItemService {
         return CompletableFuture.supplyAsync(
                 () -> {
                     CategoryType catEnum = CategoryType.valueOf(category.trim().toUpperCase());
-                    Map<String, Object> attrs = new HashMap<>();
-                    attrs.put("category", category);
+
+                    // Build a minimal default payload for each product group.
+                    // Full attribute data is provided via CreateAuctionRequest in normal flow;
+                    // this method is a fallback for simple item creation without attributes.
+                    ItemAttributesPayload defaultPayload;
+                    switch (catEnum) {
+                        case WATCHES:
+                        case FASHION:
+                        case COLLECTIBLES:
+                        case WINE:
+                            defaultPayload = new LuxuryCollectiblePayload();
+                            break;
+                        case ART:
+                        case MUSIC:
+                            defaultPayload = new ArtisticCreationPayload();
+                            break;
+                        default:
+                            defaultPayload = new PrecisionMechanicalPayload();
+                            break;
+                    }
 
                     Item item =
                             ItemFactoryProvider.getFactory(catEnum)
@@ -34,7 +54,7 @@ public class ItemService implements IItemService {
                                             description,
                                             imageUrl,
                                             false,
-                                            attrs);
+                                            defaultPayload);
                     itemDao.addItem(item);
                     return item;
                 });

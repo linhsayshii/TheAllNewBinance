@@ -33,8 +33,12 @@ class AuctionPageViewModelTest {
         mockAuction.setStartTime(LocalDateTime.now().minusHours(1));
         mockAuction.setEndTime(LocalDateTime.now().plusHours(1));
 
-        java.util.Map<String, Object> attrs = new java.util.HashMap<>();
-        attrs.put("category", "WATCHES");
+        com.auction.core.dto.auction.LuxuryCollectiblePayload attrs =
+                new com.auction.core.dto.auction.LuxuryCollectiblePayload();
+        attrs.setBrand("Rolex");
+        attrs.setCondition("Mint");
+        attrs.setHasCertificate(true);
+
         com.auction.core.products.factory.ItemFactoryProvider.initialize();
         Item mockItem =
                 com.auction.core.products.factory.ItemFactoryProvider.getFactory(

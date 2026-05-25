@@ -17,6 +17,12 @@ public class CreateAuctionRequest {
     private LocalDateTime startTime;
     private LocalDateTime endTime;
 
+    /**
+     * Polymorphic payload containing product-group-specific attributes. Serialized over the network
+     * with a {@code "type"} discriminator by {@code ItemAttributesPayloadSerializer}.
+     */
+    private ItemAttributesPayload attributes;
+
     public CreateAuctionRequest() {}
 
     public CreateAuctionRequest(
@@ -28,7 +34,8 @@ public class CreateAuctionRequest {
             Double startingPrice,
             Double bidIncrement,
             LocalDateTime startTime,
-            LocalDateTime endTime) {
+            LocalDateTime endTime,
+            ItemAttributesPayload attributes) {
         this.sellerId = sellerId;
         this.itemTitle = itemTitle;
         this.itemDescription = itemDescription;
@@ -38,6 +45,7 @@ public class CreateAuctionRequest {
         this.bidIncrement = bidIncrement;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.attributes = attributes;
     }
 
     public Integer getSellerId() {
@@ -110,5 +118,13 @@ public class CreateAuctionRequest {
 
     public void setEndTime(LocalDateTime endTime) {
         this.endTime = endTime;
+    }
+
+    public ItemAttributesPayload getAttributes() {
+        return attributes;
+    }
+
+    public void setAttributes(ItemAttributesPayload attributes) {
+        this.attributes = attributes;
     }
 }
