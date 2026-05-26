@@ -163,16 +163,18 @@
                             <Button text="Withdraw"
                                     styleClass="profile-btn-action-outline"
                                     onAction="#handleWithdraw" />
-                            <Label text="(Mock — coming soon)"
-                                   styleClass="profile-coming-soon-label" />
                         </HBox>
 
-                        <VBox spacing="8">
+                        <VBox spacing="8" fx:id="transactionHistorySection">
                             <padding><Insets top="20" /></padding>
                             <Label text="Transaction History" styleClass="profile-section-title"
                                    style="-fx-font-size: 18px;" />
-                            <Label text="Transaction history coming soon."
-                                   styleClass="profile-empty-state" />
+                            <VBox fx:id="transactionListContainer" spacing="4" />
+                            <Label fx:id="txEmptyLabel"
+                                   text="No transactions yet."
+                                   styleClass="profile-empty-state"
+                                   maxWidth="Infinity"
+                                   visible="true" managed="true" />
                         </VBox>
 
                     </VBox>

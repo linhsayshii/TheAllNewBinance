@@ -20,7 +20,7 @@
             <TextField fx:id="txtUsername" promptText="Tên đăng nhập" styleClass="input-field" onAction="#handleLogin"/>
             <PasswordField fx:id="txtPassword" promptText="Mật khẩu" styleClass="input-field" onAction="#handleLogin"/>
 
-            <Label fx:id="lblError" styleClass="error-label" visible="false" managed="false" wrapText="true"/>
+            <Label fx:id="lblError" styleClass="error-label" visible="false" managed="${lblError.visible}" wrapText="true"/>
 
             <Button text="Đăng nhập" onAction="#handleLogin" styleClass="btn-primary" maxWidth="Infinity"/>
             <Button text="Chưa có tài khoản? Đăng ký" onAction="#handleGoToRegister" styleClass="btn-link"/>

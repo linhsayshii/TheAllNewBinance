@@ -3,6 +3,7 @@ package com.auction.core.users;
 import com.auction.core.Entity;
 import com.auction.core.exception.auction.InvalidBidException;
 import com.auction.core.exception.wallet.InsufficientBalanceException;
+import com.auction.core.exception.wallet.InvalidAmountException;
 import java.math.BigDecimal;
 import java.util.Objects;
 
@@ -130,6 +131,38 @@ public abstract sealed class User extends Entity permits StandardUser, Admin {
         }
         this.lockedBalance = this.lockedBalance.subtract(amount);
         this.balance = this.balance.add(amount);
+        updateTimestamp();
+    }
+
+    /**
+     * Nạp tiền vào ví người dùng.
+     *
+     * @param amount Số tiền nạp vào (phải lớn hơn 0)
+     * @throws InvalidAmountException Nếu số tiền là null, bằng 0 hoặc âm
+     */
+    public void deposit(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidAmountException("Số tiền nạp phải lớn hơn 0");
+        }
+        this.balance = this.balance.add(amount);
+        updateTimestamp();
+    }
+
+    /**
+     * Rút tiền từ ví người dùng.
+     *
+     * @param amount Số tiền rút ra (phải lớn hơn 0)
+     * @throws InvalidAmountException       Nếu số tiền là null, bằng 0 hoặc âm
+     * @throws InsufficientBalanceException Nếu số dư khả dụng không đủ
+     */
+    public void withdraw(BigDecimal amount) {
+        if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new InvalidAmountException("Số tiền rút phải lớn hơn 0");
+        }
+        if (this.balance.compareTo(amount) < 0) {
+            throw new InsufficientBalanceException("Số dư khả dụng không đủ để thực hiện rút tiền");
+        }
+        this.balance = this.balance.subtract(amount);
         updateTimestamp();
     }
 

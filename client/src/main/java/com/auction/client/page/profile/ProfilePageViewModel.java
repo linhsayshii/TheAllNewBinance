@@ -49,6 +49,19 @@ public class ProfilePageViewModel {
     private static final long NETWORK_TIMEOUT_MS = 5_000;
 
     // ------------------------------------------------------------------ //
+    //  Wallet Transaction History                                          //
+    // ------------------------------------------------------------------ //
+
+    /**
+     * Lightweight display model for a single wallet transaction row.
+     *
+     * @param isDeposit      true for DEPOSIT, false for WITHDRAW
+     * @param formattedAmount formatted dollar string, e.g. "$500.00"
+     * @param date           human-readable date string
+     */
+    public record TransactionRow(boolean isDeposit, String formattedAmount, String date) {}
+
+    // ------------------------------------------------------------------ //
     //  Observable Properties (bound in controller)                        //
     // ------------------------------------------------------------------ //
     private final StringProperty displayName = new SimpleStringProperty("Guest");
@@ -119,12 +132,13 @@ public class ProfilePageViewModel {
                         ? "Member since " + user.getCreatedAt().format(DATE_FORMAT)
                         : "");
 
-        // Finance
-        double balance = user.getBalance() != null ? user.getBalance().doubleValue() : 0.0;
+        // Finance — balance in DB is already the Available Balance.
+        // Total = balance (available) + lockedBalance (frozen in auctions).
+        double available = user.getBalance() != null ? user.getBalance().doubleValue() : 0.0;
         double locked = user.getLockedBalance() != null ? user.getLockedBalance().doubleValue() : 0.0;
-        totalBalance.set(balance);
+        availableBalance.set(available);
         lockedBalance.set(locked);
-        availableBalance.set(balance - locked);
+        totalBalance.set(available + locked);
     }
 
     /** Call this when navigating to a public seller profile. */
@@ -137,6 +151,105 @@ public class ProfilePageViewModel {
         avatarInitial.set("S");
         emailProperty.set("");
         joinDate.set("");
+    }
+
+    /**
+     * Queries the server for the wallet_transactions of the current user.
+     * Must be called from a background thread.
+     * Returns an empty list if the server is unreachable, times out, or the
+     * feature is not yet enabled on the server (graceful degradation).
+     */
+    public java.util.List<TransactionRow> fetchTransactionHistory() {
+        if (targetUserId < 0) {
+            return java.util.List.of();
+        }
+        try {
+            NetworkService ns = NetworkService.getInstance();
+            if (!waitForSocket(ns)) {
+                return java.util.List.of();
+            }
+
+            java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
+            java.util.concurrent.atomic.AtomicReference<String> ref =
+                    new java.util.concurrent.atomic.AtomicReference<>();
+
+            java.util.Map<String, Object> payload = new java.util.HashMap<>();
+            payload.put("userId", targetUserId);
+            String corr = ns.sendRequest(
+                    com.auction.core.protocol.EventType.GET_WALLET_TRANSACTIONS, payload);
+            ns.addCorrelationHandler(corr, raw -> {
+                ref.set(raw);
+                latch.countDown();
+            });
+
+            latch.await(NETWORK_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS);
+
+            String raw = ref.get();
+            if (raw == null) {
+                return java.util.List.of();
+            }
+            return parseTransactionRows(raw);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            return java.util.List.of();
+        } catch (Exception e) {
+            return java.util.List.of();
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    private java.util.List<TransactionRow> parseTransactionRows(String raw) {
+        try {
+            Map<?, ?> response = JsonMapper.fromJson(raw, Map.class);
+            if (response == null || !Boolean.TRUE.equals(response.get("success"))) {
+                return java.util.List.of();
+            }
+            Object data = response.get("data");
+            if (!(data instanceof java.util.List<?> rows)) {
+                return java.util.List.of();
+            }
+            java.util.List<TransactionRow> result = new java.util.ArrayList<>();
+            java.text.DecimalFormat fmt = new java.text.DecimalFormat("$#,##0.00");
+            java.time.format.DateTimeFormatter dtf =
+                    java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+            for (Object item : rows) {
+                if (!(item instanceof Map<?, ?> m)) {
+                    continue;
+                }
+                Object typeVal = m.get("transactionType");
+                String typeStr = typeVal != null ? String.valueOf(typeVal) : "";
+                boolean isDeposit = "DEPOSIT".equalsIgnoreCase(typeStr);
+                if (!isDeposit && !"WITHDRAW".equalsIgnoreCase(typeStr)) {
+                    continue;
+                }
+                double rawAmount = 0.0;
+                Object amtObj = m.get("amount");
+                if (amtObj instanceof Number n) {
+                    rawAmount = n.doubleValue();
+                } else if (amtObj != null) {
+                    try {
+                        rawAmount = Double.parseDouble(String.valueOf(amtObj));
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+                String amountStr = fmt.format(rawAmount);
+                String dateStr = "";
+                Object createdAt = m.get("createdAt");
+                if (createdAt != null) {
+                    try {
+                        java.time.LocalDateTime ldt = java.time.LocalDateTime.parse(
+                                String.valueOf(createdAt).replace(' ', 'T'));
+                        dateStr = ldt.format(dtf);
+                    } catch (Exception ignored) {
+                        dateStr = String.valueOf(createdAt);
+                    }
+                }
+                result.add(new TransactionRow(isDeposit, amountStr, dateStr));
+            }
+            return result;
+        } catch (Exception e) {
+            return java.util.List.of();
+        }
     }
 
     // ------------------------------------------------------------------ //

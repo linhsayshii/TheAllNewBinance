@@ -24,6 +24,8 @@ public enum ErrorCode {
 
     // 25xx: Wallet & Payment Context
     INSUFFICIENT_BALANCE(2501, "Account balance is insufficient to hold the 30% deposit."),
+    INVALID_TRANSACTION_AMOUNT(2502, "The transaction amount is invalid or non-positive."),
+    WALLET_TRANSACTION_FAILED(2503, "The wallet transaction operation failed."),
 
     // 3xxx: Bidding & Auction Context
     AUCTION_CLOSED(3003, "The auction has ended or is not active."),

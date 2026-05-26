@@ -1,6 +1,9 @@
 package com.auction.server.dao.impl;
 
 import com.auction.core.users.User;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.sql.SQLException;
 
 public interface IUserDao {
     public boolean registerUser(User user);
@@ -16,4 +19,16 @@ public interface IUserDao {
     public boolean holdBalance(Integer userId, double amount);
 
     public boolean refundBalance(Integer userId, double amount);
+
+    public User findByIdForUpdate(Connection conn, Integer id) throws SQLException;
+
+    public boolean updateBalanceAndLockedBalance(Connection conn, User user) throws SQLException;
+
+    public boolean insertTransactionRecord(
+            Connection conn,
+            Integer userId,
+            String type,
+            BigDecimal amount,
+            String status,
+            String refId) throws SQLException;
 }

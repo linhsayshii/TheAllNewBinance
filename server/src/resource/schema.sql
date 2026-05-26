@@ -206,3 +206,27 @@ CREATE INDEX idx_bids_auction_id ON bids (auction_id);
 CREATE INDEX idx_bids_bidder_id ON bids (bidder_id);
 CREATE INDEX idx_bids_amount ON bids (amount);
 CREATE INDEX idx_bids_created_at ON bids (created_at);
+
+-- =========================
+-- Table: wallet_transactions
+-- =========================
+CREATE TABLE IF NOT EXISTS wallet_transactions (
+    transaction_id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    transaction_type VARCHAR(50) NOT NULL,
+    amount DECIMAL(15,2) NOT NULL,
+    status VARCHAR(20) NOT NULL DEFAULT 'SUCCESS',
+    reference_id VARCHAR(255) NOT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_wallet_transactions_user
+        FOREIGN KEY (user_id) REFERENCES users(user_id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+
+    CONSTRAINT ck_wallet_transactions_type CHECK (transaction_type IN ('DEPOSIT', 'WITHDRAW')),
+    CONSTRAINT ck_wallet_transactions_amount CHECK (amount > 0)
+);
+
+CREATE INDEX idx_wallet_transactions_user_id ON wallet_transactions (user_id);
+CREATE INDEX idx_wallet_transactions_created_at ON wallet_transactions (created_at);

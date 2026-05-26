@@ -8,7 +8,7 @@ import com.auction.core.exception.ErrorCode;
  * context per DDD Bounded Context principles.
  */
 public abstract sealed class WalletException extends DomainException
-        permits InsufficientBalanceException {
+        permits InsufficientBalanceException, InvalidAmountException, WalletTransactionException {
 
     protected WalletException(ErrorCode errorCode) {
         super(errorCode);

@@ -4,11 +4,15 @@ import com.auction.core.dto.user.LoginRequest;
 import com.auction.core.dto.user.RegisterRequest;
 import com.auction.core.dto.user.UpdatePasswordRequest;
 import com.auction.core.dto.user.UpdateProfileRequest;
+import com.auction.core.dto.wallet.DepositRequest;
+import com.auction.core.dto.wallet.WithdrawRequest;
+import com.auction.core.exception.DomainException;
 import com.auction.core.services.IUserService;
 import com.auction.core.users.User;
 import com.auction.core.utils.JsonMapper;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletionException;
 
 public class UserController extends BaseController {
     private final IUserService userService;
@@ -85,6 +89,44 @@ public class UserController extends BaseController {
         }
     }
 
+    /** Deposits funds into the authenticated user's wallet. */
+    public String deposit(String request) {
+        try {
+            return handleAsync(
+                    request,
+                    DepositRequest.class,
+                    req -> userService.deposit(req).thenApply(v -> req),
+                    "Nạp tiền thất bại"
+            ).join();
+        } catch (CompletionException ex) {
+            Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+            if (cause instanceof DomainException domainEx) {
+                return ApiResponse.error(domainEx.getErrorCode(), domainEx.getMessage());
+            }
+            String msg = cause.getMessage() != null ? cause.getMessage() : "Nạp tiền thất bại";
+            return ApiResponse.error(msg);
+        }
+    }
+
+    /** Withdraws funds from the authenticated user's wallet. */
+    public String withdraw(String request) {
+        try {
+            return handleAsync(
+                    request,
+                    WithdrawRequest.class,
+                    req -> userService.withdraw(req).thenApply(v -> req),
+                    "Rút tiền thất bại"
+            ).join();
+        } catch (CompletionException ex) {
+            Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+            if (cause instanceof DomainException domainEx) {
+                return ApiResponse.error(domainEx.getErrorCode(), domainEx.getMessage());
+            }
+            String msg = cause.getMessage() != null ? cause.getMessage() : "Rút tiền thất bại";
+            return ApiResponse.error(msg);
+        }
+    }
+
     /**
      * Maps a User entity to a safe Map that excludes sensitive fields (password). Solves Feature
      * Envy — this mapping logic stays in the controller as a presentation concern, but is now
@@ -97,6 +139,7 @@ public class UserController extends BaseController {
         safeUser.put("fullName", user.getFullName());
         safeUser.put("email", user.getEmail());
         safeUser.put("balance", user.getBalance());
+        safeUser.put("lockedBalance", user.getLockedBalance());
         safeUser.put("role", user.getRole());
         safeUser.put("isActive", user.getIsActive());
         return safeUser;

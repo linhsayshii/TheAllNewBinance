@@ -197,6 +197,27 @@ public class UserDao implements IUserDao {
         return false;
     }
 
+    @Override
+    public boolean insertTransactionRecord(
+            Connection conn,
+            Integer userId,
+            String type,
+            BigDecimal amount,
+            String status,
+            String refId) throws SQLException {
+        String sql =
+                "INSERT INTO wallet_transactions (user_id, transaction_type, amount, status,"
+                        + " reference_id) VALUES (?, ?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setString(2, type);
+            stmt.setBigDecimal(3, amount);
+            stmt.setString(4, status);
+            stmt.setString(5, refId);
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
     private User mapUser(ResultSet rs) throws SQLException {
         return UserFactory.rehydrateUser(
                 rs.getString("role"),

@@ -6,13 +6,16 @@ import java.util.Map;
 
 public class RegisterPageViewModel {
 
+    private static final java.util.regex.Pattern EMAIL_PATTERN =
+            java.util.regex.Pattern.compile("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$");
+
     public boolean validateRegistration(String username, String email, String password) {
         return username != null
                 && !username.isBlank()
                 && email != null
-                && email.contains("@")
+                && EMAIL_PATTERN.matcher(email.trim()).matches()
                 && password != null
-                && password.length() >= 6;
+                && password.length() >= 8;
     }
 
     public User parseRegisterResponse(String rawJson) {

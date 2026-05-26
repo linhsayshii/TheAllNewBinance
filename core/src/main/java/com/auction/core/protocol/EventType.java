@@ -8,6 +8,11 @@ public enum EventType {
     CHANGE_PASSWORD,
     LOGOUT,
 
+    // Wallet
+    DEPOSIT,
+    WITHDRAW,
+    GET_WALLET_TRANSACTIONS,
+
     // Auction
     GET_AUCTION_DETAILS,
     CREATE_AUCTION,

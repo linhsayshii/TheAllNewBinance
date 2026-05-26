@@ -101,6 +101,14 @@ public class RequestDispatcher {
                                 userCtrl == null
                                         ? error("User controller is not configured")
                                         : userCtrl.logout(payload));
+                        case EventType.DEPOSIT -> CompletableFuture.completedFuture(
+                                userCtrl == null
+                                        ? error("User controller is not configured")
+                                        : userCtrl.deposit(payload));
+                        case EventType.WITHDRAW -> CompletableFuture.completedFuture(
+                                userCtrl == null
+                                        ? error("User controller is not configured")
+                                        : userCtrl.withdraw(payload));
                         case EventType.PLACE_BID -> bidCtrl == null
                                 ? CompletableFuture.completedFuture(
                                         error("Bid controller is not configured"))
@@ -220,7 +228,8 @@ public class RequestDispatcher {
             EventType type, Map<String, Object> payload, Integer sessionUserId) {
         switch (type) {
             case PLACE_BID, GET_BIDS_BY_BIDDER_ID -> payload.put("bidderId", sessionUserId);
-            case UPDATE_PROFILE, CHANGE_PASSWORD, LOGOUT -> payload.put("userId", sessionUserId);
+            case UPDATE_PROFILE, CHANGE_PASSWORD, LOGOUT, DEPOSIT, WITHDRAW ->
+                    payload.put("userId", sessionUserId);
             case CREATE_AUCTION, GET_AUCTIONS_BY_SELLER -> payload.put("sellerId", sessionUserId);
             case PROMOTE_AUCTION -> payload.put(
                     "sellerId", sessionUserId); // server đè lên, bảo mật

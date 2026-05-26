@@ -4,11 +4,22 @@ import com.auction.core.dto.user.LoginRequest;
 import com.auction.core.dto.user.RegisterRequest;
 import com.auction.core.dto.user.UpdatePasswordRequest;
 import com.auction.core.dto.user.UpdateProfileRequest;
+import com.auction.core.dto.wallet.DepositRequest;
+import com.auction.core.dto.wallet.WithdrawRequest;
+import com.auction.core.exception.DomainException;
+import com.auction.core.exception.user.UserNotFoundException;
+import com.auction.core.exception.wallet.InvalidAmountException;
+import com.auction.core.exception.wallet.WalletTransactionException;
 import com.auction.core.services.IUserService;
-import com.auction.core.users.UserFactory;
 import com.auction.core.users.User;
+import com.auction.core.users.UserFactory;
 import com.auction.core.utils.PasswordHasher;
+import com.auction.server.concurrency.DBExecutor;
+import com.auction.server.dao.DBConnection;
 import com.auction.server.dao.impl.IUserDao;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
 
@@ -198,5 +209,99 @@ public class UserService implements IUserService {
 
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    @Override
+    public CompletableFuture<Void> deposit(DepositRequest request) {
+        return CompletableFuture.runAsync(() -> {
+            if (request == null
+                    || request.getAmount() == null
+                    || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new InvalidAmountException("Yêu cầu nạp tiền không hợp lệ");
+            }
+
+            try {
+                DBConnection.beginTransaction();
+                Connection conn = DBConnection.getConnection();
+
+                User user = userDao.findByIdForUpdate(conn, request.getUserId());
+                if (user == null) {
+                    throw new UserNotFoundException("Đầu dùng không tồn tại");
+                }
+
+                user.deposit(request.getAmount());
+
+                if (!userDao.updateBalanceAndLockedBalance(conn, user)) {
+                    throw new WalletTransactionException("Cập nhật số dư thất bại");
+                }
+
+                if (!userDao.insertTransactionRecord(
+                        conn,
+                        user.getId(),
+                        "DEPOSIT",
+                        request.getAmount(),
+                        "SUCCESS",
+                        UUID.randomUUID().toString())) {
+                    throw new WalletTransactionException("Lưu vết giao dịch thất bại");
+                }
+
+                DBConnection.commitTransaction();
+            } catch (Exception e) {
+                DBConnection.rollbackTransaction();
+                if (e instanceof DomainException) {
+                    throw (RuntimeException) e;
+                }
+                throw new WalletTransactionException(e.getMessage());
+            } finally {
+                DBConnection.closeConnection();
+            }
+        }, DBExecutor.getExecutor());
+    }
+
+    @Override
+    public CompletableFuture<Void> withdraw(WithdrawRequest request) {
+        return CompletableFuture.runAsync(() -> {
+            if (request == null
+                    || request.getAmount() == null
+                    || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                throw new InvalidAmountException("Yêu cầu rút tiền không hợp lệ");
+            }
+
+            try {
+                DBConnection.beginTransaction();
+                Connection conn = DBConnection.getConnection();
+
+                User user = userDao.findByIdForUpdate(conn, request.getUserId());
+                if (user == null) {
+                    throw new UserNotFoundException("Đầu dùng không tồn tại");
+                }
+
+                user.withdraw(request.getAmount());
+
+                if (!userDao.updateBalanceAndLockedBalance(conn, user)) {
+                    throw new WalletTransactionException("Cập nhật số dư thất bại");
+                }
+
+                if (!userDao.insertTransactionRecord(
+                        conn,
+                        user.getId(),
+                        "WITHDRAW",
+                        request.getAmount(),
+                        "SUCCESS",
+                        UUID.randomUUID().toString())) {
+                    throw new WalletTransactionException("Lưu vết giao dịch thất bại");
+                }
+
+                DBConnection.commitTransaction();
+            } catch (Exception e) {
+                DBConnection.rollbackTransaction();
+                if (e instanceof DomainException) {
+                    throw (RuntimeException) e;
+                }
+                throw new WalletTransactionException(e.getMessage());
+            } finally {
+                DBConnection.closeConnection();
+            }
+        }, DBExecutor.getExecutor());
     }
 }
