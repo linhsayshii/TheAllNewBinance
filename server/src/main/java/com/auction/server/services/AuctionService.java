@@ -10,7 +10,9 @@ import com.auction.core.dto.auction.PromoteAuctionRequest;
 import com.auction.core.dto.auction.PublicAuctionDto;
 import com.auction.core.services.IAuctionService;
 import com.auction.server.dao.impl.IAuctionDao;
+import com.auction.core.exception.auction.InvalidBidException;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -107,6 +109,18 @@ public class AuctionService implements IAuctionService {
                         }
 
                         conn.commit(); // Both writes succeeded — commit atomically
+
+                        // Lập lịch JVM ngay sau khi tạo phiên thành công
+                        if (auction.getStatus() == Auction.Status.PENDING) {
+                            AuctionSettlementScheduler.getInstance()
+                                    .scheduleAuctionStart(
+                                            auction.getId(), auction.getStartTime());
+                        } else if (auction.getStatus() == Auction.Status.ACTIVE) {
+                            AuctionSettlementScheduler.getInstance()
+                                    .scheduleAuctionClose(
+                                            auction.getId(), auction.getEndTime());
+                        }
+
                         return auction;
 
                     } catch (Exception e) {
@@ -142,10 +156,35 @@ public class AuctionService implements IAuctionService {
         }
         boolean updated = auctionDao.updateAuctionForBid(bid, auction);
         if (!updated) {
-            throw new IllegalStateException(
-                    "Failed to update auction bid state, possibly concurrency issue.");
+            throw new InvalidBidException(
+                    "Không thể cập nhật trạng thái đấu giá, có thể do xung đột thầu.");
         }
         return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public Auction getAuctionDetailsForUpdate(Connection conn, Integer auctionId)
+            throws SQLException {
+        // Gọi đồng bộ trực tiếp — không dùng supplyAsync để giữ nguyên Thread Context
+        return auctionDao.getAuctionDetailsForUpdate(conn, auctionId);
+    }
+
+    @Override
+    public CompletableFuture<Void> processBid(Connection conn, Bid bid, Auction auction) {
+        try {
+            // Gọi qua kết nối dùng chung của Transaction để đồng bộ (khai báo trong IAuctionDao)
+            boolean updated = auctionDao.updateAuctionForBidWithConnection(conn, bid, auction);
+            if (!updated) {
+                throw new InvalidBidException(
+                        "Không thể cập nhật trạng thái đấu giá trong transaction, có thể do xung đột thầu.");
+            }
+            return CompletableFuture.completedFuture(null);
+        } catch (SQLException e) {
+            CompletableFuture<Void> failed = new CompletableFuture<>();
+            failed.completeExceptionally(
+                    new InvalidBidException("Lỗi SQL khi cập nhật thầu: " + e.getMessage()));
+            return failed;
+        }
     }
 
     @Override
@@ -154,7 +193,12 @@ public class AuctionService implements IAuctionService {
                 () -> {
                     Auction auction = auctionDao.getAuctionDetails(auctionId);
                     if (auction != null) {
-                        auctionDao.deleteAuction(auction);
+                        boolean deleted = auctionDao.deleteAuction(auction);
+                        if (deleted) {
+                            // Hủy bỏ mọi tác vụ lập lịch đang chờ của auctionId này
+                            AuctionSettlementScheduler.getInstance()
+                                    .cancelScheduledTasks(auctionId);
+                        }
                     }
                     return auction;
                 });

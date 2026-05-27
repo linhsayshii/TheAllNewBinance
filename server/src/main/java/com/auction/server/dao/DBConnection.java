@@ -12,7 +12,7 @@ public class DBConnection {
     private static final String URL =
             "jdbc:mysql://localhost:3306/"
                     + DB_NAME
-                    + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
+                    + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh";
 
     // ThreadLocal to manage database connections
     private static final ThreadLocal<Connection> REAL_CONNECTION_HOLDER = new ThreadLocal<>();

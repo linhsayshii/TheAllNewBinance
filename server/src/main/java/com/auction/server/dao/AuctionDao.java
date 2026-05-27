@@ -304,6 +304,22 @@ public class AuctionDao implements IAuctionDao {
     }
 
     @Override
+    public Integer getSellerId(Connection conn, Integer auctionId) throws SQLException {
+        String sql =
+                "SELECT i.seller_id FROM auctions a JOIN items i ON a.item_id = i.item_id WHERE"
+                        + " a.auction_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, auctionId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt("seller_id");
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
     public List<Auction> getAuctionsBySellerId(Integer sellerId) {
         String sql = "SELECT * FROM auctions WHERE seller_id = ?";
         List<Auction> auctions = new ArrayList<>();
@@ -471,7 +487,7 @@ public class AuctionDao implements IAuctionDao {
                     + " a.promoted_description, i.description as item_description FROM auctions a"
                     + " JOIN items i ON a.item_id = i.item_id JOIN users u ON i.seller_id ="
                     + " u.user_id WHERE a.is_featured = true AND a.status = 'ACTIVE' AND a.end_time"
-                    + " > NOW() AND a.is_deleted = false ORDER BY RAND() LIMIT ?";
+                    + " > NOW() AND a.is_deleted = false ORDER BY a.end_time ASC LIMIT ?";
         List<com.auction.core.dto.auction.PublicAuctionDto> result = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
                 PreparedStatement stmt = conn.prepareStatement(sql)) {
@@ -589,5 +605,88 @@ public class AuctionDao implements IAuctionDao {
             System.err.println("Error: Cannot get all auctions for admin! " + e.getMessage());
         }
         return result;
+    }
+
+    @Override
+    public Auction getAuctionDetailsForUpdate(Connection conn, Integer auctionId)
+            throws SQLException {
+        String sql =
+                "SELECT auction_id, item_id, starting_price, current_price, bid_increment,"
+                        + " start_time, end_time, original_end_time, status, winner_id,"
+                        + " snipe_threshold, snipe_extension, is_featured, featured_until,"
+                        + " promoted_description FROM auctions WHERE auction_id = ? FOR UPDATE";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, auctionId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    Auction auction = new Auction();
+                    auction.setId(rs.getInt("auction_id"));
+                    auction.setItemId(rs.getInt("item_id"));
+                    auction.setStartingPrice(rs.getDouble("starting_price"));
+                    auction.setCurrentPrice(rs.getDouble("current_price"));
+                    auction.setBidIncrement(rs.getDouble("bid_increment"));
+                    auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
+                    auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+                    auction.setOriginalEndTime(
+                            rs.getTimestamp("original_end_time").toLocalDateTime());
+                    String statusStr = rs.getString("status");
+                    Auction.Status status = Auction.Status.PENDING;
+                    if (statusStr != null) {
+                        try {
+                            status = Auction.Status.valueOf(statusStr.toUpperCase().trim());
+                        } catch (IllegalArgumentException e) {
+                            System.err.println(
+                                    "[AuctionDao] Warning: Invalid status in DB (FOR UPDATE): '"
+                                            + statusStr + "'. Falling back to PENDING.");
+                        }
+                    }
+                    auction.setStatus(status);
+                    int winnerId = rs.getInt("winner_id");
+                    auction.setWinnerId(rs.wasNull() ? null : winnerId);
+                    return auction;
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public boolean updateAuctionInformation(Connection conn, Auction auction) throws SQLException {
+        String sql =
+                "UPDATE auctions SET item_id = ?, starting_price = ?, current_price = ?,"
+                        + " bid_increment = ?, start_time = ?, original_end_time = ?, end_time = ?,"
+                        + " status = ?, winner_id = ?, updated_at = ?, snipe_threshold = ?,"
+                        + " snipe_extension = ? WHERE auction_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, auction.getItemId());
+            stmt.setDouble(2, auction.getStartingPrice());
+            stmt.setDouble(3, auction.getCurrentPrice());
+            stmt.setDouble(4, auction.getBidIncrement());
+            stmt.setTimestamp(5, Timestamp.valueOf(auction.getStartTime()));
+            stmt.setTimestamp(6, Timestamp.valueOf(auction.getOriginalEndTime()));
+            stmt.setTimestamp(7, Timestamp.valueOf(auction.getEndTime()));
+            stmt.setString(8, auction.getStatus().name());
+            if (auction.getWinnerId() != null) {
+                stmt.setInt(9, auction.getWinnerId());
+            } else {
+                stmt.setNull(9, java.sql.Types.INTEGER);
+            }
+            stmt.setTimestamp(10, Timestamp.valueOf(auction.getUpdatedAt()));
+            stmt.setInt(11, auction.getSnipeSettings()[0]);
+            stmt.setInt(12, auction.getSnipeSettings()[1]);
+            stmt.setInt(13, auction.getId());
+            return stmt.executeUpdate() > 0;
+        }
+    }
+
+    @Override
+    public boolean updateAuctionForBidWithConnection(Connection conn, Bid bid, Auction auction)
+            throws SQLException {
+        String sql = "UPDATE auctions SET current_price = ? WHERE auction_id = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setDouble(1, bid.getAmount());
+            stmt.setInt(2, auction.getId());
+            return stmt.executeUpdate() > 0;
+        }
     }
 }

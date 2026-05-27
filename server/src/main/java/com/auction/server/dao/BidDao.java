@@ -91,6 +91,55 @@ public class BidDao implements IBidDao {
         return false;
     }
 
+    @Override
+    public boolean saveBid(Connection conn, Bid bid) throws SQLException {
+        String sql =
+                "INSERT INTO bids (auction_id, bidder_id, amount, created_at) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, bid.getAuctionId());
+            stmt.setInt(2, bid.getBidderId());
+            stmt.setDouble(3, bid.getAmount());
+            stmt.setTimestamp(4, Timestamp.valueOf(bid.getCreatedAt()));
+            int rowsInserted = stmt.executeUpdate();
+            if (rowsInserted > 0) {
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        bid.setId(generatedKeys.getInt(1));
+                    }
+                }
+            }
+            return true;
+        }
+    }
+
+    @Override
+    public boolean hasBid(Connection conn, Integer auctionId, Integer bidderId)
+            throws SQLException {
+        String sql = "SELECT 1 FROM bids WHERE auction_id = ? AND bidder_id = ? LIMIT 1";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, auctionId);
+            stmt.setInt(2, bidderId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    @Override
+    public List<Bid> findByAuctionId(Connection conn, Integer auctionId) throws SQLException {
+        String sql = "SELECT * FROM bids WHERE auction_id = ? ORDER BY amount DESC";
+        List<Bid> bids = new ArrayList<>();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, auctionId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    bids.add(mapBid(rs));
+                }
+            }
+        }
+        return bids;
+    }
+
     private Bid mapBid(ResultSet rs) throws SQLException {
         Bid bid =
                 new Bid(

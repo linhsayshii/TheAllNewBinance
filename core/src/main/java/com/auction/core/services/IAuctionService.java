@@ -13,6 +13,19 @@ import java.util.concurrent.CompletableFuture;
 public interface IAuctionService {
     CompletableFuture<Void> processBid(Bid bid, Auction auction);
 
+    /**
+     * Facade: Khóa bi quan dòng Đấu giá (Đồng bộ) để giữ nguyên Thread Context của Connection.
+     * Không dùng supplyAsync để tránh lệch Thread Context của Connection Pool.
+     */
+    Auction getAuctionDetailsForUpdate(java.sql.Connection conn, Integer auctionId)
+            throws java.sql.SQLException;
+
+    /**
+     * Cập nhật thông tin đấu giá trong Transaction đang hoạt động của luồng gọi.
+     * Truyền conn tường minh để tránh Deadlock và lệch Thread Context.
+     */
+    CompletableFuture<Void> processBid(java.sql.Connection conn, Bid bid, Auction auction);
+
     CompletableFuture<Auction> createAuction(CreateAuctionRequest request);
 
     CompletableFuture<Auction> deleteAuction(Integer auctionId);

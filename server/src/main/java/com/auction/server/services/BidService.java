@@ -111,14 +111,17 @@ public class BidService implements IBidService {
             throw new AuctionClosedException("Auction has already ended");
         }
 
-        // Hold deposit if first bid
+        // Kiểm tra số dư ví khả dụng ban đầu (Không thực hiện đóng băng tại đây để tránh rò rỉ cọc)
+        // Việc khóa cọc thực sự được thực hiện trong Transaction tuần tự của BidQueueManager
         boolean hasBidBefore = bidDao.hasBid(request.getAuctionId(), request.getBidderId());
+        double requiredBalance = amount;
         if (!hasBidBefore) {
-            double depositAmount = auction.getStartingPrice() * 0.3;
-            boolean held = userDao.holdBalance(user.getId(), depositAmount);
-            if (!held) {
-                throw new InsufficientBalanceException();
-            }
+            requiredBalance += (auction.getStartingPrice() * 0.3);
+        }
+        if (user.getBalance().compareTo(BigDecimal.valueOf(requiredBalance)) < 0) {
+            throw new InsufficientBalanceException(
+                    "Số dư tài khoản không đủ để đặt thầu"
+                            + " (bao gồm cả tiền cọc nếu là lượt đầu).");
         }
 
         // Build task with pre-validated snapshot

@@ -30,7 +30,9 @@ public enum ErrorCode {
     // 3xxx: Bidding & Auction Context
     AUCTION_CLOSED(3003, "The auction has ended or is not active."),
     SHILL_BIDDING_FORBIDDEN(3004, "Sellers are forbidden from bidding on their own auctions."),
-    INVALID_BID_AMOUNT(3005, "Bid amount is invalid or below current highest bid.");
+    INVALID_BID_AMOUNT(3005, "Bid amount is invalid or below current highest bid."),
+    AUCTION_ACTIVATION_FAILED(3006, "Failed to activate the auction from PENDING to ACTIVE."),
+    AUCTION_SETTLEMENT_FAILED(3007, "Failed to settle the auction, it must be in ACTIVE status.");
 
     private final int value;
     private final String defaultMessage;

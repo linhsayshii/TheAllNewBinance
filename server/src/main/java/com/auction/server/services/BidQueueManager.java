@@ -2,9 +2,22 @@ package com.auction.server.services;
 
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
+import com.auction.core.exception.auction.AuctionClosedException;
+import com.auction.core.exception.auction.InvalidBidException;
+import com.auction.core.exception.user.UserNotFoundException;
+import com.auction.core.exception.wallet.InsufficientBalanceException;
 import com.auction.core.services.IAuctionService;
+import com.auction.core.users.User;
 import com.auction.server.dao.DBConnection;
+import com.auction.server.dao.impl.IAuctionDao;
 import com.auction.server.dao.impl.IBidDao;
+import com.auction.server.dao.impl.IUserDao;
+import com.auction.core.protocol.EventType;
+import com.auction.server.network.BroadcastBroker;
+import java.math.BigDecimal;
+import java.sql.Connection;
+import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
@@ -36,12 +49,20 @@ public class BidQueueManager {
 
     private final IBidDao bidDao;
     private final IAuctionService auctionService;
+    private final IAuctionDao auctionDao;
+    private final IUserDao userDao;
 
     private volatile boolean shuttingDown = false;
 
-    public BidQueueManager(IBidDao bidDao, IAuctionService auctionService) {
+    public BidQueueManager(
+            IBidDao bidDao,
+            IAuctionService auctionService,
+            IAuctionDao auctionDao,
+            IUserDao userDao) {
         this.bidDao = bidDao;
         this.auctionService = auctionService;
+        this.auctionDao = auctionDao;
+        this.userDao = userDao;
     }
 
     /**
@@ -112,41 +133,100 @@ public class BidQueueManager {
     }
 
     /**
-     * Process a single bid task: validate price against DB, update auction, save bid. All within a
-     * DB transaction. The result (success or error) completes the task's future.
+     * Process a single bid task: validate price against DB, update auction, save bid.
+     * All within a DB transaction using shared Connection to prevent Deadlock.
+     * The result (success or error) completes the task's future.
      */
     private void processBidTask(BidTask task) {
         CompletableFuture<Bid> future = task.getResultFuture();
+        boolean triggerReschedule = false;
+        int rescheduleAuctionId = -1;
+        LocalDateTime rescheduleEndTime = null;
+
         try {
             DBConnection.beginTransaction();
+            Connection conn = DBConnection.getConnection();
 
-            Bid bid =
-                    new Bid(
-                            null,
-                            task.getRequest().getAuctionId(),
-                            task.getRequest().getBidderId(),
-                            task.getRequest().getAmount());
+            int auctionId = task.getRequest().getAuctionId();
+            int bidderId = task.getRequest().getBidderId();
 
-            // Use auction snapshot for bid increment/snipe, but re-read current_price from DB
-            Auction auction = task.getSnapshot();
-            auctionService.processBid(bid, auction).join();
+            // 1. Facade đồng bộ: Khóa bi quan dòng Auction, giữ nguyên Thread Context
+            Auction auction = auctionService.getAuctionDetailsForUpdate(conn, auctionId);
+            if (auction == null || auction.getStatus() != Auction.Status.ACTIVE) {
+                throw new AuctionClosedException(
+                        "Phiên đấu giá đã kết thúc hoặc không ở trạng thái ACTIVE.");
+            }
 
-            boolean saved = bidDao.saveBid(bid);
+            // 2. Khóa bi quan dòng User, tái kiểm tra số dư thực tế
+            User user = userDao.findByIdForUpdate(conn, bidderId);
+            if (user == null) {
+                throw new UserNotFoundException("Không tìm thấy người dùng thầu.");
+            }
+
+            // 3. hasBid trong Transaction để tránh race condition đặt cọc
+            boolean hasBidBefore = bidDao.hasBid(conn, auctionId, bidderId);
+            double amount = task.getRequest().getAmount();
+
+            if (!hasBidBefore) {
+                double depositAmount = auction.getStartingPrice() * 0.3;
+                BigDecimal depositBD = BigDecimal.valueOf(depositAmount);
+                if (user.getBalance().compareTo(depositBD) < 0) {
+                    throw new InsufficientBalanceException(
+                            "Số dư khả dụng không đủ đóng cọc 30%.");
+                }
+                // Dùng domain method holdBalance() — tự kiểm tra số dư và cập nhật balance/lockedBalance
+                user.holdBalance(depositBD);
+                userDao.updateBalanceAndLockedBalance(conn, user);
+            }
+
+            if (user.getBalance().compareTo(BigDecimal.valueOf(amount)) < 0) {
+                throw new InsufficientBalanceException(
+                        "Số dư khả dụng không đủ bảo chứng cho giá đặt mới: " + amount);
+            }
+
+            Bid bid = new Bid(null, auctionId, bidderId, amount);
+
+            // 4. processBid với conn dùng chung — cùng một Connection vật lý
+            auctionService.processBid(conn, bid, auction).join();
+
+            // 5. Snipe Extension trong Transaction; ghi nhận cờ để reschedule Post-Commit
+            boolean extended = auction.applySnipeExtension(LocalDateTime.now());
+            if (extended) {
+                auctionDao.updateAuctionInformation(conn, auction);
+                triggerReschedule = true;
+                rescheduleAuctionId = auction.getId();
+                rescheduleEndTime = auction.getEndTime();
+            }
+
+            boolean saved = bidDao.saveBid(conn, bid);
             if (!saved) {
-                throw new IllegalStateException("Cannot persist bid");
+                throw new InvalidBidException(
+                        "Không thể ghi nhận lịch sử thầu vào cơ sở dữ liệu.");
             }
 
             DBConnection.commitTransaction();
             future.complete(bid);
-        } catch (IllegalArgumentException | IllegalStateException e) {
-            DBConnection.rollbackTransaction();
-            future.completeExceptionally(e);
         } catch (Exception e) {
             DBConnection.rollbackTransaction();
-            future.completeExceptionally(
-                    new RuntimeException("Transaction error while placing bid", e));
+            future.completeExceptionally(e);
         } finally {
             DBConnection.closeConnection();
+        }
+
+        // 6. Reschedule JVM scheduler: CHỈ chạy Post-Commit sau Transaction DB thành công
+        if (triggerReschedule && rescheduleEndTime != null) {
+            AuctionSettlementScheduler.getInstance()
+                    .rescheduleAuctionClose(rescheduleAuctionId, rescheduleEndTime);
+
+            // Broadcast gia hạn endTime đến toàn bộ client đang trong room
+            final int broadcastAuctionId = rescheduleAuctionId;
+            final LocalDateTime broadcastEndTime = rescheduleEndTime;
+            BroadcastBroker.getInstance()
+                    .broadcastToRoom(
+                            broadcastAuctionId,
+                            EventType.AUCTION_EXTENDED,
+                            Map.of("auctionId", broadcastAuctionId, "newEndTime", broadcastEndTime),
+                            null);
         }
     }
 

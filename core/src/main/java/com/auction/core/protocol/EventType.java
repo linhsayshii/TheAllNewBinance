@@ -24,6 +24,8 @@ public enum EventType {
     GET_ALL_USERS_ADMIN, // Admin only: lấy tất cả users
     SUBSCRIBE_AUCTION, // Client: đăng ký nhận broadcast của phiên đấu giá
     UNSUBSCRIBE_AUCTION, // Client: hủy đăng ký nhận broadcast của phiên đấu giá
+    AUCTION_ACTIVATED, // Server -> Client: phát thông báo khi phiên đấu giá PENDING → ACTIVE
+    AUCTION_EXTENDED, // Server -> Client: phát thông báo khi phiên đấu giá gia hạn endTime
 
     // Item
     GET_UPLOAD_SIGNATURE,

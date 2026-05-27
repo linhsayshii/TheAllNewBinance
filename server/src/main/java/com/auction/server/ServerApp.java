@@ -20,8 +20,10 @@ import com.auction.server.dao.impl.IItemDao;
 import com.auction.server.dao.impl.IUserDao;
 import com.auction.server.network.SocketServer;
 import com.auction.server.services.AuctionService;
+import com.auction.server.services.AuctionSettlementScheduler;
 import com.auction.server.services.BidQueueManager;
 import com.auction.server.services.BidService;
+import com.auction.server.services.FeaturedAuctionBatchJob;
 import com.auction.server.services.UserService;
 import java.util.logging.Logger;
 
@@ -30,6 +32,9 @@ public class ServerApp {
     private static final Logger LOGGER = Logger.getLogger(ServerApp.class.getName());
 
     public static void main(String[] args) {
+        // Đồng bộ múi giờ JVM hệ thống về UTC+7 trước khi bất kỳ class nào khởi tạo
+        java.util.TimeZone.setDefault(java.util.TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+
         // ── Phase 7: Application Startup Initialization ──────────────────────
 
         // Step 1: Force JVM class-load of LuxuryAttributes to pre-populate the KEY_POOL.
@@ -61,8 +66,9 @@ public class ServerApp {
         IUserService userService = new UserService(userDao);
         IAuctionService auctionService = new AuctionService(auctionDao, itemDao, userDao);
 
-        // 3. Queue-based bid processing (replaces DB row lock)
-        BidQueueManager bidQueueManager = new BidQueueManager(bidDao, auctionService);
+        // 3. Queue-based bid processing — tiêm trực tiếp DAOs tránh ép kiểu
+        BidQueueManager bidQueueManager =
+                new BidQueueManager(bidDao, auctionService, auctionDao, userDao);
         IBidService bidService = new BidService(bidDao, auctionService, userDao, bidQueueManager);
 
         // 4. Dependency Injection - Instantiating Controllers
@@ -75,10 +81,30 @@ public class ServerApp {
         RequestDispatcher dispatcher =
                 new RequestDispatcher(userCtrl, auctionCtrl, bidCtrl, itemCtrl, userDao);
 
+        // 5. Khởi tạo và kích hoạt Schedulers ngầm
+        FeaturedAuctionBatchJob featuredJob = new FeaturedAuctionBatchJob(auctionDao);
+        featuredJob.start();
+
+        AuctionSettlementScheduler settlementScheduler =
+                new AuctionSettlementScheduler(auctionDao, bidDao, userDao);
+        settlementScheduler.start();
+
         // 6. Start Server
         int port = 8080;
         SocketServer server = new SocketServer(port, dispatcher);
         server.start();
+
+        // Đăng ký Shutdown Hook để giải phóng Thread Pools an toàn
+        Runtime.getRuntime()
+                .addShutdownHook(
+                        new Thread(
+                                () -> {
+                                    System.out.println(
+                                            "[ServerApp] Shutdown hook triggered."
+                                                    + " Releasing background pools...");
+                                    featuredJob.stop();
+                                    settlementScheduler.stop();
+                                }));
 
         System.out.println(
                 "TheAllNewBinance Auction Server is warming up and binding to port " + port);

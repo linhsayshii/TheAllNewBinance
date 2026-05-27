@@ -8,7 +8,8 @@ import com.auction.core.exception.ErrorCode;
  * exception types for compiler-enforced exhaustiveness.
  */
 public abstract sealed class AuctionException extends DomainException
-        permits AuctionClosedException, InvalidBidException, ShillBiddingForbiddenException {
+        permits AuctionActivationException, AuctionClosedException, AuctionSettlementException,
+                InvalidBidException, ShillBiddingForbiddenException {
 
     protected AuctionException(ErrorCode errorCode) {
         super(errorCode);

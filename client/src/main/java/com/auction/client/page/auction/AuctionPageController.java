@@ -405,6 +405,18 @@ public class AuctionPageController
                     .getClient()
                     .addResponseHandler(
                             EventType.PLACE_BID, HANDLER_ID, this::handlePlaceBidResponse);
+            NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            EventType.AUCTION_ACTIVATED,
+                            HANDLER_ID,
+                            this::handleAuctionActivatedEvent);
+            NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            EventType.AUCTION_EXTENDED,
+                            HANDLER_ID,
+                            this::handleAuctionExtendedEvent);
             networkReady = true;
         } catch (IllegalStateException ex) {
             networkReady = false;
@@ -724,5 +736,72 @@ public class AuctionPageController
         NetworkService.getInstance()
                 .getClient()
                 .removeResponseHandler(EventType.PLACE_BID, HANDLER_ID);
+        NetworkService.getInstance()
+                .getClient()
+                .removeResponseHandler(EventType.AUCTION_ACTIVATED, HANDLER_ID);
+        NetworkService.getInstance()
+                .getClient()
+                .removeResponseHandler(EventType.AUCTION_EXTENDED, HANDLER_ID);
+    }
+
+    private void handleAuctionActivatedEvent(String rawJson) {
+        try {
+            Map<?, ?> response = JsonMapper.fromJson(rawJson, Map.class);
+            if (response == null || !response.containsKey("data")) {
+                return;
+            }
+            Object data = response.get("data");
+            if (data == null) {
+                return;
+            }
+            String dataJson = JsonMapper.toJson(data);
+            com.auction.core.dto.auction.AuctionDetailsDto dto =
+                    JsonMapper.fromJson(
+                            dataJson, com.auction.core.dto.auction.AuctionDetailsDto.class);
+            if (dto != null && dto.getAuction() != null) {
+                // Cập nhật UI trên JavaFX Application Thread
+                Platform.runLater(
+                        () -> {
+                            viewModel.statusProperty().set(dto.getAuction().getStatus());
+                            viewModel.endTimeProperty().set(dto.getAuction().getEndTime());
+                            updateStatusViews();
+                            updateTitleText();
+                            showInfo("Auction Active!", "Phiên đấu giá đã chính thức bắt đầu!");
+                        });
+            }
+        } catch (Exception e) {
+            System.err.println(
+                    "Error processing AUCTION_ACTIVATED in AuctionPage: " + e.getMessage());
+        }
+    }
+
+    private void handleAuctionExtendedEvent(String rawJson) {
+        try {
+            Map<?, ?> response = JsonMapper.fromJson(rawJson, Map.class);
+            if (response == null || !response.containsKey("data")) {
+                return;
+            }
+            Object data = response.get("data");
+            if (!(data instanceof Map<?, ?> dataMap)) {
+                return;
+            }
+            Object newEndTimeRaw = dataMap.get("newEndTime");
+            if (newEndTimeRaw == null) {
+                return;
+            }
+            // newEndTime được serialize dạng "yyyy-MM-dd HH:mm:ss" bởi JsonMapper
+            java.time.LocalDateTime newEndTime =
+                    java.time.LocalDateTime.parse(
+                            String.valueOf(newEndTimeRaw),
+                            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+            Platform.runLater(
+                    () -> {
+                        viewModel.endTimeProperty().set(newEndTime);
+                        // Countdown sẽ tự cập nhật ở tick tiếp theo nhờ viewModel.endTimeProperty()
+                    });
+        } catch (Exception e) {
+            System.err.println(
+                    "Error processing AUCTION_EXTENDED in AuctionPage: " + e.getMessage());
+        }
     }
 }

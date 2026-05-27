@@ -18,11 +18,23 @@ public interface IAuctionDao {
 
     boolean updateAuctionInformation(Auction auction);
 
+    /**
+     * Cập nhật thông tin Đấu giá dùng chung Connection của Transaction đang hoạt động.
+     * Tránh tạo kết nối mới gây Deadlock với khóa bi quan FOR UPDATE của luồng chính.
+     */
+    boolean updateAuctionInformation(Connection conn, Auction auction) throws SQLException;
+
     boolean deleteAuction(Auction auction);
 
     boolean extendAuction(Auction auction);
 
     Auction getAuctionDetails(Integer auctionId);
+
+    /**
+     * Khóa bi quan dòng Đấu giá (SELECT FOR UPDATE) dùng chung Connection để giữ nguyên
+     * Thread Context và tránh Deadlock vật lý khi thực thi trong Transaction.
+     */
+    Auction getAuctionDetailsForUpdate(Connection conn, Integer auctionId) throws SQLException;
 
     double getCurrentPrice(Integer auctionId);
 
@@ -30,7 +42,20 @@ public interface IAuctionDao {
 
     boolean updateAuctionForBid(Bid bid, Auction auction);
 
+    /**
+     * Cập nhật giá thầu hiện tại dùng chung Connection của Transaction đang hoạt động.
+     * Tránh tạo kết nối mới gây Deadlock với khóa bi quan FOR UPDATE của luồng chính.
+     */
+    boolean updateAuctionForBidWithConnection(Connection conn, Bid bid, Auction auction)
+            throws SQLException;
+
     Integer getSellerId(Integer auctionId);
+
+    /**
+     * Lấy sellerId dùng chung Connection của Transaction đang hoạt động.
+     * Tránh tạo kết nối mới độc lập khi đang giữ khóa bi quan.
+     */
+    Integer getSellerId(Connection conn, Integer auctionId) throws SQLException;
 
     List<Auction> getAuctionsBySellerId(Integer sellerId);
 
