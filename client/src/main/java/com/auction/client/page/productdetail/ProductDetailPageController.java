@@ -34,7 +34,8 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Alert;
+import com.auction.client.service.notification.NotificationService;
+import com.auction.client.service.notification.NotificationType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -169,7 +170,15 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
                     && !incomingAuctionId.equals(viewModel.getAuctionId())) {
                 return;
             }
-            Platform.runLater(() -> mergeSingleBid(incomingBid, isOwnBid));
+            Platform.runLater(() -> {
+                mergeSingleBid(incomingBid, isOwnBid);
+                if (isOwnBid) {
+                    NotificationService.getInstance().show(
+                            "Your bid of $" + MONEY_FORMAT.format(incomingBid.getAmount())
+                                    + " has been placed successfully!",
+                            NotificationType.SUCCESS);
+                }
+            });
         } catch (Exception e) {
             System.err.println(
                     "Error processing place bid response in ProductDetail: " + e.getMessage());
@@ -382,11 +391,18 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
     }
 
     private void showInfo(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.show();
+        NotificationType type = NotificationType.INFO;
+        if (title != null) {
+            String lower = title.toLowerCase();
+            if (lower.contains("failed") || lower.contains("error") || lower.contains("closed") || lower.contains("not allowed")) {
+                type = NotificationType.ERROR;
+            } else if (lower.contains("invalid") || lower.contains("low") || lower.contains("unavailable")) {
+                type = NotificationType.WARNING;
+            } else if (lower.contains("success")) {
+                type = NotificationType.SUCCESS;
+            }
+        }
+        NotificationService.getInstance().show(message, type);
     }
 
     @Override

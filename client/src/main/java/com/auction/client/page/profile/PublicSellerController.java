@@ -62,7 +62,11 @@ public class PublicSellerController implements DataReceivable, LifecycleAwareCon
 
         if (data.containsKey("sellerId")) {
             int sellerId = ((Number) data.get("sellerId")).intValue();
-            viewModel.loadPublicSellerView(sellerId);
+            String sellerName = (String) data.getOrDefault("sellerName", "Seller #" + sellerId);
+            String email = (String) data.getOrDefault("email", "");
+            String joinDate = (String) data.getOrDefault("joinDate", "");
+
+            viewModel.loadPublicSellerView(sellerId, sellerName, email, joinDate);
             profileSidebarController.bind(viewModel);
             loadListingsAsync(sellerId);
         }

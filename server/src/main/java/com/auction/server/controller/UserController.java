@@ -12,6 +12,7 @@ import com.auction.core.users.User;
 import com.auction.core.utils.JsonMapper;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 
 public class UserController extends BaseController {
@@ -125,6 +126,16 @@ public class UserController extends BaseController {
             String msg = cause.getMessage() != null ? cause.getMessage() : "Rút tiền thất bại";
             return ApiResponse.error(msg);
         }
+    }
+
+    /** Returns wallet transaction history for the authenticated user. */
+    public CompletableFuture<String> getWalletTransactions(Integer authenticatedUserId) {
+        if (authenticatedUserId == null) {
+            return CompletableFuture.completedFuture(ApiResponse.error("Unauthorized"));
+        }
+        return userService.getWalletTransactions(authenticatedUserId)
+                .thenApply(ApiResponse::success)
+                .exceptionally(ex -> ApiResponse.error("Failed to get wallet transactions"));
     }
 
     /**

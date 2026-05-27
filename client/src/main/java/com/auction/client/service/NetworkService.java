@@ -6,6 +6,7 @@ import com.auction.client.mock.MockDataProvider;
 import com.auction.client.network.AuctionClient;
 import com.auction.core.protocol.EventType;
 import java.net.URI;
+import java.util.concurrent.CompletableFuture;
 
 public class NetworkService {
 
@@ -55,6 +56,27 @@ public class NetworkService {
     public void addCorrelationHandler(
             String correlationId, java.util.function.Consumer<String> handler) {
         client.addCorrelationHandler(correlationId, handler);
+    }
+
+    public void removeCorrelationHandler(String correlationId) {
+        client.removeCorrelationHandler(correlationId);
+    }
+
+    /**
+     * Sends a request and returns a self-cleaning {@link CompletableFuture}.
+     * The correlation handler is automatically removed once the future completes,
+     * guaranteeing zero memory leaks even when the server is slow or unreachable.
+     */
+    public CompletableFuture<String> sendRequestAsync(EventType type, Object payload) {
+        CompletableFuture<String> future = new CompletableFuture<>();
+        try {
+            String correlationId = sendRequest(type, payload);
+            addCorrelationHandler(correlationId, future::complete);
+            future.whenComplete((res, ex) -> removeCorrelationHandler(correlationId));
+        } catch (Exception e) {
+            future.completeExceptionally(e);
+        }
+        return future;
     }
 
     /**

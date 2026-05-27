@@ -22,7 +22,7 @@ public record ProfileAuctionCardUiModel(
 
     /** Convenience factory for an active bid the user is currently winning. */
     public static ProfileAuctionCardUiModel winning(
-            Integer auctionId, String title, String price, String timeInfo) {
+            Integer auctionId, String title, String price, String timeInfo, String imageUrl) {
         return new ProfileAuctionCardUiModel(
                 auctionId,
                 title,
@@ -32,12 +32,12 @@ public record ProfileAuctionCardUiModel(
                 "WINNING",
                 "badge-winning",
                 false,
-                null);
+                imageUrl);
     }
 
     /** Convenience factory for a bid where the user has been outbid. */
     public static ProfileAuctionCardUiModel outbid(
-            Integer auctionId, String title, String price, String timeInfo) {
+            Integer auctionId, String title, String price, String timeInfo, String imageUrl) {
         return new ProfileAuctionCardUiModel(
                 auctionId,
                 title,
@@ -47,12 +47,12 @@ public record ProfileAuctionCardUiModel(
                 "OUTBID",
                 "badge-outbid",
                 false,
-                null);
+                imageUrl);
     }
 
     /** Convenience factory for an auction the user has won. */
     public static ProfileAuctionCardUiModel won(
-            Integer auctionId, String title, String finalPrice, String endedInfo) {
+            Integer auctionId, String title, String finalPrice, String endedInfo, String imageUrl) {
         return new ProfileAuctionCardUiModel(
                 auctionId,
                 title,
@@ -62,12 +62,17 @@ public record ProfileAuctionCardUiModel(
                 "WON",
                 "badge-won",
                 false,
-                null);
+                imageUrl);
     }
 
     /** Convenience factory for a seller's active/live listing. */
     public static ProfileAuctionCardUiModel live(
-            Integer auctionId, String title, String price, String timeInfo, boolean isFeatured) {
+            Integer auctionId,
+            String title,
+            String price,
+            String timeInfo,
+            boolean isFeatured,
+            String imageUrl) {
         return new ProfileAuctionCardUiModel(
                 auctionId,
                 title,
@@ -77,12 +82,12 @@ public record ProfileAuctionCardUiModel(
                 "LIVE",
                 "badge-live",
                 isFeatured,
-                null);
+                imageUrl);
     }
 
     /** Convenience factory for a seller's pending listing. */
     public static ProfileAuctionCardUiModel pending(
-            Integer auctionId, String title, String price, String startInfo) {
+            Integer auctionId, String title, String price, String startInfo, String imageUrl) {
         return new ProfileAuctionCardUiModel(
                 auctionId,
                 title,
@@ -92,12 +97,12 @@ public record ProfileAuctionCardUiModel(
                 "PENDING",
                 "badge-pending",
                 false,
-                null);
+                imageUrl);
     }
 
     /** Convenience factory for a seller's sold listing. */
     public static ProfileAuctionCardUiModel sold(
-            Integer auctionId, String title, String finalPrice, String endedInfo) {
+            Integer auctionId, String title, String finalPrice, String endedInfo, String imageUrl) {
         return new ProfileAuctionCardUiModel(
                 auctionId,
                 title,
@@ -107,12 +112,12 @@ public record ProfileAuctionCardUiModel(
                 "SOLD",
                 "badge-sold",
                 false,
-                null);
+                imageUrl);
     }
 
     /** Convenience factory for a seller's unsold/cancelled listing. */
     public static ProfileAuctionCardUiModel unsold(
-            Integer auctionId, String title, String price, String endedInfo) {
+            Integer auctionId, String title, String price, String endedInfo, String imageUrl) {
         return new ProfileAuctionCardUiModel(
                 auctionId,
                 title,
@@ -122,6 +127,6 @@ public record ProfileAuctionCardUiModel(
                 "UNSOLD",
                 "badge-unsold",
                 false,
-                null);
+                imageUrl);
     }
 }

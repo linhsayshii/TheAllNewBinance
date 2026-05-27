@@ -5,6 +5,8 @@ import com.auction.client.scene.LifecycleAwareController;
 import com.auction.client.scene.NavigationService;
 import com.auction.client.service.NetworkService;
 import com.auction.client.service.UserSessionService;
+import com.auction.client.service.notification.NotificationService;
+import com.auction.client.service.notification.NotificationType;
 import com.auction.core.dto.user.LoginRequest;
 import com.auction.core.protocol.EventType;
 import com.auction.core.users.User;
@@ -40,8 +42,9 @@ public class LoginPageController implements Initializable, LifecycleAwareControl
         String password = txtPassword.getText();
 
         if (!viewModel.validateCredentials(username, password)) {
-            lblError.setText("Vui lòng nhập đầy đủ thông tin hợp lệ.");
+            lblError.setText("Please enter valid credentials.");
             lblError.setVisible(true);
+            NotificationService.getInstance().show("Please enter valid credentials.", NotificationType.WARNING);
             return;
         }
 
@@ -65,14 +68,19 @@ public class LoginPageController implements Initializable, LifecycleAwareControl
                 () -> {
                     if (user != null) {
                         UserSessionService.getInstance().login(user);
+                        NotificationService.getInstance().show(
+                                "Logged in successfully! Welcome back, " + user.getUsername() + ".",
+                                NotificationType.SUCCESS);
                         if (NavigationService.getInstance().isPopupOpen()) {
                             NavigationService.getInstance().closePopup();
                             return;
                         }
                         NavigationService.getInstance().navigateTo(SceneRegistry.GENERAL_PAGE);
                     } else {
-                        lblError.setText(viewModel.parseErrorMessage(rawJson));
+                        String errMsg = viewModel.parseErrorMessage(rawJson);
+                        lblError.setText(errMsg);
                         lblError.setVisible(true);
+                        NotificationService.getInstance().show(errMsg, NotificationType.ERROR);
                     }
                 });
     }

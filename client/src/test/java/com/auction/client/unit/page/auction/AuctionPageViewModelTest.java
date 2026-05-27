@@ -46,7 +46,11 @@ class AuctionPageViewModelTest {
                         .createItem(
                                 101, 1, "Test Product", "Description", "ImageUrl", false, attrs);
 
-        viewModel.applyAuctionData(mockAuction, mockItem, "Seller", null, null);
+        com.auction.core.users.User mockUser =
+                com.auction.core.users.UserFactory.createNewStandard(
+                        "seller_username", "password", "Seller", "seller@example.com");
+
+        viewModel.applyAuctionData(mockAuction, mockItem, mockUser, null, null);
 
         // 3. Bid history MUST be preserved (not cleared)
         Assertions.assertEquals(1, viewModel.bids().size());
@@ -64,7 +68,11 @@ class AuctionPageViewModelTest {
         mockAuction.setStartTime(now.plusSeconds(2)); // starts in 2s
         mockAuction.setEndTime(now.plusHours(2));
 
-        viewModel.applyAuctionData(mockAuction, null, "Seller", null, null);
+        com.auction.core.users.User mockUser =
+                com.auction.core.users.UserFactory.createNewStandard(
+                        "seller_username", "password", "Seller", "seller@example.com");
+
+        viewModel.applyAuctionData(mockAuction, null, mockUser, null, null);
         Assertions.assertEquals(Auction.Status.PENDING, viewModel.statusProperty().get());
         Assertions.assertFalse(viewModel.biddingEnabledProperty().get());
 
@@ -90,7 +98,11 @@ class AuctionPageViewModelTest {
         mockAuction.setStartTime(now.minusHours(1));
         mockAuction.setEndTime(now.plusSeconds(2)); // ends in 2s
 
-        viewModel.applyAuctionData(mockAuction, null, "Seller", null, null);
+        com.auction.core.users.User mockUser =
+                com.auction.core.users.UserFactory.createNewStandard(
+                        "seller_username", "password", "Seller", "seller@example.com");
+
+        viewModel.applyAuctionData(mockAuction, null, mockUser, null, null);
         Assertions.assertEquals(Auction.Status.ACTIVE, viewModel.statusProperty().get());
         Assertions.assertTrue(viewModel.biddingEnabledProperty().get());
 

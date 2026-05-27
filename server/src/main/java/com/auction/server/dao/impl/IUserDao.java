@@ -4,6 +4,8 @@ import com.auction.core.users.User;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.util.List;
+import java.util.Map;
 
 public interface IUserDao {
     public boolean registerUser(User user);
@@ -31,4 +33,6 @@ public interface IUserDao {
             BigDecimal amount,
             String status,
             String refId) throws SQLException;
+
+    public List<Map<String, Object>> getWalletTransactionsByUserId(Integer userId);
 }

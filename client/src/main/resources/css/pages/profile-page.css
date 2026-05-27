@@ -115,6 +115,7 @@
 
 .profile-nav-btn:hover {
     -fx-background-color: -theme-accent;
+    -fx-text-fill: -theme-bg-main;
 }
 
 .profile-nav-btn:selected {

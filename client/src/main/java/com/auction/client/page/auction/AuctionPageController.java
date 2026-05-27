@@ -1,6 +1,7 @@
 package com.auction.client.page.auction;
 
 import com.auction.client.config.SceneRegistry;
+import com.auction.client.network.ClientExceptionFactory;
 import com.auction.client.scene.DataReceivable;
 import com.auction.client.scene.LifecycleAwareController;
 import com.auction.client.scene.NavigationService;
@@ -10,6 +11,11 @@ import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
 import com.auction.core.dto.auction.GetAuctionDetailsRequest;
 import com.auction.core.dto.bid.PlaceBid;
+import com.auction.core.exception.DomainException;
+import com.auction.core.exception.auction.AuctionClosedException;
+import com.auction.core.exception.auction.InvalidBidException;
+import com.auction.core.exception.auction.ShillBiddingForbiddenException;
+import com.auction.core.exception.wallet.InsufficientBalanceException;
 import com.auction.core.protocol.EventType;
 import com.auction.core.utils.JsonMapper;
 import java.net.URL;
@@ -32,7 +38,8 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Alert;
+import com.auction.client.service.notification.NotificationService;
+import com.auction.client.service.notification.NotificationType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -159,17 +166,8 @@ public class AuctionPageController
             if (dto != null && dto.getAuction() != null) {
                 Platform.runLater(
                         () -> {
-                            String sellerName =
-                                    dto.getSeller() != null
-                                            ? (dto.getSeller().getFullName() != null
-                                                            && !dto.getSeller()
-                                                                    .getFullName()
-                                                                    .isBlank()
-                                                    ? dto.getSeller().getFullName()
-                                                    : dto.getSeller().getUsername())
-                                            : "Unknown Seller";
                             viewModel.applyAuctionData(
-                                    dto.getAuction(), dto.getItem(), sellerName, null, null);
+                                    dto.getAuction(), dto.getItem(), dto.getSeller(), null, null);
                             updateStatusViews();
                         });
             }
@@ -205,6 +203,18 @@ public class AuctionPageController
             Map<?, ?> response = JsonMapper.fromJson(rawJson, Map.class);
             Object success = response != null ? response.get("success") : null;
             if (!(success instanceof Boolean) || !((Boolean) success)) {
+                Object errCodeObj = response != null ? response.get("errorCode") : null;
+                String message =
+                        response != null && response.get("message") instanceof String msg
+                                ? msg
+                                : "An error occurred. Please try again.";
+
+                if (errCodeObj instanceof Number errNum) {
+                    DomainException ex = ClientExceptionFactory.create(errNum.intValue(), message);
+                    Platform.runLater(() -> dispatchBidError(ex));
+                } else {
+                    Platform.runLater(() -> showInfo("Bid Failed", message));
+                }
                 return;
             }
 
@@ -227,10 +237,39 @@ public class AuctionPageController
                     && !incomingAuctionId.equals(viewModel.getAuctionId())) {
                 return;
             }
-            Platform.runLater(() -> mergeSingleBid(incomingBid, isOwnBid));
+            Platform.runLater(() -> {
+                mergeSingleBid(incomingBid, isOwnBid);
+                if (isOwnBid) {
+                    NotificationService.getInstance().show(
+                            "Your bid of $" + MONEY_FORMAT.format(incomingBid.getAmount())
+                                    + " has been placed successfully!",
+                            NotificationType.SUCCESS);
+                }
+            });
         } catch (Exception e) {
             System.err.println(
                     "Error processing place bid response in AuctionPage: " + e.getMessage());
+        }
+    }
+
+    private void dispatchBidError(DomainException ex) {
+        switch (ex) {
+            case AuctionClosedException e -> {
+                viewModel.biddingEnabledProperty().set(false);
+                showInfo("Auction Closed", e.getMessage());
+            }
+            case InsufficientBalanceException e -> {
+                showInfo(
+                        "Insufficient Balance",
+                        "Your balance is too low to hold the 30% deposit. Please top up.");
+            }
+            case ShillBiddingForbiddenException e -> {
+                showInfo("Not Allowed", "You cannot bid on your own auction.");
+            }
+            case InvalidBidException e -> {
+                showInfo("Invalid Bid", e.getMessage());
+            }
+            default -> showInfo("Bid Failed", ex.getMessage());
         }
     }
 
@@ -451,7 +490,12 @@ public class AuctionPageController
         NavigationService.getInstance()
                 .navigateTo(
                         SceneRegistry.PUBLIC_SELLER_PAGE,
-                        java.util.Map.of("sellerId", viewModel.getSellerId()));
+                        java.util.Map.of(
+                                "sellerId", viewModel.getSellerId(),
+                                "sellerName", viewModel.sellerNameProperty().get(),
+                                "email", viewModel.sellerEmailProperty().get(),
+                                "joinDate", viewModel.sellerJoinDateProperty().get()
+                        ));
     }
 
     private void updateCountdownLabels(LocalDateTime now) {
@@ -590,11 +634,18 @@ public class AuctionPageController
     }
 
     private void showInfo(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.show();
+        NotificationType type = NotificationType.INFO;
+        if (title != null) {
+            String lower = title.toLowerCase();
+            if (lower.contains("failed") || lower.contains("error") || lower.contains("closed") || lower.contains("not allowed")) {
+                type = NotificationType.ERROR;
+            } else if (lower.contains("invalid") || lower.contains("low") || lower.contains("unavailable") || lower.contains("required")) {
+                type = NotificationType.WARNING;
+            } else if (lower.contains("success") || lower.contains("active")) {
+                type = NotificationType.SUCCESS;
+            }
+        }
+        NotificationService.getInstance().show(message, type);
     }
 
     private void updateTitleText() {
@@ -766,7 +817,7 @@ public class AuctionPageController
                             viewModel.endTimeProperty().set(dto.getAuction().getEndTime());
                             updateStatusViews();
                             updateTitleText();
-                            showInfo("Auction Active!", "Phiên đấu giá đã chính thức bắt đầu!");
+                            showInfo("Auction Active!", "The auction has officially started!");
                         });
             }
         } catch (Exception e) {

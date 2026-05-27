@@ -26,6 +26,9 @@
     -theme-error:          -color-error-400;
     -theme-error-bg:       -color-error-900;   /* Nền cực tối ám đỏ cho khối báo lỗi */
     -theme-success:        -color-success-400;
+    -theme-success-bg:     -color-success-900; /* Nền tối xanh lá */
     -theme-warning:        -color-warning-400;
+    -theme-warning-bg:     -color-warning-900; /* Nền tối ám cam */
     -theme-info:           -color-info-400;
+    -theme-info-bg:        -color-info-900;    /* Nền tối ám xanh dương */
 }

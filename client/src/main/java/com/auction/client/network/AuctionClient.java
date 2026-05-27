@@ -132,6 +132,11 @@ public class AuctionClient extends WebSocketClient {
         correlationHandlers.put(correlationId, handler);
     }
 
+    /** Hủy đăng ký callback của một correlationId cụ thể */
+    public void removeCorrelationHandler(String correlationId) {
+        correlationHandlers.remove(correlationId);
+    }
+
     /**
      * @param eventType the type of event to listen to (e.g., EventType.GET_BIDS_BY_AUCTION_ID)
      * @param handlerId a unique id for this handler (e.g. Component Name)

@@ -40,6 +40,6 @@ public class LoginPageViewModel {
             }
         } catch (Exception ignored) {
         }
-        return "Đăng nhập thất bại. Vui lòng thử lại.";
+        return "Login failed. Please try again.";
     }
 }

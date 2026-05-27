@@ -10,6 +10,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.sql.Timestamp;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class UserDao implements IUserDao {
     @Override
@@ -229,5 +233,34 @@ public class UserDao implements IUserDao {
                 rs.getBigDecimal("balance"),        // Đọc dữ liệu dạng BigDecimal chính xác
                 rs.getBigDecimal("locked_balance"), // Đọc dữ liệu dạng BigDecimal chính xác
                 rs.getBoolean("is_active"));
+    }
+
+    @Override
+    public List<Map<String, Object>> getWalletTransactionsByUserId(Integer userId) {
+        String sql =
+                "SELECT transaction_id, user_id, transaction_type, amount, status, reference_id,"
+                        + " created_at FROM wallet_transactions WHERE user_id = ?"
+                        + " ORDER BY created_at DESC";
+        List<Map<String, Object>> list = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    Map<String, Object> map = new HashMap<>();
+                    map.put("transactionId", rs.getInt("transaction_id"));
+                    map.put("userId", rs.getInt("user_id"));
+                    map.put("transactionType", rs.getString("transaction_type"));
+                    map.put("amount", rs.getBigDecimal("amount"));
+                    map.put("status", rs.getString("status"));
+                    map.put("referenceId", rs.getString("reference_id"));
+                    map.put("createdAt", rs.getTimestamp("created_at").toString());
+                    list.add(map);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error: Cannot get wallet transactions! " + e.getMessage());
+        }
+        return list;
     }
 }

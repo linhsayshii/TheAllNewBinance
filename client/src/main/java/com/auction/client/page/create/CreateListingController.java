@@ -24,7 +24,8 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import javafx.scene.control.Alert;
+import com.auction.client.service.notification.NotificationService;
+import com.auction.client.service.notification.NotificationType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
@@ -477,11 +478,9 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
             Platform.runLater(
                     () -> {
                         if (Boolean.TRUE.equals(success)) {
-                            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                            alert.setTitle("Success");
-                            alert.setHeaderText(null);
-                            alert.setContentText("Your listing has been created successfully!");
-                            alert.showAndWait();
+                            NotificationService.getInstance().show(
+                                    "Your listing has been created successfully!",
+                                    NotificationType.SUCCESS);
                             handleBack();
                         } else {
                             String msg = (String) response.get("message");
@@ -494,11 +493,11 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
     }
 
     private void showAlert(String title, String content) {
-        Alert alert = new Alert(Alert.AlertType.ERROR);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(content);
-        alert.show();
+        NotificationType type = NotificationType.ERROR;
+        if (title != null && title.toLowerCase().contains("validation")) {
+            type = NotificationType.WARNING;
+        }
+        NotificationService.getInstance().show(content, type);
     }
 
     @Override

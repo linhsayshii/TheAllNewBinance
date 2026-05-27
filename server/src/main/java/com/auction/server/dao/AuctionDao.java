@@ -332,9 +332,33 @@ public class AuctionDao implements IAuctionDao {
                     auction.setId(rs.getInt("auction_id"));
                     auction.setItemId(rs.getInt("item_id"));
                     auction.setStartingPrice(rs.getDouble("starting_price"));
+                    auction.setCurrentPrice(rs.getDouble("current_price"));
                     auction.setBidIncrement(rs.getDouble("bid_increment"));
                     auction.setStartTime(rs.getTimestamp("start_time").toLocalDateTime());
                     auction.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
+                    Timestamp orig = rs.getTimestamp("original_end_time");
+                    if (orig != null) {
+                        auction.setOriginalEndTime(orig.toLocalDateTime());
+                    }
+                    String statusStr = rs.getString("status");
+                    if (statusStr != null) {
+                        try {
+                            auction.setStatus(
+                                    Auction.Status.valueOf(statusStr.toUpperCase().trim()));
+                        } catch (IllegalArgumentException e) {
+                            auction.setStatus(Auction.Status.PENDING);
+                        }
+                    }
+                    int winnerId = rs.getInt("winner_id");
+                    auction.setWinnerId(rs.wasNull() ? null : winnerId);
+                    double finalPrice = rs.getDouble("final_price");
+                    auction.setFinalPrice(rs.wasNull() ? null : finalPrice);
+                    auction.setIsFeatured(rs.getBoolean("is_featured"));
+                    Timestamp feat = rs.getTimestamp("featured_until");
+                    if (feat != null) {
+                        auction.setFeaturedUntil(feat.toLocalDateTime());
+                    }
+                    auction.setPromotedDescription(rs.getString("promoted_description"));
                     auctions.add(auction);
                 }
             }

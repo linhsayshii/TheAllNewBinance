@@ -27,7 +27,8 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
+import com.auction.client.service.notification.NotificationService;
+import com.auction.client.service.notification.NotificationType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -328,21 +329,16 @@ public class AdminPageController implements LifecycleAwareController {
                                             boolean ok = Boolean.TRUE.equals(resp.get("success"));
                                             String msg =
                                                     ok
-                                                            ? "✓ Promoted: "
+                                                            ? "Promoted: "
                                                                     + (dto.getItemName() != null
                                                                             ? dto.getItemName()
                                                                             : "Auction #"
                                                                                     + dto
                                                                                             .getAuctionId())
-                                                            : "✗ Failed: " + resp.get("message");
-                                            Alert alert =
-                                                    new Alert(
-                                                            ok
-                                                                    ? Alert.AlertType.INFORMATION
-                                                                    : Alert.AlertType.ERROR,
-                                                            msg);
-                                            alert.setHeaderText(null);
-                                            alert.show();
+                                                            : "Promotion failed: " + resp.get("message");
+                                            NotificationService.getInstance().show(
+                                                    msg,
+                                                    ok ? NotificationType.SUCCESS : NotificationType.ERROR);
                                             if (ok) {
                                                 dto.setIsFeatured(true);
                                                 // Refresh to update card state

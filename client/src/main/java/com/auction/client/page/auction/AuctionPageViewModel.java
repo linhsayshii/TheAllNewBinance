@@ -44,6 +44,8 @@ public class AuctionPageViewModel {
     private final StringProperty description = new SimpleStringProperty("No description");
     private final StringProperty imageUrl = new SimpleStringProperty("Image Url");
     private final StringProperty sellerName = new SimpleStringProperty("Unknown Seller");
+    private final StringProperty sellerEmail = new SimpleStringProperty("");
+    private final StringProperty sellerJoinDate = new SimpleStringProperty("");
     private final StringProperty currentBidDisplay = new SimpleStringProperty("\\$0.00");
     private final StringProperty bidderCountText = new SimpleStringProperty("0 people bidding");
     private final StringProperty countdownText = new SimpleStringProperty("00d 00h 00m 00s");
@@ -83,10 +85,18 @@ public class AuctionPageViewModel {
         return status;
     }
 
+    public StringProperty sellerEmailProperty() {
+        return sellerEmail;
+    }
+
+    public StringProperty sellerJoinDateProperty() {
+        return sellerJoinDate;
+    }
+
     public void applyAuctionData(
             Auction auction,
             Item item,
-            String seller,
+            com.auction.core.users.User sellerUser,
             Integer currentBidderId,
             List<Bid> bidHistory) {
         if (auction != null) {
@@ -123,7 +133,18 @@ public class AuctionPageViewModel {
             sellerId.set(item.getSellerId() != null ? item.getSellerId() : 0);
         }
 
-        sellerName.set(safe(seller, "Unknown Seller"));
+        if (sellerUser != null) {
+            String name = safe(sellerUser.getFullName(), safe(sellerUser.getUsername(), "Unknown Seller"));
+            sellerName.set(name);
+            sellerEmail.set(safe(sellerUser.getEmail(), ""));
+            sellerJoinDate.set(sellerUser.getCreatedAt() != null
+                    ? "Member since " + sellerUser.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("MMM yyyy"))
+                    : "");
+        } else {
+            sellerName.set("Unknown Seller");
+            sellerEmail.set("");
+            sellerJoinDate.set("");
+        }
 
         updateCurrentBidDisplay(currentBidAmount.get());
         if (bidHistory != null) {

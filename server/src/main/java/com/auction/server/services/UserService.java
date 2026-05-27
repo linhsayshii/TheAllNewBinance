@@ -19,6 +19,8 @@ import com.auction.server.dao.DBConnection;
 import com.auction.server.dao.impl.IUserDao;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.regex.Pattern;
@@ -303,5 +305,12 @@ public class UserService implements IUserService {
                 DBConnection.closeConnection();
             }
         }, DBExecutor.getExecutor());
+    }
+
+    @Override
+    public CompletableFuture<List<Map<String, Object>>> getWalletTransactions(Integer userId) {
+        return CompletableFuture.supplyAsync(
+                () -> userDao.getWalletTransactionsByUserId(userId),
+                DBExecutor.getExecutor());
     }
 }

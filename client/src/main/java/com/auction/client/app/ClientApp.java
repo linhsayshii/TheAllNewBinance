@@ -11,6 +11,7 @@ import com.auction.client.service.NetworkService;
 import com.auction.client.service.UserSessionService;
 import com.auction.core.products.attribute.LuxuryAttributes;
 import com.auction.core.products.factory.ItemFactoryProvider;
+import com.auction.client.service.notification.NotificationService;
 import com.auction.core.users.User;
 
 import javafx.application.Application;
@@ -60,6 +61,8 @@ public class ClientApp extends Application {
 
         SceneService sceneService = new SceneService(primaryStage, AppConfig.stylesheets());
         NavigationService navigationService = new NavigationService(sceneService);
+        // Khởi tạo NotificationService trên luồng JavaFX Application Thread
+        NotificationService.getInstance();
         hotReloadService = new HotReloadService(sceneService);
 
         primaryStage.setWidth(AppConfig.defaultWidth());

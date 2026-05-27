@@ -40,6 +40,6 @@ public class RegisterPageViewModel {
             }
         } catch (Exception ignored) {
         }
-        return "Đăng ký thất bại. Vui lòng thử lại.";
+        return "Registration failed. Please try again.";
     }
 }

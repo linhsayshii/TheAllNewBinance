@@ -25,6 +25,9 @@
     -theme-error:          -color-error-500;
     -theme-error-bg:       -color-error-50;    /* Nền nhạt cho thông báo lỗi */
     -theme-success:        -color-success-500;
+    -theme-success-bg:     -color-success-50;  /* Nền nhạt cho thành công */
     -theme-warning:        -color-warning-500;
+    -theme-warning-bg:     -color-warning-50;  /* Nền nhạt cho cảnh báo */
     -theme-info:           -color-info-500;
+    -theme-info-bg:        -color-info-50;     /* Nền nhạt cho thông tin */
 }

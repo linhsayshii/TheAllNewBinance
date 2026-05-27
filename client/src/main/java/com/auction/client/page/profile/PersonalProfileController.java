@@ -9,6 +9,8 @@ import com.auction.client.scene.DataReceivable;
 import com.auction.client.scene.LifecycleAwareController;
 import com.auction.client.scene.NavigationService;
 import com.auction.client.service.UserSessionService;
+import com.auction.client.service.notification.NotificationService;
+import com.auction.client.service.notification.NotificationType;
 import java.io.IOException;
 import java.util.List;
 import javafx.application.Platform;
@@ -16,6 +18,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.control.ToggleGroup;
@@ -65,6 +68,7 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
     @FXML private Label finTotalBalanceLabel;
     @FXML private Label finLockedBalanceLabel;
     @FXML private Label finAvailableBalanceLabel;
+    @FXML private TextField walletAmountField;
     @FXML private VBox transactionListContainer;
     @FXML private Label txEmptyLabel;
 
@@ -99,8 +103,7 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
         if (UserSessionService.getInstance().isAuthenticated()) {
             viewModel.loadFromSession();
             profileSidebarController.bind(viewModel);
-            bindDashboard();
-            bindFinance();
+            setupDynamicBindings();
         }
         setupNavigation();
     }
@@ -170,8 +173,7 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
         // Reload fresh data every time this page is navigated to
         viewModel.loadFromSession();
         profileSidebarController.bind(viewModel);
-        bindDashboard();
-        bindFinance();
+        setupDynamicBindings();
         dataLoaded = false;
         loadDataAsync();
         navDashboard.setSelected(true);
@@ -182,26 +184,18 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
     //  Binding                                                             //
     // ------------------------------------------------------------------ //
 
-    private void bindDashboard() {
-        dashTotalBalanceLabel.setText(viewModel.getFormattedTotalBalance());
-        dashAvailableBalanceLabel.setText(viewModel.getFormattedAvailableBalance());
-        viewModel
-                .activeBidsCountProperty()
-                .addListener(
-                        (obs, o, n) ->
-                                Platform.runLater(() -> dashActiveBidsLabel.setText(n.toString())));
-        viewModel
-                .activeListingsCountProperty()
-                .addListener(
-                        (obs, o, n) ->
-                                Platform.runLater(
-                                        () -> dashActiveListingsLabel.setText(n.toString())));
-    }
+    private void setupDynamicBindings() {
+        // Ràng buộc động một chiều đồng bộ tiền tệ tự động
+        dashTotalBalanceLabel.textProperty().bind(javafx.beans.binding.Bindings.format("$%,.2f", viewModel.totalBalanceProperty()));
+        dashAvailableBalanceLabel.textProperty().bind(javafx.beans.binding.Bindings.format("$%,.2f", viewModel.availableBalanceProperty()));
 
-    private void bindFinance() {
-        finTotalBalanceLabel.setText(viewModel.getFormattedTotalBalance());
-        finLockedBalanceLabel.setText(viewModel.getFormattedLockedBalance());
-        finAvailableBalanceLabel.setText(viewModel.getFormattedAvailableBalance());
+        finTotalBalanceLabel.textProperty().bind(javafx.beans.binding.Bindings.format("$%,.2f", viewModel.totalBalanceProperty()));
+        finLockedBalanceLabel.textProperty().bind(javafx.beans.binding.Bindings.format("$%,.2f", viewModel.lockedBalanceProperty()));
+        finAvailableBalanceLabel.textProperty().bind(javafx.beans.binding.Bindings.format("$%,.2f", viewModel.availableBalanceProperty()));
+
+        // Ràng buộc đếm số lượng đấu giá
+        dashActiveBidsLabel.textProperty().bind(viewModel.activeBidsCountProperty().asString());
+        dashActiveListingsLabel.textProperty().bind(viewModel.activeListingsCountProperty().asString());
     }
 
     private void loadTransactionHistoryAsync() {
@@ -257,7 +251,6 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
     // ------------------------------------------------------------------ //
 
     private void loadDataAsync() {
-        dataLoaded = true;
         java.util.concurrent.CompletableFuture.runAsync(
                 () -> {
                     viewModel.fetchMyBids();
@@ -265,11 +258,7 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
 
                     Platform.runLater(
                             () -> {
-                                dashActiveBidsLabel.setText(
-                                        String.valueOf(viewModel.activeBidsCountProperty().get()));
-                                dashActiveListingsLabel.setText(
-                                        String.valueOf(
-                                                viewModel.activeListingsCountProperty().get()));
+                                dataLoaded = true; // Chỉ đánh dấu loaded khi dữ liệu thực sự đã về!
 
                                 Toggle current = navGroup.getSelectedToggle();
                                 if (current == navMyBids) {
@@ -443,51 +432,36 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
 
     @FXML
     private void handleDeposit() {
-        showWalletDialog("Deposit Funds",
-                "Enter amount to deposit into your wallet:",
-                "Deposit", true);
+        processWalletAction("Deposit Funds", "Deposit", true);
     }
 
     @FXML
     private void handleWithdraw() {
-        showWalletDialog("Withdraw Funds",
-                "Enter amount to withdraw from your wallet:",
-                "Withdraw", false);
+        processWalletAction("Withdraw Funds", "Withdraw", false);
     }
 
-    private void showWalletDialog(String title, String prompt, String actionLabel, boolean isDeposit) {
-        javafx.scene.control.TextInputDialog dialog = new javafx.scene.control.TextInputDialog();
-        dialog.setTitle(title);
-        dialog.setHeaderText(prompt);
-        dialog.setContentText("Amount ($):");
-
-        dialog.getDialogPane().getButtonTypes();
-        java.util.Optional<String> result = dialog.showAndWait();
-        if (result.isEmpty() || result.get().isBlank()) {
+    private void processWalletAction(String title, String actionLabel, boolean isDeposit) {
+        String input = walletAmountField.getText();
+        if (input == null || input.isBlank()) {
+            NotificationService.getInstance().show("Please enter an amount.", NotificationType.WARNING);
             return;
         }
 
         java.math.BigDecimal amount;
         try {
-            amount = new java.math.BigDecimal(result.get().trim());
+            amount = new java.math.BigDecimal(input.trim());
             if (amount.compareTo(java.math.BigDecimal.ZERO) <= 0) {
-                showAlert(javafx.scene.control.Alert.AlertType.WARNING,
-                        "Invalid Input", "Amount must be greater than 0.");
+                NotificationService.getInstance().show("Amount must be greater than 0.", NotificationType.WARNING);
                 return;
             }
         } catch (NumberFormatException ex) {
-            showAlert(javafx.scene.control.Alert.AlertType.WARNING,
-                    "Invalid Input", "Please enter a valid numeric amount.");
+            NotificationService.getInstance().show("Please enter a valid numeric amount.", NotificationType.WARNING);
             return;
         }
 
         com.auction.core.protocol.EventType eventType = isDeposit
                 ? com.auction.core.protocol.EventType.DEPOSIT
                 : com.auction.core.protocol.EventType.WITHDRAW;
-
-        java.util.concurrent.CountDownLatch latch = new java.util.concurrent.CountDownLatch(1);
-        java.util.concurrent.atomic.AtomicReference<String> responseRef =
-                new java.util.concurrent.atomic.AtomicReference<>();
 
         com.auction.client.service.NetworkService ns =
                 com.auction.client.service.NetworkService.getInstance();
@@ -498,60 +472,45 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
                 : new com.auction.core.dto.wallet.WithdrawRequest(
                         UserSessionService.getInstance().getCurrentUser().getId(), amount);
 
-        String corrId = ns.sendRequest(eventType, payload);
-        ns.addCorrelationHandler(corrId, raw -> {
-            responseRef.set(raw);
-            latch.countDown();
-        });
-
-        java.util.concurrent.CompletableFuture.runAsync(() -> {
-            try {
-                latch.await(8, java.util.concurrent.TimeUnit.SECONDS);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
-            String raw = responseRef.get();
-            if (raw == null) {
-                Platform.runLater(() -> showAlert(
-                        javafx.scene.control.Alert.AlertType.ERROR,
-                        "Timeout", actionLabel + " request timed out. Please try again."));
-                return;
-            }
-
-            try {
-                @SuppressWarnings("unchecked")
-                java.util.Map<String, Object> resp =
-                        com.auction.core.utils.JsonMapper.fromJson(raw, java.util.Map.class);
-                boolean success = Boolean.TRUE.equals(resp.get("success"));
-                if (success) {
-                    // Refresh balance from response data
-                    Object data = resp.get("data");
-                    if (data instanceof java.util.Map<?, ?> dataMap) {
-                        updateBalanceFromResponse(dataMap, amount, isDeposit);
-                    } else {
-                        adjustLocalBalance(amount, isDeposit);
+        ns.sendRequestAsync(eventType, payload)
+                .thenAccept(raw -> {
+                    try {
+                        @SuppressWarnings("unchecked")
+                        java.util.Map<String, Object> resp =
+                                com.auction.core.utils.JsonMapper.fromJson(raw, java.util.Map.class);
+                        boolean success = Boolean.TRUE.equals(resp.get("success"));
+                        if (success) {
+                            // Refresh balance from response data
+                            Object data = resp.get("data");
+                            if (data instanceof java.util.Map<?, ?> dataMap) {
+                                updateBalanceFromResponse(dataMap, amount, isDeposit);
+                            } else {
+                                adjustLocalBalance(amount, isDeposit);
+                            }
+                            Platform.runLater(() -> {
+                                walletAmountField.clear();
+                                NotificationService.getInstance().show(
+                                        actionLabel + " of $" + amount.toPlainString() + " completed successfully.",
+                                        NotificationType.SUCCESS);
+                                loadTransactionHistoryAsync(); // Tự động load lại lịch sử!
+                            });
+                        } else {
+                            String msg = resp.get("message") != null
+                                    ? String.valueOf(resp.get("message"))
+                                    : actionLabel + " failed. Please check your balance and try again.";
+                            Platform.runLater(() -> NotificationService.getInstance().show(
+                                    actionLabel + " failed: " + msg, NotificationType.ERROR));
+                        }
+                    } catch (Exception ex) {
+                        Platform.runLater(() -> NotificationService.getInstance().show(
+                                "Failed to process response: " + ex.getMessage(), NotificationType.ERROR));
                     }
-                    Platform.runLater(() -> {
-                        bindDashboard();
-                        bindFinance();
-                        showAlert(javafx.scene.control.Alert.AlertType.INFORMATION,
-                                actionLabel + " Successful",
-                                actionLabel + " of $" + amount.toPlainString()
-                                        + " completed successfully.");
-                    });
-                } else {
-                    String msg = resp.get("message") != null
-                            ? String.valueOf(resp.get("message"))
-                            : actionLabel + " failed. Please check your balance and try again.";
-                    Platform.runLater(() -> showAlert(
-                            javafx.scene.control.Alert.AlertType.ERROR, actionLabel + " Failed", msg));
-                }
-            } catch (Exception ex) {
-                Platform.runLater(() -> showAlert(
-                        javafx.scene.control.Alert.AlertType.ERROR,
-                        "Error", "Failed to process response: " + ex.getMessage()));
-            }
-        });
+                })
+                .exceptionally(ex -> {
+                    Platform.runLater(() -> NotificationService.getInstance().show(
+                            actionLabel + " request failed. Please try again.", NotificationType.ERROR));
+                    return null;
+                });
     }
 
     /**
@@ -598,14 +557,6 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
             user.withdraw(amount);
         }
         viewModel.loadFromSession();
-    }
-
-    private void showAlert(
-            javafx.scene.control.Alert.AlertType type, String title, String message) {
-        javafx.scene.control.Alert alert = new javafx.scene.control.Alert(type, message);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.show();
     }
 
     // ------------------------------------------------------------------ //

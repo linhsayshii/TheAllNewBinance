@@ -83,6 +83,10 @@ public class SceneService {
         }
     }
 
+    public StackPane getSceneHost() {
+        return sceneHost;
+    }
+
     public SceneRegistry currentSceneRegistry() {
         return currentSceneRegistry;
     }

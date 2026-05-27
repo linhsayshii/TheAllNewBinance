@@ -157,6 +157,10 @@
 
                         <HBox spacing="12" alignment="CENTER_LEFT">
                             <padding><Insets top="8" /></padding>
+                            <javafx.scene.control.TextField fx:id="walletAmountField"
+                                                            promptText="Amount ($)"
+                                                            prefWidth="150"
+                                                            styleClass="profile-input-field" />
                             <Button text="Deposit"
                                     styleClass="profile-btn-action"
                                     onAction="#handleDeposit" />
