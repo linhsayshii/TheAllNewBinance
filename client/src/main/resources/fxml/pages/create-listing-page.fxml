@@ -9,6 +9,7 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Region?>
@@ -32,93 +33,113 @@
 
     <center>
         <ScrollPane fitToWidth="true" styleClass="create-listing-scroll">
-            <VBox styleClass="create-listing-container" spacing="24">
-                <padding><Insets top="40" right="40" bottom="60" left="40" /></padding>
-                
-                <HBox alignment="CENTER_LEFT">
-                    <Button text="← Back to Profile" onAction="#handleBack" styleClass="create-listing-back-btn" />
-                </HBox>
-
-                <VBox spacing="8">
-                    <Label text="Create New Listing" styleClass="create-listing-title" />
-                    <Label text="Fill out the details below to start auctioning your item." styleClass="create-listing-subtitle" />
-                </VBox>
-
-                <GridPane vgap="20" hgap="24">
+            <VBox alignment="TOP_CENTER" styleClass="create-listing-viewport-container">
+                <VBox styleClass="create-listing-container" spacing="28" maxWidth="850">
+                    <padding>
+                        <Insets top="32" right="24" bottom="48" left="24" />
+                    </padding>
                     
-                    <!-- Item Details Section -->
-                    <Label text="Item Information" styleClass="create-listing-section-label"
-                           GridPane.rowIndex="0" GridPane.columnIndex="0" GridPane.columnSpan="2" />
-                           
-                    <VBox spacing="4" GridPane.rowIndex="1" GridPane.columnIndex="0">
-                        <Label text="Title" styleClass="create-listing-field-label" />
-                        <TextField fx:id="titleInput" promptText="e.g. Vintage Rolex Submariner" styleClass="create-listing-input" />
+                    <HBox alignment="CENTER_LEFT" styleClass="create-listing-back-row">
+                        <Button text="← Back to Profile" onAction="#handleBack" styleClass="create-listing-back-btn" />
+                    </HBox>
+
+                    <VBox spacing="6" styleClass="create-listing-header-block">
+                        <Label text="Create New Listing" styleClass="create-listing-title" />
+                        <Label text="Fill out the details below to start auctioning your item." styleClass="create-listing-subtitle" />
                     </VBox>
 
-                    <VBox spacing="4" GridPane.rowIndex="1" GridPane.columnIndex="1">
-                        <Label text="Category" styleClass="create-listing-field-label" />
-                        <ComboBox fx:id="categoryInput" promptText="Select Category" styleClass="create-listing-combo" maxWidth="Infinity" />
+                    <!-- SECTION 1: Item Information Card -->
+                    <VBox styleClass="create-listing-card" spacing="24">
+                        <Label text="Item Information" styleClass="create-listing-section-label" />
+                        
+                        <GridPane vgap="20" hgap="24">
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="50.0" />
+                                <ColumnConstraints percentWidth="50.0" />
+                            </columnConstraints>
+                            
+                            <children>
+                                <VBox spacing="6" GridPane.rowIndex="0" GridPane.columnIndex="0">
+                                    <Label text="Title" styleClass="create-listing-field-label" />
+                                    <TextField fx:id="titleInput" promptText="e.g. Vintage Rolex Submariner" styleClass="create-listing-input" />
+                                </VBox>
+
+                                <VBox spacing="6" GridPane.rowIndex="0" GridPane.columnIndex="1">
+                                    <Label text="Category" styleClass="create-listing-field-label" />
+                                    <ComboBox fx:id="categoryInput" promptText="Select Category" styleClass="create-listing-combo" maxWidth="Infinity" />
+                                </VBox>
+
+                                <VBox spacing="6" GridPane.rowIndex="1" GridPane.columnIndex="0" GridPane.columnSpan="2">
+                                    <Label text="Image" styleClass="create-listing-field-label" />
+                                    <HBox spacing="10" alignment="CENTER_LEFT" styleClass="create-listing-image-upload-row">
+                                        <TextField fx:id="imageUrlInput" promptText="Choose an image..." styleClass="create-listing-input" HBox.hgrow="ALWAYS" editable="false" />
+                                        <Button text="Browse..." onAction="#handleImagePick" styleClass="create-listing-btn-secondary" />
+                                    </HBox>
+                                </VBox>
+
+                                <VBox spacing="6" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="2">
+                                    <Label text="Description" styleClass="create-listing-field-label" />
+                                    <TextArea fx:id="descriptionInput" promptText="Describe the item's condition, features, history, etc."
+                                              prefRowCount="4" wrapText="true" styleClass="create-listing-textarea" />
+                                </VBox>
+                            </children>
+                        </GridPane>
+
+                        <!-- Dynamic Product-Specific Fields: rendered by CategoryDisplayStrategy via SPI -->
+                        <VBox fx:id="dynamicFieldsContainer" spacing="16" styleClass="create-listing-dynamic-fields" />
                     </VBox>
 
-                    <VBox spacing="4" GridPane.rowIndex="2" GridPane.columnIndex="0" GridPane.columnSpan="2">
-                        <Label text="Image" styleClass="create-listing-field-label" />
-                        <HBox spacing="8" alignment="CENTER_LEFT">
-                            <TextField fx:id="imageUrlInput" promptText="Choose an image..." styleClass="create-listing-input" HBox.hgrow="ALWAYS" editable="false" />
-                            <Button text="Browse..." onAction="#handleImagePick" styleClass="create-listing-btn-secondary" />
-                        </HBox>
+                    <!-- SECTION 2: Auction Settings Card -->
+                    <VBox styleClass="create-listing-card" spacing="24">
+                        <Label text="Auction Settings" styleClass="create-listing-section-label" />
+                        
+                        <GridPane vgap="20" hgap="24">
+                            <columnConstraints>
+                                <ColumnConstraints percentWidth="50.0" />
+                                <ColumnConstraints percentWidth="50.0" />
+                            </columnConstraints>
+                            
+                            <children>
+                                <VBox spacing="6" GridPane.rowIndex="0" GridPane.columnIndex="0">
+                                    <Label text="Starting Price ($)" styleClass="create-listing-field-label" />
+                                    <TextField fx:id="startingPriceInput" promptText="0.00" styleClass="create-listing-input" />
+                                </VBox>
+
+                                <VBox spacing="6" GridPane.rowIndex="0" GridPane.columnIndex="1">
+                                    <Label text="Bid Increment ($)" styleClass="create-listing-field-label" />
+                                    <TextField fx:id="bidIncrementInput" promptText="0.00" styleClass="create-listing-input" />
+                                </VBox>
+
+                                <VBox spacing="6" GridPane.rowIndex="1" GridPane.columnIndex="0">
+                                    <Label text="Start Date" styleClass="create-listing-field-label" />
+                                    <DatePicker fx:id="startDateInput" promptText="Select start date" styleClass="create-listing-datepicker" maxWidth="Infinity" />
+                                </VBox>
+
+                                <VBox spacing="6" GridPane.rowIndex="1" GridPane.columnIndex="1">
+                                    <Label text="Start Time (HH:mm)" styleClass="create-listing-field-label" />
+                                    <TextField fx:id="startTimeInput" promptText="09:00" styleClass="create-listing-input" />
+                                </VBox>
+
+                                <VBox spacing="6" GridPane.rowIndex="2" GridPane.columnIndex="0">
+                                    <Label text="End Date" styleClass="create-listing-field-label" />
+                                    <DatePicker fx:id="endDateInput" promptText="Select end date" styleClass="create-listing-datepicker" maxWidth="Infinity" />
+                                </VBox>
+
+                                <VBox spacing="6" GridPane.rowIndex="2" GridPane.columnIndex="1">
+                                    <Label text="End Time (HH:mm)" styleClass="create-listing-field-label" />
+                                    <TextField fx:id="endTimeInput" promptText="18:00" styleClass="create-listing-input" />
+                                </VBox>
+                            </children>
+                        </GridPane>
                     </VBox>
 
-                    <VBox spacing="4" GridPane.rowIndex="3" GridPane.columnIndex="0" GridPane.columnSpan="2">
-                        <Label text="Description" styleClass="create-listing-field-label" />
-                        <TextArea fx:id="descriptionInput" promptText="Describe the item's condition, features, history, etc."
-                                  prefRowCount="4" wrapText="true" styleClass="create-listing-textarea" />
-                    </VBox>
+                    <!-- SECTION 3: Action Buttons -->
+                    <HBox alignment="CENTER_RIGHT" spacing="16" styleClass="create-listing-actions-row">
+                        <Button text="Cancel" onAction="#handleCancel" styleClass="create-listing-cancel-btn" />
+                        <Button text="Create Auction" onAction="#handleSubmit" styleClass="create-listing-submit-btn" />
+                    </HBox>
 
-                    <!-- Dynamic Product-Specific Fields: rendered by CategoryDisplayStrategy via SPI -->
-                    <VBox fx:id="dynamicFieldsContainer" spacing="12"
-                          GridPane.rowIndex="4" GridPane.columnIndex="0" GridPane.columnSpan="2" />
-
-                    <!-- Auction Details Section -->
-                    <Region prefHeight="16" GridPane.rowIndex="5" GridPane.columnIndex="0" GridPane.columnSpan="2" />
-                    <Label text="Auction Settings" styleClass="create-listing-section-label"
-                           GridPane.rowIndex="6" GridPane.columnIndex="0" GridPane.columnSpan="2" />
-
-                    <VBox spacing="4" GridPane.rowIndex="7" GridPane.columnIndex="0">
-                        <Label text="Starting Price ($)" styleClass="create-listing-field-label" />
-                        <TextField fx:id="startingPriceInput" promptText="0.00" styleClass="create-listing-input" />
-                    </VBox>
-
-                    <VBox spacing="4" GridPane.rowIndex="7" GridPane.columnIndex="1">
-                        <Label text="Bid Increment ($)" styleClass="create-listing-field-label" />
-                        <TextField fx:id="bidIncrementInput" promptText="0.00" styleClass="create-listing-input" />
-                    </VBox>
-
-                    <VBox spacing="4" GridPane.rowIndex="8" GridPane.columnIndex="0">
-                        <Label text="Start Date" styleClass="create-listing-field-label" />
-                        <DatePicker fx:id="startDateInput" promptText="Select start date" styleClass="create-listing-datepicker" maxWidth="Infinity" />
-                    </VBox>
-                    <VBox spacing="4" GridPane.rowIndex="8" GridPane.columnIndex="1">
-                        <Label text="Start Time (HH:mm)" styleClass="create-listing-field-label" />
-                        <TextField fx:id="startTimeInput" promptText="09:00" styleClass="create-listing-input" />
-                    </VBox>
-
-                    <VBox spacing="4" GridPane.rowIndex="9" GridPane.columnIndex="0">
-                        <Label text="End Date" styleClass="create-listing-field-label" />
-                        <DatePicker fx:id="endDateInput" promptText="Select end date" styleClass="create-listing-datepicker" maxWidth="Infinity" />
-                    </VBox>
-                    <VBox spacing="4" GridPane.rowIndex="9" GridPane.columnIndex="1">
-                        <Label text="End Time (HH:mm)" styleClass="create-listing-field-label" />
-                        <TextField fx:id="endTimeInput" promptText="18:00" styleClass="create-listing-input" />
-                    </VBox>
-
-                </GridPane>
-
-                <HBox alignment="CENTER_RIGHT" spacing="12">
-                    <padding><Insets top="24" /></padding>
-                    <Button text="Cancel" onAction="#handleCancel" styleClass="create-listing-cancel-btn" />
-                    <Button text="Create Auction" onAction="#handleSubmit" styleClass="create-listing-submit-btn" />
-                </HBox>
-
+                </VBox>
             </VBox>
         </ScrollPane>
     </center>

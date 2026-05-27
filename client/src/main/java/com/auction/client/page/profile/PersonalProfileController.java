@@ -1,5 +1,8 @@
 package com.auction.client.page.profile;
 
+import java.io.IOException;
+import java.util.List;
+
 import com.auction.client.component.item.ProfileAuctionCardController;
 import com.auction.client.component.modal.PromoteModalController;
 import com.auction.client.component.profile.ProfileSidebarController;
@@ -11,8 +14,7 @@ import com.auction.client.scene.NavigationService;
 import com.auction.client.service.UserSessionService;
 import com.auction.client.service.notification.NotificationService;
 import com.auction.client.service.notification.NotificationType;
-import java.io.IOException;
-import java.util.List;
+
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;

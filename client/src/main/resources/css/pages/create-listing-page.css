@@ -1,111 +1,278 @@
+/* create-listing-page.css */
+
 .create-listing-root {
-    -fx-background-color: -bg-color;
+    -fx-background-color: -theme-bg-main;
 }
 
 .create-listing-scroll {
     -fx-background-color: transparent;
+    -fx-background: transparent;
     -fx-control-inner-background: transparent;
+    -fx-hbar-policy: never;
+    -fx-vbar-policy: as-needed;
+}
+
+.create-listing-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.create-listing-viewport-container {
+    -fx-background-color: transparent;
+    -fx-alignment: top-center;
 }
 
 .create-listing-container {
-    -fx-background-color: -card-bg;
-    -fx-background-radius: 12;
-    /* -fx-border-color: -theme-secondary;
-    -fx-border-radius: 12;
-    -fx-border-width: 1; */
-    -fx-max-width: 800;
-    -fx-padding: 40;
+    -fx-background-color: transparent;
+}
+
+/* ============================================================
+   Header & Navigation
+   ============================================================ */
+.create-listing-back-row {
+    -fx-padding: 0 0 4 0;
+}
+
+.create-listing-back-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: -theme-text-muted;
+    -fx-font-family: 'Montserrat';
+    -fx-font-size: 14px;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+    -fx-padding: 8 12 8 0;
+}
+
+.create-listing-back-btn:hover {
+    -fx-text-fill: -theme-primary;
+}
+
+.create-listing-header-block {
+    -fx-padding: 0 0 8 0;
 }
 
 .create-listing-title {
     -fx-font-family: 'Lora';
-    -fx-font-size: 28px;
+    -fx-font-size: 32px;
     -fx-font-weight: 400;
-    -fx-text-fill: -text-color;
+    -fx-text-fill: -theme-text-main;
 }
 
 .create-listing-subtitle {
     -fx-font-family: 'Montserrat';
     -fx-font-size: 14px;
-    -fx-text-fill: -text-muted;
+    -fx-text-fill: -theme-text-muted;
+}
+
+/* ============================================================
+   Card Layout Structure
+   ============================================================ */
+.create-listing-card {
+    -fx-background-color: -theme-bg-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -theme-border;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+    -fx-padding: 32 36;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 12, 0, 0, 4);
 }
 
 .create-listing-section-label {
     -fx-font-family: 'Lora';
-    -fx-font-size: 18px;
+    -fx-font-size: 20px;
     -fx-font-weight: 400;
-    -fx-text-fill: -text-color;
-    -fx-padding: 10 0 10 0;
-    -fx-border-color: transparent transparent -theme-secondary transparent;
-    -fx-border-width: 0 0 1 0;
+    -fx-text-fill: -theme-text-main;
+    -fx-padding: 0 0 14 0;
+    -fx-border-color: transparent transparent -theme-border transparent;
+    -fx-border-width: 0 0 1.5 0;
 }
 
+/* ============================================================
+   Form Inputs & Labels
+   ============================================================ */
 .create-listing-field-label {
     -fx-font-family: 'Montserrat';
-    -fx-font-size: 14px;
+    -fx-font-size: 13px;
     -fx-font-weight: 600;
-    -fx-text-fill: -text-muted;
+    -fx-text-fill: -theme-text-muted;
+    -fx-padding: 0 0 4 0;
 }
 
-.create-listing-input, .create-listing-textarea, .create-listing-combo, .create-listing-datepicker {
-    -fx-background-color: -input-bg;
-    -fx-text-fill: -text-color;
-    -fx-prompt-text-fill: -text-muted;
-    -fx-border-color: -input-border;
-    -fx-border-radius: 6;
-    -fx-background-radius: 6;
+.create-listing-input, 
+.create-listing-textarea, 
+.create-listing-combo, 
+.create-listing-datepicker {
+    -fx-background-color: -theme-bg-main;
+    -fx-text-fill: -theme-text-main;
+    -fx-prompt-text-fill: -theme-text-muted;
+    -fx-border-color: -theme-border;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-width: 1;
     -fx-font-family: 'Montserrat';
     -fx-font-size: 14px;
+    -fx-padding: 10 14;
+    -fx-focus-traversable: true;
+}
+
+.create-listing-input:hover, 
+.create-listing-textarea:hover, 
+.create-listing-combo:hover, 
+.create-listing-datepicker:hover {
+    -fx-border-color: -theme-accent;
+}
+
+.create-listing-input:focused, 
+.create-listing-textarea:focused, 
+.create-listing-combo:focused, 
+.create-listing-datepicker:focused {
+    -fx-border-color: -theme-primary;
+    -fx-background-color: -theme-bg-main;
+    -fx-effect: dropshadow(gaussian, rgba(127, 21, 42, 0.15), 5, 0, 0, 0);
+}
+
+.create-listing-textarea {
     -fx-padding: 10 12;
 }
 
-.create-listing-input:focused, .create-listing-textarea:focused, .create-listing-combo:focused, .create-listing-datepicker:focused {
-    -fx-border-color: -theme-primary-color;
-    -fx-effect: dropshadow(gaussian, -theme-primary-shadow, 4, 0, 0, 0);
+/* ============================================================
+   ComboBox & DatePicker Arrow Customizations
+   ============================================================ */
+.create-listing-combo .arrow-button, 
+.create-listing-datepicker .arrow-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0 4 0 4;
 }
 
-.create-listing-back-btn {
+.create-listing-combo .arrow, 
+.create-listing-datepicker .arrow {
+    -fx-background-color: -theme-text-muted;
+    -fx-shape: "M 0 0 L 4 4 L 8 0 Z";
+}
+
+.create-listing-combo:hover .arrow, 
+.create-listing-datepicker:hover .arrow {
+    -fx-background-color: -theme-primary;
+}
+
+.create-listing-datepicker > .date-picker-display-node {
     -fx-background-color: transparent;
-    -fx-text-fill: -text-muted;
+    -fx-padding: 0;
+}
+
+/* ============================================================
+   Image Upload Row
+   ============================================================ */
+.create-listing-image-upload-row {
+    -fx-fill-width: true;
+}
+
+.create-listing-btn-secondary {
+    -fx-background-color: transparent;
+    -fx-text-fill: -theme-primary;
+    -fx-border-color: -theme-primary;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
     -fx-font-family: 'Montserrat';
     -fx-font-size: 14px;
     -fx-font-weight: 600;
+    -fx-padding: 9 20;
     -fx-cursor: hand;
-    -fx-padding: 0 0 16 0;
 }
 
-.create-listing-back-btn:hover {
-    -fx-text-fill: -theme-primary-color;
+.create-listing-btn-secondary:hover {
+    -fx-background-color: -theme-primary;
+    -fx-text-fill: white;
+}
+
+.create-listing-btn-secondary:pressed {
+    -fx-background-color: -theme-primary-active;
+    -fx-text-fill: white;
+}
+
+/* ============================================================
+   Dynamic Category Specific Fields & Checkbox Styling
+   ============================================================ */
+.create-listing-dynamic-fields {
+    -fx-padding: 12 0 0 0;
+}
+
+.create-listing-card .check-box {
+    -fx-font-family: 'Montserrat';
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+    -fx-text-fill: -theme-text-main;
+    -fx-cursor: hand;
+    -fx-padding: 8 0 8 0;
+}
+
+.create-listing-card .check-box .box {
+    -fx-background-color: -theme-bg-main;
+    -fx-border-color: -theme-border;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-padding: 3;
+}
+
+.create-listing-card .check-box:hover .box {
+    -fx-border-color: -theme-accent;
+}
+
+.create-listing-card .check-box:focused .box {
+    -fx-border-color: -theme-primary;
+}
+
+.create-listing-card .check-box:selected .box {
+    -fx-background-color: -theme-primary;
+    -fx-border-color: -theme-primary;
+}
+
+.create-listing-card .check-box:selected .mark {
+    -fx-background-color: white;
+    -fx-shape: "M1.73,12.91L8.1,19.28L22.79,4.59L20.67,2.47L8.1,15.04L3.85,10.79L1.73,12.91Z";
+}
+
+/* ============================================================
+   Bottom Action Row & Buttons
+   ============================================================ */
+.create-listing-actions-row {
+    -fx-padding: 8 0 0 0;
 }
 
 .create-listing-submit-btn {
-    -fx-background-color: -theme-primary-color;
-    /* -fx-text-fill: white; */
+    -fx-background-color: -theme-primary;
+    -fx-text-fill: white;
     -fx-font-family: 'Montserrat';
     -fx-font-size: 14px;
     -fx-font-weight: bold;
-    -fx-padding: 10 24;
-    -fx-background-radius: 6;
+    -fx-padding: 12 32;
+    -fx-background-radius: 8;
     -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(127, 21, 42, 0.15), 8, 0, 0, 3);
 }
 
 .create-listing-submit-btn:hover {
     -fx-background-color: -theme-primary-hover;
 }
 
+.create-listing-submit-btn:pressed {
+    -fx-background-color: -theme-primary-active;
+}
+
 .create-listing-cancel-btn {
     -fx-background-color: transparent;
-    -fx-text-fill: -text-color;
-    -fx-border-color: -input-border;
-    -fx-border-radius: 6;
-    -fx-border-width: 1;
+    -fx-text-fill: -theme-text-main;
+    -fx-border-color: -theme-border;
+    -fx-border-radius: 8;
+    -fx-border-width: 1.5;
+    -fx-background-radius: 8;
     -fx-font-family: 'Montserrat';
     -fx-font-size: 14px;
     -fx-font-weight: 600;
-    -fx-padding: 9 24;
+    -fx-padding: 10 32;
     -fx-cursor: hand;
 }
 
 .create-listing-cancel-btn:hover {
-    -fx-background-color: -hover-bg;
+    -fx-background-color: -theme-border;
 }
