@@ -85,6 +85,65 @@
             <artifactId>junit-jupiter-params</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Mockito: Giả lập NetworkService và AuctionClient Singleton trong unit tests -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- TestFX: Kiểm thử UI JavaFX tự động (click, type, assert node state) -->
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-core</artifactId>
+            <version>4.0.17</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-junit5</artifactId>
+            <version>4.0.17</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Monocle 21.0.2: Headless JavaFX renderer tương thích Java 21 -->
+        <!-- QUAN TRỌNG: Phiên bản jdk-12.0.1+2 gây IncompatibleClassChangeError trên Java 21 -->
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>openjfx-monocle</artifactId>
+            <version>21.0.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Testcontainers: Tự động spin-up Toxiproxy Docker container cho Half-Open Network tests -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>1.19.7</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>toxiproxy</artifactId>
+            <version>1.19.7</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>1.19.7</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -94,6 +153,24 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.4</version>
                 <configuration>
+                    <!--
+                        jdk.tracePinnedThreads=short: In log cảnh báo khi Virtual Thread bị ghim
+                        vào Carrier Thread do synchronized block / blocking I/O bên trong.
+                        Kích hoạt bằng systemPropertyVariables thay vì -XX flag (không tồn tại).
+                    -->
+                    <systemPropertyVariables>
+                        <jdk.tracePinnedThreads>short</jdk.tracePinnedThreads>
+                    </systemPropertyVariables>
+                    <!--
+                        Monocle Headless: Cho phép chạy UI tests JavaFX không cần màn hình
+                        (CI/CD environments, GitHub Actions).
+                        prism.order=sw: Sử dụng software renderer thay vì GPU.
+                    -->
+                    <argLine>
+                        -Dglass.platform=Monocle
+                        -Dmonocle.platform=Headless
+                        -Dprism.order=sw
+                    </argLine>
                     <useModulePath>false</useModulePath>
                 </configuration>
             </plugin>

@@ -242,6 +242,11 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
         bidHistoryChart.getData().add(series);
     }
 
+    /** Returns the bid history ListView for testability (Scene Graph attachment assertions). */
+    public ListView<String> bidHistoryList() {
+        return bidHistoryList;
+    }
+
     @FXML
     private void handlePlaceBid() {
         if (!viewModel.isBiddingEnabled()) {

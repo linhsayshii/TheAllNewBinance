@@ -3,8 +3,10 @@ package com.auction.client.network;
 import com.auction.core.protocol.EventType;
 import com.auction.core.utils.JsonMapper;
 import java.net.URI;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -21,6 +23,9 @@ public class AuctionClient extends WebSocketClient {
     // Map: correlationId -> One-time Handler
     protected final Map<String, Consumer<String>> correlationHandlers = new ConcurrentHashMap<>();
 
+    // List: callbacks fired on every successful (re)connection — used to restore subscriptions
+    private final List<Runnable> reconnectListeners = new CopyOnWriteArrayList<>();
+
     private final ScheduledExecutorService reconnectExecutor =
             Executors.newSingleThreadScheduledExecutor();
     private boolean isReconnecting = false;
@@ -29,10 +34,39 @@ public class AuctionClient extends WebSocketClient {
         super(serverUri);
     }
 
+    /**
+     * Registers a callback that fires every time the WebSocket connection is (re)opened.
+     *
+     * <p>Use this to re-subscribe to auction rooms after a network partition so the client
+     * does not silently miss broadcasts after reconnection (Lỗ hổng #1).
+     *
+     * @param listener the callback to invoke on reconnect
+     */
+    public void addReconnectListener(Runnable listener) {
+        reconnectListeners.add(listener);
+    }
+
+    /**
+     * Removes a previously registered reconnect listener.
+     * Must be called in {@code onUnload()} to prevent memory leaks.
+     *
+     * @param listener the callback to remove
+     */
+    public void removeReconnectListener(Runnable listener) {
+        reconnectListeners.remove(listener);
+    }
+
     @Override
     public void onOpen(ServerHandshake handshakedata) {
         System.out.println("Connected to Auction Server: " + getURI());
         isReconnecting = false;
+        for (Runnable listener : reconnectListeners) {
+            try {
+                listener.run();
+            } catch (Exception e) {
+                System.err.println("[AuctionClient] Error in reconnect listener: " + e.getMessage());
+            }
+        }
     }
 
     @Override

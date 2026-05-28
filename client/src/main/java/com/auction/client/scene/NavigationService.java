@@ -21,6 +21,11 @@ public class NavigationService {
         sceneService.switchTo(sceneRegistry);
     }
 
+    /** Returns the controller of the currently displayed scene, or null if none. */
+    public Object getCurrentController() {
+        return sceneService.getCurrentController();
+    }
+
     public void navigateTo(SceneRegistry sceneRegistry, Map<String, Object> data) {
         sceneService.switchTo(sceneRegistry, data);
     }

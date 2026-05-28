@@ -45,6 +45,14 @@ public class NetworkService {
         return instance;
     }
 
+    /**
+     * Resets the singleton for test isolation. Only for use in unit/integration tests.
+     * Must be called with app.mockMode=true set before calling init() again.
+     */
+    public static void resetForTest() {
+        instance = null;
+    }
+
     public AuctionClient getClient() {
         return client;
     }

@@ -91,6 +91,11 @@ public class SceneService {
         return currentSceneRegistry;
     }
 
+    /** Returns the controller of the currently displayed scene, or null if none. */
+    public Object getCurrentController() {
+        return currentController;
+    }
+
     public Scene currentScene() {
         return stage.getScene();
     }

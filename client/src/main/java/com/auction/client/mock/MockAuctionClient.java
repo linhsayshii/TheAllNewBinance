@@ -87,6 +87,53 @@ public class MockAuctionClient extends AuctionClient {
         scheduler.shutdownNow();
     }
 
+    /**
+     * Exposes the typedHandlers map for test injection.
+     * Allows tests to register or replace handlers without a running WebSocket connection.
+     */
+    public java.util.Map<EventType, java.util.Map<String, java.util.function.Consumer<String>>>
+            getTypedHandlers() {
+        return typedHandlers;
+    }
+
+    /**
+     * Simulates a TCP Half-Open / network partition: fires {@code onClose()} as if the remote
+     * server dropped the connection without sending a FIN packet.
+     *
+     * <p>This is the correct simulation for TCP Half-Open — unlike calling {@code closeBlocking()}
+     * which represents a graceful TCP close initiated by the client.
+     *
+     * @param delayMs how long to wait before triggering the simulated disconnect
+     */
+    public void simulateNetworkPartition(long delayMs) {
+        scheduler.schedule(
+                () -> {
+                    System.out.println("[MockMode] Simulating TCP Half-Open / network partition");
+                    // code=1006: abnormal closure — no FIN sent (mirrors half-open TCP behavior)
+                    onClose(1006, "Simulated network partition (Half-Open TCP)", true);
+                },
+                delayMs,
+                TimeUnit.MILLISECONDS);
+    }
+
+    /**
+     * Simulates a successful reconnection: fires {@code onOpen()} which triggers all registered
+     * {@code ReconnectListeners}. Use after {@link #simulateNetworkPartition} to test subscription
+     * recovery (Lỗ hổng #1 fix verification).
+     *
+     * @param delayMs how long to wait before triggering the simulated reconnect
+     */
+    public void simulateReconnect(long delayMs) {
+        scheduler.schedule(
+                () -> {
+                    System.out.println("[MockMode] Simulating successful reconnect");
+                    // null ServerHandshake is safe because onOpen() doesn't use it in our impl
+                    onOpen(null);
+                },
+                delayMs,
+                TimeUnit.MILLISECONDS);
+    }
+
     // ------------------------------------------------------------------ //
     //  Request interception                                                //
     // ------------------------------------------------------------------ //
