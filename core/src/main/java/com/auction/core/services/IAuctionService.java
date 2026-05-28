@@ -21,8 +21,8 @@ public interface IAuctionService {
             throws java.sql.SQLException;
 
     /**
-     * Cập nhật thông tin đấu giá trong Transaction đang hoạt động của luồng gọi.
-     * Truyền conn tường minh để tránh Deadlock và lệch Thread Context.
+     * Cập nhật thông tin đấu giá trong Transaction đang hoạt động của luồng gọi. Truyền conn tường
+     * minh để tránh Deadlock và lệch Thread Context.
      */
     CompletableFuture<Void> processBid(java.sql.Connection conn, Bid bid, Auction auction);
 

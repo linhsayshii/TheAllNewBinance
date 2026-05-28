@@ -139,8 +139,8 @@ public class BidService implements IBidService {
                                 return false;
                             }
                             Auction auction = details.getAuction();
-                            return user.getBalance().compareTo(
-                                        BigDecimal.valueOf(auction.getStartingPrice() * 0.3)) >= 0;
+                            BigDecimal required = BigDecimal.valueOf(auction.getStartingPrice() * 0.3);
+                            return user.getBalance().compareTo(required) >= 0;
                         });
     }
 

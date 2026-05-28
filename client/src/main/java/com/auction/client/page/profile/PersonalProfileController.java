@@ -1,8 +1,5 @@
 package com.auction.client.page.profile;
 
-import java.io.IOException;
-import java.util.List;
-
 import com.auction.client.component.item.ProfileAuctionCardController;
 import com.auction.client.component.modal.PromoteModalController;
 import com.auction.client.component.profile.ProfileSidebarController;
@@ -14,7 +11,8 @@ import com.auction.client.scene.NavigationService;
 import com.auction.client.service.UserSessionService;
 import com.auction.client.service.notification.NotificationService;
 import com.auction.client.service.notification.NotificationType;
-
+import java.io.IOException;
+import java.util.List;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -188,24 +186,47 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
 
     private void setupDynamicBindings() {
         // Ràng buộc động một chiều đồng bộ tiền tệ tự động
-        dashTotalBalanceLabel.textProperty().bind(javafx.beans.binding.Bindings.format("$%,.2f", viewModel.totalBalanceProperty()));
-        dashAvailableBalanceLabel.textProperty().bind(javafx.beans.binding.Bindings.format("$%,.2f", viewModel.availableBalanceProperty()));
+        dashTotalBalanceLabel
+                .textProperty()
+                .bind(
+                        javafx.beans.binding.Bindings.format(
+                                "$%,.2f", viewModel.totalBalanceProperty()));
+        dashAvailableBalanceLabel
+                .textProperty()
+                .bind(
+                        javafx.beans.binding.Bindings.format(
+                                "$%,.2f", viewModel.availableBalanceProperty()));
 
-        finTotalBalanceLabel.textProperty().bind(javafx.beans.binding.Bindings.format("$%,.2f", viewModel.totalBalanceProperty()));
-        finLockedBalanceLabel.textProperty().bind(javafx.beans.binding.Bindings.format("$%,.2f", viewModel.lockedBalanceProperty()));
-        finAvailableBalanceLabel.textProperty().bind(javafx.beans.binding.Bindings.format("$%,.2f", viewModel.availableBalanceProperty()));
+        finTotalBalanceLabel
+                .textProperty()
+                .bind(
+                        javafx.beans.binding.Bindings.format(
+                                "$%,.2f", viewModel.totalBalanceProperty()));
+        finLockedBalanceLabel
+                .textProperty()
+                .bind(
+                        javafx.beans.binding.Bindings.format(
+                                "$%,.2f", viewModel.lockedBalanceProperty()));
+        finAvailableBalanceLabel
+                .textProperty()
+                .bind(
+                        javafx.beans.binding.Bindings.format(
+                                "$%,.2f", viewModel.availableBalanceProperty()));
 
         // Ràng buộc đếm số lượng đấu giá
         dashActiveBidsLabel.textProperty().bind(viewModel.activeBidsCountProperty().asString());
-        dashActiveListingsLabel.textProperty().bind(viewModel.activeListingsCountProperty().asString());
+        dashActiveListingsLabel
+                .textProperty()
+                .bind(viewModel.activeListingsCountProperty().asString());
     }
 
     private void loadTransactionHistoryAsync() {
-        java.util.concurrent.CompletableFuture.runAsync(() -> {
-            java.util.List<ProfilePageViewModel.TransactionRow> rows =
-                    viewModel.fetchTransactionHistory();
-            Platform.runLater(() -> renderTransactionHistory(rows));
-        });
+        java.util.concurrent.CompletableFuture.runAsync(
+                () -> {
+                    java.util.List<ProfilePageViewModel.TransactionRow> rows =
+                            viewModel.fetchTransactionHistory();
+                    Platform.runLater(() -> renderTransactionHistory(rows));
+                });
     }
 
     private void renderTransactionHistory(
@@ -224,11 +245,12 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
     }
 
     private javafx.scene.Node buildTransactionRow(ProfilePageViewModel.TransactionRow row) {
-        javafx.scene.control.Label typeLabel = new javafx.scene.control.Label(
-                row.isDeposit() ? "+ DEPOSIT" : "\u2212 WITHDRAW");
-        typeLabel.setStyle(row.isDeposit()
-                ? "-fx-text-fill: #26de81; -fx-font-weight: bold;"
-                : "-fx-text-fill: #fc5c65; -fx-font-weight: bold;");
+        javafx.scene.control.Label typeLabel =
+                new javafx.scene.control.Label(row.isDeposit() ? "+ DEPOSIT" : "\u2212 WITHDRAW");
+        typeLabel.setStyle(
+                row.isDeposit()
+                        ? "-fx-text-fill: #26de81; -fx-font-weight: bold;"
+                        : "-fx-text-fill: #fc5c65; -fx-font-weight: bold;");
 
         javafx.scene.control.Label amountLabel =
                 new javafx.scene.control.Label(row.formattedAmount());
@@ -240,11 +262,11 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
         javafx.scene.layout.Region spacer = new javafx.scene.layout.Region();
         javafx.scene.layout.HBox.setHgrow(spacer, javafx.scene.layout.Priority.ALWAYS);
 
-        javafx.scene.layout.HBox hbox = new javafx.scene.layout.HBox(12,
-                typeLabel, spacer, amountLabel, dateLabel);
+        javafx.scene.layout.HBox hbox =
+                new javafx.scene.layout.HBox(12, typeLabel, spacer, amountLabel, dateLabel);
         hbox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
-        hbox.setStyle("-fx-padding: 8 12; -fx-background-color: #1c2a3a;"
-                + " -fx-background-radius: 6;");
+        hbox.setStyle(
+                "-fx-padding: 8 12; -fx-background-color: #1c2a3a;" + " -fx-background-radius: 6;");
         return hbox;
     }
 
@@ -445,7 +467,8 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
     private void processWalletAction(String title, String actionLabel, boolean isDeposit) {
         String input = walletAmountField.getText();
         if (input == null || input.isBlank()) {
-            NotificationService.getInstance().show("Please enter an amount.", NotificationType.WARNING);
+            NotificationService.getInstance()
+                    .show("Please enter an amount.", NotificationType.WARNING);
             return;
         }
 
@@ -453,78 +476,107 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
         try {
             amount = new java.math.BigDecimal(input.trim());
             if (amount.compareTo(java.math.BigDecimal.ZERO) <= 0) {
-                NotificationService.getInstance().show("Amount must be greater than 0.", NotificationType.WARNING);
+                NotificationService.getInstance()
+                        .show("Amount must be greater than 0.", NotificationType.WARNING);
                 return;
             }
         } catch (NumberFormatException ex) {
-            NotificationService.getInstance().show("Please enter a valid numeric amount.", NotificationType.WARNING);
+            NotificationService.getInstance()
+                    .show("Please enter a valid numeric amount.", NotificationType.WARNING);
             return;
         }
 
-        com.auction.core.protocol.EventType eventType = isDeposit
-                ? com.auction.core.protocol.EventType.DEPOSIT
-                : com.auction.core.protocol.EventType.WITHDRAW;
+        com.auction.core.protocol.EventType eventType =
+                isDeposit
+                        ? com.auction.core.protocol.EventType.DEPOSIT
+                        : com.auction.core.protocol.EventType.WITHDRAW;
 
         com.auction.client.service.NetworkService ns =
                 com.auction.client.service.NetworkService.getInstance();
 
-        Object payload = isDeposit
-                ? new com.auction.core.dto.wallet.DepositRequest(
-                        UserSessionService.getInstance().getCurrentUser().getId(), amount)
-                : new com.auction.core.dto.wallet.WithdrawRequest(
-                        UserSessionService.getInstance().getCurrentUser().getId(), amount);
+        Object payload =
+                isDeposit
+                        ? new com.auction.core.dto.wallet.DepositRequest(
+                                UserSessionService.getInstance().getCurrentUser().getId(), amount)
+                        : new com.auction.core.dto.wallet.WithdrawRequest(
+                                UserSessionService.getInstance().getCurrentUser().getId(), amount);
 
         ns.sendRequestAsync(eventType, payload)
-                .thenAccept(raw -> {
-                    try {
-                        @SuppressWarnings("unchecked")
-                        java.util.Map<String, Object> resp =
-                                com.auction.core.utils.JsonMapper.fromJson(raw, java.util.Map.class);
-                        boolean success = Boolean.TRUE.equals(resp.get("success"));
-                        if (success) {
-                            // Refresh balance from response data
-                            Object data = resp.get("data");
-                            if (data instanceof java.util.Map<?, ?> dataMap) {
-                                updateBalanceFromResponse(dataMap, amount, isDeposit);
-                            } else {
-                                adjustLocalBalance(amount, isDeposit);
+                .thenAccept(
+                        raw -> {
+                            try {
+                                @SuppressWarnings("unchecked")
+                                java.util.Map<String, Object> resp =
+                                        com.auction.core.utils.JsonMapper.fromJson(
+                                                raw, java.util.Map.class);
+                                boolean success = Boolean.TRUE.equals(resp.get("success"));
+                                if (success) {
+                                    // Refresh balance from response data
+                                    Object data = resp.get("data");
+                                    if (data instanceof java.util.Map<?, ?> dataMap) {
+                                        updateBalanceFromResponse(dataMap, amount, isDeposit);
+                                    } else {
+                                        adjustLocalBalance(amount, isDeposit);
+                                    }
+                                    Platform.runLater(
+                                            () -> {
+                                                walletAmountField.clear();
+                                                NotificationService.getInstance()
+                                                        .show(
+                                                                actionLabel
+                                                                        + " of $"
+                                                                        + amount.toPlainString()
+                                                                        + " completed"
+                                                                        + " successfully.",
+                                                                NotificationType.SUCCESS);
+                                                loadTransactionHistoryAsync(); // Tự động load lại
+                                                // lịch sử!
+                                            });
+                                } else {
+                                    String msg =
+                                            resp.get("message") != null
+                                                    ? String.valueOf(resp.get("message"))
+                                                    : actionLabel
+                                                            + " failed. Please check your balance"
+                                                            + " and try again.";
+                                    Platform.runLater(
+                                            () ->
+                                                    NotificationService.getInstance()
+                                                            .show(
+                                                                    actionLabel + " failed: " + msg,
+                                                                    NotificationType.ERROR));
+                                }
+                            } catch (Exception ex) {
+                                Platform.runLater(
+                                        () ->
+                                                NotificationService.getInstance()
+                                                        .show(
+                                                                "Failed to process response: "
+                                                                        + ex.getMessage(),
+                                                                NotificationType.ERROR));
                             }
-                            Platform.runLater(() -> {
-                                walletAmountField.clear();
-                                NotificationService.getInstance().show(
-                                        actionLabel + " of $" + amount.toPlainString() + " completed successfully.",
-                                        NotificationType.SUCCESS);
-                                loadTransactionHistoryAsync(); // Tự động load lại lịch sử!
-                            });
-                        } else {
-                            String msg = resp.get("message") != null
-                                    ? String.valueOf(resp.get("message"))
-                                    : actionLabel + " failed. Please check your balance and try again.";
-                            Platform.runLater(() -> NotificationService.getInstance().show(
-                                    actionLabel + " failed: " + msg, NotificationType.ERROR));
-                        }
-                    } catch (Exception ex) {
-                        Platform.runLater(() -> NotificationService.getInstance().show(
-                                "Failed to process response: " + ex.getMessage(), NotificationType.ERROR));
-                    }
-                })
-                .exceptionally(ex -> {
-                    Platform.runLater(() -> NotificationService.getInstance().show(
-                            actionLabel + " request failed. Please try again.", NotificationType.ERROR));
-                    return null;
-                });
+                        })
+                .exceptionally(
+                        ex -> {
+                            Platform.runLater(
+                                    () ->
+                                            NotificationService.getInstance()
+                                                    .show(
+                                                            actionLabel
+                                                                    + " request failed. Please try"
+                                                                    + " again.",
+                                                            NotificationType.ERROR));
+                            return null;
+                        });
     }
 
     /**
-     * Updates the balance in UserSessionService from the server response payload.
-     * Falls back to local adjustment when the server does not echo balance fields.
+     * Updates the balance in UserSessionService from the server response payload. Falls back to
+     * local adjustment when the server does not echo balance fields.
      */
     private void updateBalanceFromResponse(
-            java.util.Map<?, ?> data,
-            java.math.BigDecimal amount,
-            boolean isDeposit) {
-        com.auction.core.users.User user =
-                UserSessionService.getInstance().getCurrentUser();
+            java.util.Map<?, ?> data, java.math.BigDecimal amount, boolean isDeposit) {
+        com.auction.core.users.User user = UserSessionService.getInstance().getCurrentUser();
         if (user == null) {
             return;
         }
@@ -532,11 +584,13 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
         Object lockedObj = data.get("lockedBalance");
         if (balObj != null) {
             java.math.BigDecimal newBal = new java.math.BigDecimal(String.valueOf(balObj));
-            java.math.BigDecimal newLocked = lockedObj != null
-                    ? new java.math.BigDecimal(String.valueOf(lockedObj))
-                    : user.getLockedBalance();
-            user.deposit(newBal.subtract(user.getBalance()
-                    .add(isDeposit ? java.math.BigDecimal.ZERO : amount)));
+            java.math.BigDecimal newLocked =
+                    lockedObj != null
+                            ? new java.math.BigDecimal(String.valueOf(lockedObj))
+                            : user.getLockedBalance();
+            user.deposit(
+                    newBal.subtract(
+                            user.getBalance().add(isDeposit ? java.math.BigDecimal.ZERO : amount)));
         } else {
             adjustLocalBalance(amount, isDeposit);
         }
@@ -544,12 +598,11 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
     }
 
     /**
-     * Applies the transaction locally to the User domain object when the server
-     * response does not include the updated balance (e.g. MockMode).
+     * Applies the transaction locally to the User domain object when the server response does not
+     * include the updated balance (e.g. MockMode).
      */
     private void adjustLocalBalance(java.math.BigDecimal amount, boolean isDeposit) {
-        com.auction.core.users.User user =
-                UserSessionService.getInstance().getCurrentUser();
+        com.auction.core.users.User user = UserSessionService.getInstance().getCurrentUser();
         if (user == null) {
             return;
         }

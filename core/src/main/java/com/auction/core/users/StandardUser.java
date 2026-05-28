@@ -3,15 +3,13 @@ package com.auction.core.users;
 import java.math.BigDecimal;
 
 /**
- * Đại diện cho người dùng thông thường tham gia mua bán và đấu giá sản phẩm.
- * Một tài khoản kiêm nhiệm cả hai vai trò Người mua (Bidder) và Người bán (Seller),
- * được phân biệt hoàn toàn bằng hành vi đa hình dựa trên trạng thái isActive.
+ * Đại diện cho người dùng thông thường tham gia mua bán và đấu giá sản phẩm. Một tài khoản kiêm
+ * nhiệm cả hai vai trò Người mua (Bidder) và Người bán (Seller), được phân biệt hoàn toàn bằng hành
+ * vi đa hình dựa trên trạng thái isActive.
  */
 public final class StandardUser extends User {
 
-    /**
-     * Constructor phạm vi package-private. Chỉ được gọi bởi UserFactory.
-     */
+    /** Constructor phạm vi package-private. Chỉ được gọi bởi UserFactory. */
     StandardUser(
             Integer id,
             String username,
@@ -21,7 +19,16 @@ public final class StandardUser extends User {
             BigDecimal balance,
             BigDecimal lockedBalance,
             Boolean isActive) {
-        super(id, username, password, fullName, email, balance, lockedBalance, Role.STANDARD, isActive);
+        super(
+                id,
+                username,
+                password,
+                fullName,
+                email,
+                balance,
+                lockedBalance,
+                Role.STANDARD,
+                isActive);
     }
 
     @Override

@@ -21,7 +21,9 @@ public class LuxuryCollectibleFactory implements ItemFactory {
         return CategoryType.WATCHES;
     }
 
-    /** Returns all categories this factory handles, for multi-registration in ItemFactoryProvider. */
+    /**
+     * Returns all categories this factory handles, for multi-registration in ItemFactoryProvider.
+     */
     public CategoryType[] getSupportedCategories() {
         return new CategoryType[] {
             CategoryType.WATCHES, CategoryType.FASHION, CategoryType.COLLECTIBLES, CategoryType.WINE

@@ -8,23 +8,24 @@ import javafx.scene.layout.VBox;
 /**
  * Strategy interface for category-specific dynamic UI rendering.
  *
- * <p>Each concrete implementation handles one <em>group</em> of categories (e.g. Luxury:
- * WATCHES, FASHION, COLLECTIBLES, WINE) and is responsible for:
+ * <p>Each concrete implementation handles one <em>group</em> of categories (e.g. Luxury: WATCHES,
+ * FASHION, COLLECTIBLES, WINE) and is responsible for:
  *
  * <ol>
- *   <li>Declaring all {@link CategoryType} values it handles via {@link #getSupportedCategoryTypes()}.
+ *   <li>Declaring all {@link CategoryType} values it handles via {@link
+ *       #getSupportedCategoryTypes()}.
  *   <li>Dynamically rendering input fields into a provided {@code VBox} container.
  *   <li>Validating user input within those fields.
  *   <li>Extracting a strongly-typed {@link ItemAttributesPayload} from the filled fields.
  * </ol>
  *
  * <p>Implementations are discovered at runtime via Java SPI ({@link java.util.ServiceLoader}). To
- * register a new strategy, add its fully-qualified class name to:
- * {@code META-INF/services/com.auction.client.page.create.strategy.CategoryDisplayStrategy}
+ * register a new strategy, add its fully-qualified class name to: {@code
+ * META-INF/services/com.auction.client.page.create.strategy.CategoryDisplayStrategy}
  *
- * <p><b>OCP Compliance</b>: Adding a new product group requires only creating a new
- * implementation class and adding its entry to the SPI config file — no changes to
- * {@code CreateListingController} are needed.
+ * <p><b>OCP Compliance</b>: Adding a new product group requires only creating a new implementation
+ * class and adding its entry to the SPI config file — no changes to {@code CreateListingController}
+ * are needed.
  */
 public interface CategoryDisplayStrategy {
 
@@ -54,8 +55,8 @@ public interface CategoryDisplayStrategy {
     boolean validateFields(VBox container);
 
     /**
-     * Extracts field values from the container and constructs a strongly-typed
-     * {@link ItemAttributesPayload} subclass.
+     * Extracts field values from the container and constructs a strongly-typed {@link
+     * ItemAttributesPayload} subclass.
      *
      * @param container The VBox containing the rendered dynamic fields.
      * @return A fully populated payload ready to be set on {@code CreateAuctionRequest}.

@@ -47,7 +47,8 @@ public class UserService implements IUserService {
                         throw new IllegalArgumentException("Username already exists");
                     }
 
-                    User user = UserFactory.createNewStandard(
+                    User user =
+                            UserFactory.createNewStandard(
                                     username,
                                     PasswordHasher.hash(request.getPassword()),
                                     request.getFullname().trim(),
@@ -215,102 +216,105 @@ public class UserService implements IUserService {
 
     @Override
     public CompletableFuture<Void> deposit(DepositRequest request) {
-        return CompletableFuture.runAsync(() -> {
-            if (request == null
-                    || request.getAmount() == null
-                    || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new InvalidAmountException("Yêu cầu nạp tiền không hợp lệ");
-            }
+        return CompletableFuture.runAsync(
+                () -> {
+                    if (request == null
+                            || request.getAmount() == null
+                            || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                        throw new InvalidAmountException("Yêu cầu nạp tiền không hợp lệ");
+                    }
 
-            try {
-                DBConnection.beginTransaction();
-                Connection conn = DBConnection.getConnection();
+                    try {
+                        DBConnection.beginTransaction();
+                        Connection conn = DBConnection.getConnection();
 
-                User user = userDao.findByIdForUpdate(conn, request.getUserId());
-                if (user == null) {
-                    throw new UserNotFoundException("Đầu dùng không tồn tại");
-                }
+                        User user = userDao.findByIdForUpdate(conn, request.getUserId());
+                        if (user == null) {
+                            throw new UserNotFoundException("Đầu dùng không tồn tại");
+                        }
 
-                user.deposit(request.getAmount());
+                        user.deposit(request.getAmount());
 
-                if (!userDao.updateBalanceAndLockedBalance(conn, user)) {
-                    throw new WalletTransactionException("Cập nhật số dư thất bại");
-                }
+                        if (!userDao.updateBalanceAndLockedBalance(conn, user)) {
+                            throw new WalletTransactionException("Cập nhật số dư thất bại");
+                        }
 
-                if (!userDao.insertTransactionRecord(
-                        conn,
-                        user.getId(),
-                        "DEPOSIT",
-                        request.getAmount(),
-                        "SUCCESS",
-                        UUID.randomUUID().toString())) {
-                    throw new WalletTransactionException("Lưu vết giao dịch thất bại");
-                }
+                        if (!userDao.insertTransactionRecord(
+                                conn,
+                                user.getId(),
+                                "DEPOSIT",
+                                request.getAmount(),
+                                "SUCCESS",
+                                UUID.randomUUID().toString())) {
+                            throw new WalletTransactionException("Lưu vết giao dịch thất bại");
+                        }
 
-                DBConnection.commitTransaction();
-            } catch (Exception e) {
-                DBConnection.rollbackTransaction();
-                if (e instanceof DomainException) {
-                    throw (RuntimeException) e;
-                }
-                throw new WalletTransactionException(e.getMessage());
-            } finally {
-                DBConnection.closeConnection();
-            }
-        }, DBExecutor.getExecutor());
+                        DBConnection.commitTransaction();
+                    } catch (Exception e) {
+                        DBConnection.rollbackTransaction();
+                        if (e instanceof DomainException) {
+                            throw (RuntimeException) e;
+                        }
+                        throw new WalletTransactionException(e.getMessage());
+                    } finally {
+                        DBConnection.closeConnection();
+                    }
+                },
+                DBExecutor.getExecutor());
     }
 
     @Override
     public CompletableFuture<Void> withdraw(WithdrawRequest request) {
-        return CompletableFuture.runAsync(() -> {
-            if (request == null
-                    || request.getAmount() == null
-                    || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
-                throw new InvalidAmountException("Yêu cầu rút tiền không hợp lệ");
-            }
+        return CompletableFuture.runAsync(
+                () -> {
+                    if (request == null
+                            || request.getAmount() == null
+                            || request.getAmount().compareTo(BigDecimal.ZERO) <= 0) {
+                        throw new InvalidAmountException("Yêu cầu rút tiền không hợp lệ");
+                    }
 
-            try {
-                DBConnection.beginTransaction();
-                Connection conn = DBConnection.getConnection();
+                    try {
+                        DBConnection.beginTransaction();
+                        Connection conn = DBConnection.getConnection();
 
-                User user = userDao.findByIdForUpdate(conn, request.getUserId());
-                if (user == null) {
-                    throw new UserNotFoundException("Đầu dùng không tồn tại");
-                }
+                        User user = userDao.findByIdForUpdate(conn, request.getUserId());
+                        if (user == null) {
+                            throw new UserNotFoundException("Đầu dùng không tồn tại");
+                        }
 
-                user.withdraw(request.getAmount());
+                        user.withdraw(request.getAmount());
 
-                if (!userDao.updateBalanceAndLockedBalance(conn, user)) {
-                    throw new WalletTransactionException("Cập nhật số dư thất bại");
-                }
+                        if (!userDao.updateBalanceAndLockedBalance(conn, user)) {
+                            throw new WalletTransactionException("Cập nhật số dư thất bại");
+                        }
 
-                if (!userDao.insertTransactionRecord(
-                        conn,
-                        user.getId(),
-                        "WITHDRAW",
-                        request.getAmount(),
-                        "SUCCESS",
-                        UUID.randomUUID().toString())) {
-                    throw new WalletTransactionException("Lưu vết giao dịch thất bại");
-                }
+                        if (!userDao.insertTransactionRecord(
+                                conn,
+                                user.getId(),
+                                "WITHDRAW",
+                                request.getAmount(),
+                                "SUCCESS",
+                                UUID.randomUUID().toString())) {
+                            throw new WalletTransactionException("Lưu vết giao dịch thất bại");
+                        }
 
-                DBConnection.commitTransaction();
-            } catch (Exception e) {
-                DBConnection.rollbackTransaction();
-                if (e instanceof DomainException) {
-                    throw (RuntimeException) e;
-                }
-                throw new WalletTransactionException(e.getMessage());
-            } finally {
-                DBConnection.closeConnection();
-            }
-        }, DBExecutor.getExecutor());
+                        DBConnection.commitTransaction();
+                    } catch (Exception e) {
+                        DBConnection.rollbackTransaction();
+                        if (e instanceof DomainException) {
+                            throw (RuntimeException) e;
+                        }
+                        throw new WalletTransactionException(e.getMessage());
+                    } finally {
+                        DBConnection.closeConnection();
+                    }
+                },
+                DBExecutor.getExecutor());
     }
 
     @Override
     public CompletableFuture<List<Map<String, Object>>> getWalletTransactions(Integer userId) {
         return CompletableFuture.supplyAsync(
-                () -> userDao.getWalletTransactionsByUserId(userId),
-                DBExecutor.getExecutor());
+                () -> userDao.getWalletTransactionsByUserId(userId), DBExecutor.getExecutor());
     }
 }

@@ -63,9 +63,9 @@ public class NetworkService {
     }
 
     /**
-     * Sends a request and returns a self-cleaning {@link CompletableFuture}.
-     * The correlation handler is automatically removed once the future completes,
-     * guaranteeing zero memory leaks even when the server is slow or unreachable.
+     * Sends a request and returns a self-cleaning {@link CompletableFuture}. The correlation
+     * handler is automatically removed once the future completes, guaranteeing zero memory leaks
+     * even when the server is slow or unreachable.
      */
     public CompletableFuture<String> sendRequestAsync(EventType type, Object payload) {
         CompletableFuture<String> future = new CompletableFuture<>();

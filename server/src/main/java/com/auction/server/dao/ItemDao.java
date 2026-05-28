@@ -51,8 +51,8 @@ public class ItemDao implements IItemDao {
     }
 
     /**
-     * Inserts an Item using a provided Connection — used by {@code AuctionService.createAuction}
-     * to share the same Transaction connection for atomic dual-write (Item + Auction).
+     * Inserts an Item using a provided Connection — used by {@code AuctionService.createAuction} to
+     * share the same Transaction connection for atomic dual-write (Item + Auction).
      *
      * @param conn Active connection with autoCommit=false managed by the caller.
      * @param item The fully-constructed Item subclass to persist.
@@ -65,8 +65,7 @@ public class ItemDao implements IItemDao {
                         + " artist, year_created, model, warranty_months, custom_attributes)"
                         + " VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (PreparedStatement stmt =
-                conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
 
             // Common fields
             stmt.setInt(1, item.getSellerId());
@@ -198,11 +197,11 @@ public class ItemDao implements IItemDao {
     /**
      * Maps a single JDBC ResultSet row to a fully-initialized polymorphic Item instance.
      *
-     * <p>Fixed subclass fields are read from their dedicated columns and mapped into
-     * strongly-typed {@link ItemAttributesPayload} subclasses first. Dynamic container attributes
-     * are parsed from the {@code custom_attributes} JSON column and re-inflated into the payload.
-     * The payload is then passed directly to the factory — no Map key access or manual type casting
-     * at Domain Layer (Polymorphic Flattening Regression prevention).
+     * <p>Fixed subclass fields are read from their dedicated columns and mapped into strongly-typed
+     * {@link ItemAttributesPayload} subclasses first. Dynamic container attributes are parsed from
+     * the {@code custom_attributes} JSON column and re-inflated into the payload. The payload is
+     * then passed directly to the factory — no Map key access or manual type casting at Domain
+     * Layer (Polymorphic Flattening Regression prevention).
      */
     private Item mapRowToItem(ResultSet rs) throws SQLException {
         String categoryStr = rs.getString("category");
@@ -224,7 +223,8 @@ public class ItemDao implements IItemDao {
                     Map<?, ?> parsed = JsonMapper.fromJson(jsonAttrs, Map.class);
                     if (parsed != null) {
                         // Gson parses numbers as Double — use Number.doubleValue() safely
-                        Number sizeNum = (Number) parsed.get(LuxuryAttributes.BOTTLE_SIZE.getName());
+                        Number sizeNum =
+                                (Number) parsed.get(LuxuryAttributes.BOTTLE_SIZE.getName());
                         if (sizeNum != null) {
                             p.setBottleSize(sizeNum.doubleValue());
                         }

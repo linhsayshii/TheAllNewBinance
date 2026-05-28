@@ -19,6 +19,13 @@ public final class BroadcastBroker {
 
     private static final BroadcastBroker INSTANCE = new BroadcastBroker();
 
+    /** Global set of all connected clients */
+    private final Set<WebSocket> activeConnections =
+            new java.util.concurrent.CopyOnWriteArraySet<>();
+
+    /** Maps userId -> set of active WebSocket connections */
+    private final Map<Integer, Set<WebSocket>> userConnections = new ConcurrentHashMap<>();
+
     /** auctionId → set of active WebSocket connections watching that auction. */
     private final Map<Integer, Set<WebSocket>> rooms = new ConcurrentHashMap<>();
 
@@ -29,6 +36,49 @@ public final class BroadcastBroker {
 
     public static BroadcastBroker getInstance() {
         return INSTANCE;
+    }
+
+    public void addConnection(WebSocket conn) {
+        activeConnections.add(conn);
+    }
+
+    public void removeConnection(WebSocket conn) {
+        activeConnections.remove(conn);
+        unregister(conn);
+        userConnections.values().forEach(set -> set.remove(conn));
+    }
+
+    public void registerUser(int userId, WebSocket conn) {
+        userConnections
+                .computeIfAbsent(userId, k -> new java.util.concurrent.CopyOnWriteArraySet<>())
+                .add(conn);
+        System.out.println("[BroadcastBroker] Registered user ID: " + userId);
+    }
+
+    public void unregisterUser(int userId, WebSocket conn) {
+        Set<WebSocket> conns = userConnections.get(userId);
+        if (conns != null) {
+            conns.remove(conn);
+            if (conns.isEmpty()) {
+                userConnections.remove(userId);
+            }
+        }
+        System.out.println("[BroadcastBroker] Unregistered user ID: " + userId);
+    }
+
+    public void sendToUser(int userId, EventType type, Object payload) {
+        Set<WebSocket> conns = userConnections.get(userId);
+        if (conns == null || conns.isEmpty()) {
+            return;
+        }
+        Map<String, Object> message =
+                Map.of("type", type.wireValue(), "success", true, "data", payload);
+        String json = JsonMapper.toJson(message);
+        for (WebSocket conn : conns) {
+            if (conn.isOpen()) {
+                conn.send(json);
+            }
+        }
     }
 
     /**
@@ -107,7 +157,7 @@ public final class BroadcastBroker {
                 Map.of("type", type.wireValue(), "success", true, "data", payload);
         String json = JsonMapper.toJson(message);
 
-        for (WebSocket conn : userLocations.keySet()) {
+        for (WebSocket conn : activeConnections) {
             if (conn.isOpen()) {
                 conn.send(json);
             }

@@ -8,8 +8,8 @@ public interface IItemDao {
     boolean addItem(Item item);
 
     /**
-     * Inserts an Item using a caller-provided Connection for Transactional (Atomic) dual-write.
-     * The caller is responsible for commit/rollback lifecycle of the connection.
+     * Inserts an Item using a caller-provided Connection for Transactional (Atomic) dual-write. The
+     * caller is responsible for commit/rollback lifecycle of the connection.
      */
     boolean addItemWithConnection(Connection conn, Item item) throws SQLException;
 

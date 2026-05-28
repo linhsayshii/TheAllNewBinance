@@ -8,9 +8,9 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
- * Thực thể User dưới dạng Rich Domain Model (Reflection-free).
- * Đóng gói tuyệt đối trạng thái tài chính phạm vi private để bảo toàn tính toàn vẹn.
- * Không implements Serializable để thiết lập ranh giới an toàn tại Server Node.
+ * Thực thể User dưới dạng Rich Domain Model (Reflection-free). Đóng gói tuyệt đối trạng thái tài
+ * chính phạm vi private để bảo toàn tính toàn vẹn. Không implements Serializable để thiết lập ranh
+ * giới an toàn tại Server Node.
  */
 public abstract sealed class User extends Entity permits StandardUser, Admin {
 
@@ -21,7 +21,8 @@ public abstract sealed class User extends Entity permits StandardUser, Admin {
 
     // ID có thể gán một lần duy nhất (Reflection-free Write-Once)
     protected Integer id;
-    // username là final chỉ về mặt danh tính khởi tạo, nhưng hỗ trợ cập nhật qua setter có kiểm soát
+    // username là final chỉ về mặt danh tính khởi tạo, nhưng hỗ trợ cập nhật qua setter có kiểm
+    // soát
     protected String username;
     protected final Role role;
 
@@ -34,9 +35,7 @@ public abstract sealed class User extends Entity permits StandardUser, Admin {
     private BigDecimal balance;
     private BigDecimal lockedBalance;
 
-    /**
-     * Constructor phạm vi package-private. Chỉ dành cho UserFactory (cùng package) gọi.
-     */
+    /** Constructor phạm vi package-private. Chỉ dành cho UserFactory (cùng package) gọi. */
     User(
             Integer id,
             String username,
@@ -82,7 +81,7 @@ public abstract sealed class User extends Entity permits StandardUser, Admin {
      * Đóng băng một khoản tiền đặt cọc khi đặt giá thầu (Bid).
      *
      * @param amount Số tiền cần đóng băng (phải lớn hơn 0)
-     * @throws InvalidBidException         Nếu số tiền nhỏ hơn hoặc bằng 0
+     * @throws InvalidBidException Nếu số tiền nhỏ hơn hoặc bằng 0
      * @throws InsufficientBalanceException Nếu số dư khả dụng không đủ
      */
     public void holdBalance(BigDecimal amount) {
@@ -90,7 +89,8 @@ public abstract sealed class User extends Entity permits StandardUser, Admin {
             throw new InvalidBidException("Số tiền đóng băng phải lớn hơn 0");
         }
         if (this.balance.compareTo(amount) < 0) {
-            throw new InsufficientBalanceException("Số dư khả dụng không đủ để thực hiện đặt giá thầu");
+            throw new InsufficientBalanceException(
+                    "Số dư khả dụng không đủ để thực hiện đặt giá thầu");
         }
         this.balance = this.balance.subtract(amount);
         this.lockedBalance = this.lockedBalance.add(amount);
@@ -101,7 +101,7 @@ public abstract sealed class User extends Entity permits StandardUser, Admin {
      * Khấu trừ hoàn toàn số tiền đang bị đóng băng khi đấu giá thành công.
      *
      * @param amount Số tiền khấu trừ (phải lớn hơn 0)
-     * @throws InvalidBidException  Nếu số tiền nhỏ hơn hoặc bằng 0
+     * @throws InvalidBidException Nếu số tiền nhỏ hơn hoặc bằng 0
      * @throws IllegalStateException Nếu số tiền đóng băng thực tế không đủ
      */
     public void commitBid(BigDecimal amount) {
@@ -109,7 +109,8 @@ public abstract sealed class User extends Entity permits StandardUser, Admin {
             throw new InvalidBidException("Số tiền khấu trừ phải lớn hơn 0");
         }
         if (this.lockedBalance.compareTo(amount) < 0) {
-            throw new IllegalStateException("Số tiền đóng băng thực tế nhỏ hơn số tiền cần khấu trừ");
+            throw new IllegalStateException(
+                    "Số tiền đóng băng thực tế nhỏ hơn số tiền cần khấu trừ");
         }
         this.lockedBalance = this.lockedBalance.subtract(amount);
         updateTimestamp();
@@ -119,7 +120,7 @@ public abstract sealed class User extends Entity permits StandardUser, Admin {
      * Hoàn trả lại số tiền đặt cọc khi có người khác trả giá cao hơn (Outbid).
      *
      * @param amount Số tiền hoàn trả (phải lớn hơn 0)
-     * @throws InvalidBidException  Nếu số tiền nhỏ hơn hoặc bằng 0
+     * @throws InvalidBidException Nếu số tiền nhỏ hơn hoặc bằng 0
      * @throws IllegalStateException Nếu số tiền đóng băng thực tế không đủ
      */
     public void refundBalance(BigDecimal amount) {
@@ -148,13 +149,6 @@ public abstract sealed class User extends Entity permits StandardUser, Admin {
         updateTimestamp();
     }
 
-    /**
-     * Rút tiền từ ví người dùng.
-     *
-     * @param amount Số tiền rút ra (phải lớn hơn 0)
-     * @throws InvalidAmountException       Nếu số tiền là null, bằng 0 hoặc âm
-     * @throws InsufficientBalanceException Nếu số dư khả dụng không đủ
-     */
     public void withdraw(BigDecimal amount) {
         if (amount == null || amount.compareTo(BigDecimal.ZERO) <= 0) {
             throw new InvalidAmountException("Số tiền rút phải lớn hơn 0");
@@ -163,6 +157,20 @@ public abstract sealed class User extends Entity permits StandardUser, Admin {
             throw new InsufficientBalanceException("Số dư khả dụng không đủ để thực hiện rút tiền");
         }
         this.balance = this.balance.subtract(amount);
+        updateTimestamp();
+    }
+
+    /**
+     * Đồng bộ trực tiếp trạng thái tài chính từ Network/Database. Sử dụng cho việc phản chiếu trạng
+     * thái ở Client hoặc Load Data ở Server.
+     */
+    public void syncFinancialState(BigDecimal newBalance, BigDecimal newLockedBalance) {
+        if (newBalance != null) {
+            this.balance = newBalance;
+        }
+        if (newLockedBalance != null) {
+            this.lockedBalance = newLockedBalance;
+        }
         updateTimestamp();
     }
 
@@ -205,8 +213,8 @@ public abstract sealed class User extends Entity permits StandardUser, Admin {
     }
 
     /**
-     * Cơ chế Write-Once Identity: Triệt tiêu hoàn toàn Deep Reflection.
-     * Chỉ được gọi từ UserDao sau khi INSERT thành công và nhận về Generated Key.
+     * Cơ chế Write-Once Identity: Triệt tiêu hoàn toàn Deep Reflection. Chỉ được gọi từ UserDao sau
+     * khi INSERT thành công và nhận về Generated Key.
      *
      * @param id Mã định danh duy nhất từ hệ thống lưu trữ
      * @throws IllegalStateException Nếu thực thể đã có ID từ trước

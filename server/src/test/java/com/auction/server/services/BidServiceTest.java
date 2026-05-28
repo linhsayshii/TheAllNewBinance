@@ -86,7 +86,6 @@ public class BidServiceTest {
         when(auctionService.getAuctionDetails(1)).thenReturn(auctionFuture);
         when(auctionService.getSellerId(1)).thenReturn(sellerFuture); // Seller is 1, bidder is 2
         when(bidDao.hasBid(1, 2)).thenReturn(false);
-        when(userDao.holdBalance(2, 30.0)).thenReturn(true); // 30% of 100
 
         Bid expectedBid = new Bid(1, 1, 2, 150.0);
         CompletableFuture<Bid> expectedBidFuture = CompletableFuture.completedFuture(expectedBid);
@@ -98,7 +97,6 @@ public class BidServiceTest {
         assertNotNull(result);
         assertEquals(150.0, result.getAmount());
         verify(bidQueueManager, times(1)).submitBid(any(BidTask.class));
-        verify(userDao, times(1)).holdBalance(2, 30.0);
     }
 
     @Test
@@ -143,6 +141,19 @@ public class BidServiceTest {
 
     @Test
     void testPlaceBid_InsufficientBalance_ShouldThrowInsufficientBalanceException() {
+        // Cấu hình số dư người dùng cực thấp (ví dụ: 10.0, nhỏ hơn mức cọc tối thiểu 30.0 + giá thầu 150.0)
+        testUser =
+                com.auction.core.users.UserFactory.rehydrateUser(
+                        "STANDARD",
+                        2,
+                        "bidder",
+                        "pass",
+                        "Bidder User",
+                        "bidder@test.com",
+                        java.math.BigDecimal.valueOf(10.0),
+                        java.math.BigDecimal.ZERO,
+                        true);
+
         CompletableFuture<AuctionDetailsDto> auctionFuture =
                 CompletableFuture.completedFuture(new AuctionDetailsDto(testAuction, null, null));
         CompletableFuture<Integer> sellerFuture = CompletableFuture.completedFuture(1);
@@ -151,7 +162,6 @@ public class BidServiceTest {
         when(auctionService.getAuctionDetails(1)).thenReturn(auctionFuture);
         when(auctionService.getSellerId(1)).thenReturn(sellerFuture);
         when(bidDao.hasBid(1, 2)).thenReturn(false);
-        when(userDao.holdBalance(2, 30.0)).thenReturn(false); // Insufficient balance
 
         CompletableFuture<Bid> resultFuture = bidService.placeBid(placeBidRequest);
 

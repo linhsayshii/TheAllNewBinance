@@ -85,7 +85,8 @@ public abstract class BaseController {
                                     return ApiResponse.error(
                                             domainEx.getErrorCode(), domainEx.getMessage());
                                 }
-                                cause.printStackTrace(); // CRITICAL for debugging server-side errors
+                                cause.printStackTrace(); // CRITICAL for debugging server-side
+                                // errors
                                 return ApiResponse.error(cause.getMessage());
                             });
         } catch (DomainException ex) {

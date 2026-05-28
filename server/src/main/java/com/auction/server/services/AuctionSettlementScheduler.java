@@ -15,10 +15,12 @@ import com.auction.server.dao.impl.IUserDao;
 import com.auction.server.network.BroadcastBroker;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.SQLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
@@ -30,14 +32,14 @@ import java.util.stream.Stream;
 /**
  * Lập lịch Event-Driven quản lý trọn vẹn vòng đời đấu giá trên Virtual Threads.
  *
- * <p>Khi khởi động Server, nạp tất cả Auction ACTIVE (lập lịch đóng phiên) và PENDING
- * (lập lịch mở phiên) để đảm bảo 100% crash recovery sau sự cố restart.
+ * <p>Khi khởi động Server, nạp tất cả Auction ACTIVE (lập lịch đóng phiên) và PENDING (lập lịch mở
+ * phiên) để đảm bảo 100% crash recovery sau sự cố restart.
  *
- * <p>Pha 1 Mở phiên (PENDING → ACTIVE): Kết toán nguyên tử trạng thái với khóa bi quan FOR
- * UPDATE, sau đó tự động lập lịch Pha 2.
+ * <p>Pha 1 Mở phiên (PENDING → ACTIVE): Kết toán nguyên tử trạng thái với khóa bi quan FOR UPDATE,
+ * sau đó tự động lập lịch Pha 2.
  *
- * <p>Pha 2 Đóng phiên (ACTIVE → ENDED/CANCELLED): Kết toán nguyên tử Winner/Seller với khóa bi
- * quan FOR UPDATE, sau đó hoàn cọc bất đồng bộ theo lô 100 Loser.
+ * <p>Pha 2 Đóng phiên (ACTIVE → ENDED/CANCELLED): Kết toán nguyên tử Winner/Seller với khóa bi quan
+ * FOR UPDATE, sau đó hoàn cọc bất đồng bộ theo lô 100 Loser.
  */
 public class AuctionSettlementScheduler {
 
@@ -77,13 +79,14 @@ public class AuctionSettlementScheduler {
     }
 
     /**
-     * Khởi động: nạp tất cả Auction ACTIVE (lập lịch đóng phiên) và PENDING (lập lịch mở phiên)
-     * dựa trên dữ liệu thực tế trong DB, đảm bảo hồi phục hoàn toàn sau crash/restart.
+     * Khởi động: nạp tất cả Auction ACTIVE (lập lịch đóng phiên) và PENDING (lập lịch mở phiên) dựa
+     * trên dữ liệu thực tế trong DB, đảm bảo hồi phục hoàn toàn sau crash/restart.
      */
     public void start() {
         try {
             System.out.println(
-                    "[AuctionSettlementScheduler] Initializing active and pending auction timers...");
+                    "[AuctionSettlementScheduler] Initializing active and pending auction"
+                            + " timers...");
 
             // 1. Phục hồi và lập lịch đóng phiên cho các Auction ACTIVE
             List<PublicAuctionDto> activeAuctions =
@@ -200,7 +203,7 @@ public class AuctionSettlementScheduler {
                 AuctionDetailsDto detailsDto = new AuctionDetailsDto();
                 detailsDto.setAuction(auction);
                 BroadcastBroker.getInstance()
-                        .broadcastToRoom(auctionId, EventType.AUCTION_ACTIVATED, detailsDto, null);
+                        .broadcastToRoom(0, EventType.AUCTION_ACTIVATED, detailsDto, null);
             }
         } catch (Exception e) {
             DBConnection.rollbackTransaction();
@@ -356,16 +359,51 @@ public class AuctionSettlementScheduler {
                             userDao.updateBalanceAndLockedBalance(conn, winner);
                             userDao.updateBalanceAndLockedBalance(conn, seller);
 
+                            userDao.insertTransactionRecord(
+                                    conn,
+                                    winnerId,
+                                    "WITHDRAW",
+                                    totalWinAmount,
+                                    "SUCCESS",
+                                    "AUCTION_" + auctionId);
+
+                            userDao.insertTransactionRecord(
+                                    conn,
+                                    sellerId,
+                                    "DEPOSIT",
+                                    totalWinAmount,
+                                    "SUCCESS",
+                                    "AUCTION_" + auctionId);
+
                             auction.setWinnerId(winnerId);
                             auction.setFinalPrice(highestBid.getAmount());
+                            auctionDao.updateAuctionInformation(conn, auction);
                         } else {
                             // Winner bùng tiền: tước cọc 30% sang Seller làm phạt
                             winner.commitBid(depositAmountBD);
                             seller.deposit(depositAmountBD);
                             userDao.updateBalanceAndLockedBalance(conn, winner);
                             userDao.updateBalanceAndLockedBalance(conn, seller);
+
+                            userDao.insertTransactionRecord(
+                                    conn,
+                                    winnerId,
+                                    "WITHDRAW",
+                                    depositAmountBD,
+                                    "SUCCESS",
+                                    "PENALTY_" + auctionId);
+
+                            userDao.insertTransactionRecord(
+                                    conn,
+                                    sellerId,
+                                    "DEPOSIT",
+                                    depositAmountBD,
+                                    "SUCCESS",
+                                    "PENALTY_" + auctionId);
+
                             auction.setFinalPrice(0.0);
                             auction.setStatus(Auction.Status.CANCELLED);
+                            auctionDao.updateAuctionInformation(conn, auction);
                         }
                     }
                 }
@@ -384,11 +422,44 @@ public class AuctionSettlementScheduler {
                 auction.setStatus(Auction.Status.ENDED);
             }
 
-            // Cập nhật trạng thái Auction dùng chung conn: tránh Deadlock
-            auctionDao.updateAuctionInformation(conn, auction);
             DBConnection.commitTransaction();
-            System.out.println(
-                    "[AuctionSettlementScheduler] Phase 1 COMMITTED for Auction #" + auctionId);
+
+            // Gửi thông tin chốt qua socket (tới room chi tiết và room Lobby 0)
+            BroadcastBroker.getInstance()
+                    .broadcastToRoom(auctionId, EventType.AUCTION_CLOSED, auction, null);
+            BroadcastBroker.getInstance()
+                    .broadcastToRoom(0, EventType.AUCTION_CLOSED, auction, null);
+
+            // Gửi balance update cho winner và seller hậu commit
+            if (highestBid != null) {
+                try {
+                    User wFresh = userDao.findById(highestBid.getBidderId());
+                    if (wFresh != null) {
+                        BroadcastBroker.getInstance()
+                                .sendToUser(
+                                        highestBid.getBidderId(),
+                                        EventType.BALANCE_UPDATE,
+                                        Map.of(
+                                                "balance", wFresh.getBalance(),
+                                                "lockedBalance", wFresh.getLockedBalance()));
+                    }
+                    Integer sId = auctionDao.getSellerId(null, auctionId);
+                    if (sId != null) {
+                        User sFresh = userDao.findById(sId);
+                        if (sFresh != null) {
+                            BroadcastBroker.getInstance()
+                                    .sendToUser(
+                                            sId,
+                                            EventType.BALANCE_UPDATE,
+                                            Map.of(
+                                                    "balance", sFresh.getBalance(),
+                                                    "lockedBalance", sFresh.getLockedBalance()));
+                        }
+                    }
+                } catch (Exception ignored) {
+                }
+            }
+
         } catch (Exception e) {
             DBConnection.rollbackTransaction();
             System.err.println(
@@ -405,40 +476,82 @@ public class AuctionSettlementScheduler {
         if (!loserIds.isEmpty() && depositAmount > 0.0) {
             final double refundAmt = depositAmount;
             final List<Integer> finalLosers = loserIds;
-            CompletableFuture.runAsync(() -> executeBatchRefunds(finalLosers, refundAmt));
+            CompletableFuture.runAsync(
+                    () -> executeBatchRefunds(auctionId, finalLosers, refundAmt));
         }
     }
 
-    private void executeBatchRefunds(List<Integer> loserIds, double refundAmount) {
+    private void executeBatchRefunds(
+            Integer auctionId, List<Integer> loserIds, double refundAmount) {
         int batchSize = 100;
         for (int i = 0; i < loserIds.size(); i += batchSize) {
             List<Integer> batch = loserIds.subList(i, Math.min(i + batchSize, loserIds.size()));
-            executeSingleRefundBatch(batch, refundAmount);
+            executeSingleRefundBatch(auctionId, batch, refundAmount);
         }
     }
 
-    private void executeSingleRefundBatch(List<Integer> batchUserIds, double refundAmount) {
-        try {
-            DBConnection.beginTransaction();
-            Connection conn = DBConnection.getConnection();
+    private void executeSingleRefundBatch(
+            Integer auctionId, List<Integer> batchUserIds, double refundAmount) {
+        Connection conn = DBConnection.getConnection();
+        if (conn == null) {
+            System.err.println("[Scheduler] Failed to open connection for refund batch.");
+            return;
+        }
 
-            List<Integer> sortedBatch =
-                    batchUserIds.stream().sorted().collect(Collectors.toList());
+        try {
+            // Tắt autoCommit chỉ 1 lần duy nhất cho toàn bộ Connection
+            conn.setAutoCommit(false);
+
+            List<Integer> sortedBatch = batchUserIds.stream().sorted().collect(Collectors.toList());
             for (Integer userId : sortedBatch) {
-                User u = userDao.findByIdForUpdate(conn, userId);
-                if (u != null) {
-                    BigDecimal refundBD = BigDecimal.valueOf(refundAmount);
-                    // refundBalance: giảm lockedBalance và tăng balance của Loser
-                    u.refundBalance(refundBD);
-                    userDao.updateBalanceAndLockedBalance(conn, u);
+                try {
+                    User u = userDao.findByIdForUpdate(conn, userId);
+                    if (u != null) {
+                        BigDecimal refundBD = BigDecimal.valueOf(refundAmount);
+                        u.refundBalance(refundBD);
+                        userDao.updateBalanceAndLockedBalance(conn, u);
+
+                        userDao.insertTransactionRecord(
+                                conn,
+                                userId,
+                                "DEPOSIT",
+                                refundBD,
+                                "SUCCESS",
+                                "BID_REFUND_" + auctionId);
+                    }
+                    conn.commit();
+
+                    // Gửi balance update cho từng user sau khi commit thành công
+                    User uFresh = userDao.findById(userId);
+                    if (uFresh != null) {
+                        BroadcastBroker.getInstance()
+                                .sendToUser(
+                                        userId,
+                                        EventType.BALANCE_UPDATE,
+                                        Map.of(
+                                                "balance", uFresh.getBalance(),
+                                                "lockedBalance", uFresh.getLockedBalance()));
+                    }
+                } catch (Exception e) {
+                    try {
+                        conn.rollback();
+                    } catch (SQLException ex) {
+                        System.err.println("[Scheduler] Rollback failed: " + ex.getMessage());
+                    }
+                    System.err.println(
+                            "[Scheduler] Refund FAILED for user ID "
+                                    + userId
+                                    + ": "
+                                    + e.getMessage());
                 }
             }
-            DBConnection.commitTransaction();
-        } catch (Exception e) {
-            DBConnection.rollbackTransaction();
-            System.err.println(
-                    "[AuctionSettlementScheduler] Refund batch FAILED: " + e.getMessage());
+        } catch (SQLException e) {
+            System.err.println("[Scheduler] Failed to configure autoCommit: " + e.getMessage());
         } finally {
+            try {
+                conn.setAutoCommit(true);
+            } catch (SQLException ignored) {
+            }
             DBConnection.closeConnection();
         }
     }

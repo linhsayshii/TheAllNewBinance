@@ -6,6 +6,8 @@ import com.auction.client.scene.LifecycleAwareController;
 import com.auction.client.scene.NavigationService;
 import com.auction.client.service.NetworkService;
 import com.auction.client.service.UserSessionService;
+import com.auction.client.service.notification.NotificationService;
+import com.auction.client.service.notification.NotificationType;
 import com.auction.core.dto.auction.PromoteAuctionRequest;
 import com.auction.core.dto.auction.PublicAuctionDto;
 import com.auction.core.protocol.EventType;
@@ -27,8 +29,6 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
-import com.auction.client.service.notification.NotificationService;
-import com.auction.client.service.notification.NotificationType;
 import javafx.scene.control.Label;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -193,7 +193,8 @@ public class AdminPageController implements LifecycleAwareController {
                                                             "$"
                                                                     + MONEY_FMT.format(
                                                                             u.getBalance() != null
-                                                                                    ? u.getBalance().doubleValue()
+                                                                                    ? u.getBalance()
+                                                                                            .doubleValue()
                                                                                     : 0.0),
                                                             "Active"));
                                         }
@@ -335,10 +336,14 @@ public class AdminPageController implements LifecycleAwareController {
                                                                             : "Auction #"
                                                                                     + dto
                                                                                             .getAuctionId())
-                                                            : "Promotion failed: " + resp.get("message");
-                                            NotificationService.getInstance().show(
-                                                    msg,
-                                                    ok ? NotificationType.SUCCESS : NotificationType.ERROR);
+                                                            : "Promotion failed: "
+                                                                    + resp.get("message");
+                                            NotificationService.getInstance()
+                                                    .show(
+                                                            msg,
+                                                            ok
+                                                                    ? NotificationType.SUCCESS
+                                                                    : NotificationType.ERROR);
                                             if (ok) {
                                                 dto.setIsFeatured(true);
                                                 // Refresh to update card state

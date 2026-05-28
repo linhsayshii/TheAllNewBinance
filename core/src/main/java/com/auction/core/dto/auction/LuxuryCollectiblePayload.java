@@ -2,8 +2,8 @@ package com.auction.core.dto.auction;
 
 /**
  * Strongly-typed network payload for LuxuryCollectible items (WATCHES, FASHION, COLLECTIBLES,
- * WINE). All fields are declared with their precise Java target types to prevent
- * Gson-induced ClassCastException at the Server's deserialization boundary.
+ * WINE). All fields are declared with their precise Java target types to prevent Gson-induced
+ * ClassCastException at the Server's deserialization boundary.
  */
 public class LuxuryCollectiblePayload extends ItemAttributesPayload {
 

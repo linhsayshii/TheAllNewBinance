@@ -84,6 +84,13 @@
                 <version>5.11.0</version>
                 <scope>test</scope>
             </dependency>
+
+            <dependency>
+                <groupId>org.assertj</groupId>
+                <artifactId>assertj-core</artifactId>
+                <version>3.25.3</version>
+                <scope>test</scope>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 
@@ -120,6 +127,7 @@
                 <version>2.43.0</version>
                 <configuration>
                     <java>
+                        <toggleOffOn/>
                         <!-- Enforce 4-spaces indentation Google AOSP standard style -->
                         <googleJavaFormat>
                             <version>1.17.0</version>

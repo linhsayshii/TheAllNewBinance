@@ -23,6 +23,7 @@ public class SocketServer extends WebSocketServer {
     @Override
     public void onOpen(WebSocket conn, ClientHandshake handshake) {
         System.out.println("New connection: " + conn.getRemoteSocketAddress());
+        BroadcastBroker.getInstance().addConnection(conn);
     }
 
     @Override
@@ -30,8 +31,7 @@ public class SocketServer extends WebSocketServer {
         System.out.println(
                 "Connection closed: " + conn.getRemoteSocketAddress() + " with code " + code);
         userSessions.remove(conn);
-        // Giải phóng kết nối chết khỏi BroadcastBroker, bất kể nguyên nhân ngắt kết nối
-        BroadcastBroker.getInstance().unregister(conn);
+        BroadcastBroker.getInstance().removeConnection(conn);
     }
 
     @Override
@@ -58,6 +58,7 @@ public class SocketServer extends WebSocketServer {
 
                             // Phát sóng kết quả đặt giá thành công tới tất cả client trong phòng
                             interceptBidBroadcast(conn, message, response);
+                            interceptPromotionBroadcast(message, response);
                         })
                 .exceptionally(
                         ex -> {
@@ -72,8 +73,8 @@ public class SocketServer extends WebSocketServer {
     }
 
     /**
-     * Đánh chặn yêu cầu đăng ký/hủy đăng ký phòng đấu giá. Trả về {@code true} nếu gói tin đã
-     * được xử lý và không cần chuyển tiếp sang Dispatcher.
+     * Đánh chặn yêu cầu đăng ký/hủy đăng ký phòng đấu giá. Trả về {@code true} nếu gói tin đã được
+     * xử lý và không cần chuyển tiếp sang Dispatcher.
      */
     private boolean interceptRoomSubscription(WebSocket conn, String message) {
         try {
@@ -134,7 +135,8 @@ public class SocketServer extends WebSocketServer {
             }
             int auctionId = ((Number) auctionIdObj).intValue();
 
-            BroadcastBroker.getInstance().broadcastToRoom(auctionId, EventType.PLACE_BID, data, conn);
+            BroadcastBroker.getInstance()
+                    .broadcastToRoom(auctionId, EventType.PLACE_BID, data, conn);
         } catch (Exception e) {
             System.err.println("Failed to intercept bid broadcast: " + e.getMessage());
         }
@@ -154,6 +156,7 @@ public class SocketServer extends WebSocketServer {
                     if (data != null && data.containsKey("id")) {
                         Number id = (Number) data.get("id");
                         userSessions.put(conn, id.intValue());
+                        BroadcastBroker.getInstance().registerUser(id.intValue(), conn);
                         System.out.println(
                                 "Authenticated connection: "
                                         + conn.getRemoteSocketAddress()
@@ -165,6 +168,7 @@ public class SocketServer extends WebSocketServer {
                 Map<?, ?> respNode = JsonMapper.fromJson(response, Map.class);
                 if (Boolean.TRUE.equals(respNode.get("success"))) {
                     userSessions.remove(conn);
+                    BroadcastBroker.getInstance().unregisterUser(userId, conn);
                     System.out.println(
                             "User logged out on connection: " + conn.getRemoteSocketAddress());
                 }
@@ -183,8 +187,26 @@ public class SocketServer extends WebSocketServer {
                         + ex.getMessage());
         if (conn != null) {
             userSessions.remove(conn);
-            // Giải phóng kết nối lỗi khỏi BroadcastBroker để tránh rò rỉ bộ nhớ
-            BroadcastBroker.getInstance().unregister(conn);
+            BroadcastBroker.getInstance().removeConnection(conn);
+        }
+    }
+
+    private void interceptPromotionBroadcast(String request, String response) {
+        try {
+            Map<?, ?> reqNode = JsonMapper.fromJson(request, Map.class);
+            EventType type = EventType.fromWireValue(reqNode.get("type"));
+            if (type != EventType.PROMOTE_AUCTION) {
+                return;
+            }
+
+            Map<?, ?> respNode = JsonMapper.fromJson(response, Map.class);
+            if (Boolean.TRUE.equals(respNode.get("success"))) {
+                BroadcastBroker.getInstance()
+                        .broadcastToRoom(
+                                0, EventType.PROMOTE_AUCTION, Map.of("success", true), null);
+            }
+        } catch (Exception e) {
+            System.err.println("Failed to intercept promotion broadcast: " + e.getMessage());
         }
     }
 

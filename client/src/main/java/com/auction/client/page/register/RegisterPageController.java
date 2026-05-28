@@ -46,7 +46,10 @@ public class RegisterPageController implements Initializable, LifecycleAwareCont
         if (!viewModel.validateRegistration(username, email, password)) {
             lblError.setText("Please fill in all required fields correctly.");
             lblError.setVisible(true);
-            NotificationService.getInstance().show("Please fill in all required fields correctly.", NotificationType.WARNING);
+            NotificationService.getInstance()
+                    .show(
+                            "Please fill in all required fields correctly.",
+                            NotificationType.WARNING);
             return;
         }
 
@@ -70,9 +73,12 @@ public class RegisterPageController implements Initializable, LifecycleAwareCont
                 () -> {
                     if (user != null) {
                         UserSessionService.getInstance().login(user);
-                        NotificationService.getInstance().show(
-                                "Account registered successfully! Welcome, " + user.getUsername() + "!",
-                                NotificationType.SUCCESS);
+                        NotificationService.getInstance()
+                                .show(
+                                        "Account registered successfully! Welcome, "
+                                                + user.getUsername()
+                                                + "!",
+                                        NotificationType.SUCCESS);
                         if (NavigationService.getInstance().isPopupOpen()) {
                             NavigationService.getInstance().closePopup();
                             return;

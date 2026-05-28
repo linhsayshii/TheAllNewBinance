@@ -18,8 +18,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -53,9 +53,9 @@ public class ProfilePageViewModel {
     /**
      * Lightweight display model for a single wallet transaction row.
      *
-     * @param isDeposit      true for DEPOSIT, false for WITHDRAW
+     * @param isDeposit true for DEPOSIT, false for WITHDRAW
      * @param formattedAmount formatted dollar string, e.g. "$500.00"
-     * @param date           human-readable date string
+     * @param date human-readable date string
      */
     public record TransactionRow(boolean isDeposit, String formattedAmount, String date) {}
 
@@ -133,7 +133,8 @@ public class ProfilePageViewModel {
         // Finance — balance in DB is already the Available Balance.
         // Total = balance (available) + lockedBalance (frozen in auctions).
         double available = user.getBalance() != null ? user.getBalance().doubleValue() : 0.0;
-        double locked = user.getLockedBalance() != null ? user.getLockedBalance().doubleValue() : 0.0;
+        double locked =
+                user.getLockedBalance() != null ? user.getLockedBalance().doubleValue() : 0.0;
         availableBalance.set(available);
         lockedBalance.set(locked);
         totalBalance.set(available + locked);
@@ -146,15 +147,15 @@ public class ProfilePageViewModel {
         String finalName = blankSafe(name, "Seller #" + sellerId);
         displayName.set(finalName);
         userIdTag.set("#" + sellerId);
-        avatarInitial.set(finalName.isEmpty() ? "S" : String.valueOf(finalName.charAt(0)).toUpperCase());
+        avatarInitial.set(
+                finalName.isEmpty() ? "S" : String.valueOf(finalName.charAt(0)).toUpperCase());
         emailProperty.set(blankSafe(email, ""));
         joinDate.set(blankSafe(joinDateVal, ""));
     }
 
     /**
-     * Queries the server for the wallet_transactions of the current user.
-     * Must be called from a background thread.
-     * Returns an empty list if the server is unreachable, times out, or the
+     * Queries the server for the wallet_transactions of the current user. Must be called from a
+     * background thread. Returns an empty list if the server is unreachable, times out, or the
      * feature is not yet enabled on the server (graceful degradation).
      */
     public java.util.List<TransactionRow> fetchTransactionHistory() {
@@ -173,13 +174,16 @@ public class ProfilePageViewModel {
 
             java.util.Map<String, Object> payload = new java.util.HashMap<>();
             payload.put("userId", targetUserId);
-            String corr = ns.sendRequest(
-                    com.auction.core.protocol.EventType.GET_WALLET_TRANSACTIONS, payload);
+            String corr =
+                    ns.sendRequest(
+                            com.auction.core.protocol.EventType.GET_WALLET_TRANSACTIONS, payload);
             try {
-                ns.addCorrelationHandler(corr, raw -> {
-                    ref.set(raw);
-                    latch.countDown();
-                });
+                ns.addCorrelationHandler(
+                        corr,
+                        raw -> {
+                            ref.set(raw);
+                            latch.countDown();
+                        });
 
                 latch.await(NETWORK_TIMEOUT_MS, java.util.concurrent.TimeUnit.MILLISECONDS);
             } finally {
@@ -239,8 +243,9 @@ public class ProfilePageViewModel {
                 Object createdAt = m.get("createdAt");
                 if (createdAt != null) {
                     try {
-                        java.time.LocalDateTime ldt = java.time.LocalDateTime.parse(
-                                String.valueOf(createdAt).replace(' ', 'T'));
+                        java.time.LocalDateTime ldt =
+                                java.time.LocalDateTime.parse(
+                                        String.valueOf(createdAt).replace(' ', 'T'));
                         dateStr = ldt.format(dtf);
                     } catch (Exception ignored) {
                         dateStr = String.valueOf(createdAt);
@@ -316,26 +321,29 @@ public class ProfilePageViewModel {
                 Bid myBid = entry.getValue();
                 CompletableFuture<Void> future =
                         ns.sendRequestAsync(
-                                EventType.GET_AUCTION_DETAILS,
-                                new GetAuctionDetailsRequest(entry.getKey()))
-                                .thenAccept(detailsRaw -> {
-                                    com.auction.core.dto.auction.AuctionDetailsDto details =
-                                            parseAuctionDetails(detailsRaw);
-                                    if (details != null && details.getAuction() != null) {
-                                        Auction auction = details.getAuction();
-                                        com.auction.core.products.Item item = details.getItem();
-                                        ProfileAuctionCardUiModel card =
-                                                buildBidCard(auction, item, myBid);
-                                        if (card != null) {
-                                            if ("badge-won".equals(card.badgeStyleClass())) {
-                                                wonAuctions.add(card);
-                                            } else {
-                                                activeBids.add(card);
-                                                activeBidsCounter.incrementAndGet();
+                                        EventType.GET_AUCTION_DETAILS,
+                                        new GetAuctionDetailsRequest(entry.getKey()))
+                                .thenAccept(
+                                        detailsRaw -> {
+                                            com.auction.core.dto.auction.AuctionDetailsDto details =
+                                                    parseAuctionDetails(detailsRaw);
+                                            if (details != null && details.getAuction() != null) {
+                                                Auction auction = details.getAuction();
+                                                com.auction.core.products.Item item =
+                                                        details.getItem();
+                                                ProfileAuctionCardUiModel card =
+                                                        buildBidCard(auction, item, myBid);
+                                                if (card != null) {
+                                                    if ("badge-won"
+                                                            .equals(card.badgeStyleClass())) {
+                                                        wonAuctions.add(card);
+                                                    } else {
+                                                        activeBids.add(card);
+                                                        activeBidsCounter.incrementAndGet();
+                                                    }
+                                                }
                                             }
-                                        }
-                                    }
-                                });
+                                        });
                 futures.add(future);
             }
 
@@ -388,26 +396,29 @@ public class ProfilePageViewModel {
             for (Auction auction : auctions) {
                 CompletableFuture<Void> future =
                         ns.sendRequestAsync(
-                                EventType.GET_AUCTION_DETAILS,
-                                new GetAuctionDetailsRequest(auction.getId()))
-                                .thenAccept(detailsRaw -> {
-                                    com.auction.core.dto.auction.AuctionDetailsDto details =
-                                            parseAuctionDetails(detailsRaw);
-                                    if (details != null && details.getAuction() != null) {
-                                        Auction fullAuction = details.getAuction();
-                                        com.auction.core.products.Item item = details.getItem();
-                                        ProfileAuctionCardUiModel card =
-                                                buildListingCard(fullAuction, item);
-                                        if (card != null) {
-                                            switch (card.badgeStyleClass()) {
-                                                case "badge-live" -> liveListings.add(card);
-                                                case "badge-pending" -> pendingListings.add(card);
-                                                case "badge-sold" -> soldListings.add(card);
-                                                default -> unsoldListings.add(card);
+                                        EventType.GET_AUCTION_DETAILS,
+                                        new GetAuctionDetailsRequest(auction.getId()))
+                                .thenAccept(
+                                        detailsRaw -> {
+                                            com.auction.core.dto.auction.AuctionDetailsDto details =
+                                                    parseAuctionDetails(detailsRaw);
+                                            if (details != null && details.getAuction() != null) {
+                                                Auction fullAuction = details.getAuction();
+                                                com.auction.core.products.Item item =
+                                                        details.getItem();
+                                                ProfileAuctionCardUiModel card =
+                                                        buildListingCard(fullAuction, item);
+                                                if (card != null) {
+                                                    switch (card.badgeStyleClass()) {
+                                                        case "badge-live" -> liveListings.add(card);
+                                                        case "badge-pending" -> pendingListings.add(
+                                                                card);
+                                                        case "badge-sold" -> soldListings.add(card);
+                                                        default -> unsoldListings.add(card);
+                                                    }
+                                                }
                                             }
-                                        }
-                                    }
-                                });
+                                        });
                 futures.add(future);
             }
 
@@ -433,7 +444,8 @@ public class ProfilePageViewModel {
         }
 
         Integer auctionId = auction.getId();
-        String title = item != null && item.getName() != null ? item.getName() : "Auction #" + auctionId;
+        String title =
+                item != null && item.getName() != null ? item.getName() : "Auction #" + auctionId;
         String imageUrl = item != null ? item.getImageUrl() : null;
         String myBidFormatted =
                 "$" + MONEY_FORMAT.format(myBid.getAmount() != null ? myBid.getAmount() : 0.0);
@@ -480,7 +492,8 @@ public class ProfilePageViewModel {
         }
 
         Integer auctionId = auction.getId();
-        String title = item != null && item.getName() != null ? item.getName() : "Auction #" + auctionId;
+        String title =
+                item != null && item.getName() != null ? item.getName() : "Auction #" + auctionId;
         String imageUrl = item != null ? item.getImageUrl() : null;
         Auction.Status status = auction.getStatus();
 
@@ -494,8 +507,12 @@ public class ProfilePageViewModel {
                                                 : 0.0);
                 boolean featured = Boolean.TRUE.equals(auction.getIsFeatured());
                 yield ProfileAuctionCardUiModel.live(
-                        auctionId, title, price, formatTimeLeft(auction.getEndTime()),
-                        featured, imageUrl);
+                        auctionId,
+                        title,
+                        price,
+                        formatTimeLeft(auction.getEndTime()),
+                        featured,
+                        imageUrl);
             }
             case PENDING -> {
                 String price =
@@ -505,7 +522,10 @@ public class ProfilePageViewModel {
                                                 ? auction.getStartingPrice()
                                                 : 0.0);
                 yield ProfileAuctionCardUiModel.pending(
-                        auctionId, title, price, formatUpcomingStart(auction.getStartTime()),
+                        auctionId,
+                        title,
+                        price,
+                        formatUpcomingStart(auction.getStartTime()),
                         imageUrl);
             }
             case ENDED -> {
@@ -518,7 +538,10 @@ public class ProfilePageViewModel {
                                                     ? auction.getFinalPrice()
                                                     : 0.0);
                     yield ProfileAuctionCardUiModel.sold(
-                            auctionId, title, finalPrice, formatEnded(auction.getEndTime()),
+                            auctionId,
+                            title,
+                            finalPrice,
+                            formatEnded(auction.getEndTime()),
                             imageUrl);
                 } else {
                     String price =
@@ -586,8 +609,7 @@ public class ProfilePageViewModel {
                 return null;
             }
             return JsonMapper.fromJson(
-                    JsonMapper.toJson(data),
-                    com.auction.core.dto.auction.AuctionDetailsDto.class);
+                    JsonMapper.toJson(data), com.auction.core.dto.auction.AuctionDetailsDto.class);
         } catch (Exception e) {
             return null;
         }
@@ -755,7 +777,9 @@ public class ProfilePageViewModel {
         return Math.round(100.0 * soldListingsCount.get() / total) + "%";
     }
 
-    /** Lists are returned as unmodifiable snapshots for thread safety with external synchronization. */
+    /**
+     * Lists are returned as unmodifiable snapshots for thread safety with external synchronization.
+     */
     public List<ProfileAuctionCardUiModel> getActiveBids() {
         synchronized (activeBids) {
             return List.copyOf(activeBids);

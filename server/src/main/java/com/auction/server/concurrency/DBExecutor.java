@@ -6,12 +6,12 @@ import java.util.concurrent.Executors;
 /**
  * Singleton Platform Thread Pool dedicated to blocking JDBC Database I/O.
  *
- * <p><b>Design Rationale</b>: Virtual Threads (used by the Socket Server) must NOT be used
- * directly for JDBC blocking I/O, for two critical reasons:
+ * <p><b>Design Rationale</b>: Virtual Threads (used by the Socket Server) must NOT be used directly
+ * for JDBC blocking I/O, for two critical reasons:
  *
  * <ol>
- *   <li><b>JDBC Driver Pinning</b>: MySQL Connector/J and MariaDB Java Client contain
- *       {@code synchronized} blocks in their Socket I/O and Packet Parsing layers. A Virtual Thread
+ *   <li><b>JDBC Driver Pinning</b>: MySQL Connector/J and MariaDB Java Client contain {@code
+ *       synchronized} blocks in their Socket I/O and Packet Parsing layers. A Virtual Thread
  *       executing through these blocks gets pinned to its Carrier Thread, depleting the JVM's
  *       physical thread pool under high load and causing system-wide freezes.
  *   <li><b>Connection Pool Contention</b>: Creating unlimited Virtual Threads to fetch DB
@@ -22,9 +22,9 @@ import java.util.concurrent.Executors;
  *
  * <p><b>Solution</b>: A fixed Platform Thread Pool sized to match HikariCP's {@code maxPoolSize}
  * (default 20). This creates exactly one OS thread per available DB connection, achieving maximum
- * DB throughput with zero pinning risk. Socket Virtual Threads delegate DB tasks here via
- * {@code CompletableFuture.supplyAsync(..., DBExecutor.getExecutor())} and safely yield their
- * Carrier Thread while waiting.
+ * DB throughput with zero pinning risk. Socket Virtual Threads delegate DB tasks here via {@code
+ * CompletableFuture.supplyAsync(..., DBExecutor.getExecutor())} and safely yield their Carrier
+ * Thread while waiting.
  */
 public final class DBExecutor {
 

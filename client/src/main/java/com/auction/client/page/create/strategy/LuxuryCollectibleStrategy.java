@@ -79,13 +79,20 @@ public class LuxuryCollectibleStrategy implements CategoryDisplayStrategy {
         bottleSizeField.setPromptText("e.g. 0.75");
         bottleSizeField.getStyleClass().add("create-listing-input");
 
-        container.getChildren().addAll(
-                brandLabel, brandField,
-                conditionLabel, conditionField,
-                certificateBox,
-                movementLabel, movementField,
-                fashionSizeLabel, fashionSizeField,
-                bottleSizeLabel, bottleSizeField);
+        container
+                .getChildren()
+                .addAll(
+                        brandLabel,
+                        brandField,
+                        conditionLabel,
+                        conditionField,
+                        certificateBox,
+                        movementLabel,
+                        movementField,
+                        fashionSizeLabel,
+                        fashionSizeField,
+                        bottleSizeLabel,
+                        bottleSizeField);
     }
 
     @Override
@@ -114,10 +121,12 @@ public class LuxuryCollectibleStrategy implements CategoryDisplayStrategy {
         payload.setBrand(brand != null ? brand.getText() : null);
         payload.setCondition(condition != null ? condition.getText() : null);
         payload.setHasCertificate(certificate != null && certificate.isSelected());
-        payload.setWatchMovement(movement != null && !movement.getText().isBlank()
-                ? movement.getText() : null);
-        payload.setFashionSize(fashionSize != null && !fashionSize.getText().isBlank()
-                ? fashionSize.getText() : null);
+        payload.setWatchMovement(
+                movement != null && !movement.getText().isBlank() ? movement.getText() : null);
+        payload.setFashionSize(
+                fashionSize != null && !fashionSize.getText().isBlank()
+                        ? fashionSize.getText()
+                        : null);
         if (bottleSize != null && !bottleSize.getText().isBlank()) {
             try {
                 payload.setBottleSize(Double.parseDouble(bottleSize.getText()));

@@ -27,6 +27,7 @@ import java.lang.reflect.Type;
  * subclass Payloads are automatically serialized/deserialized without modifying this adapter.
  *
  * <p>Type mappings:
+ *
  * <ul>
  *   <li>{@code "luxury"} ↔ {@link LuxuryCollectiblePayload}
  *   <li>{@code "artistic"} ↔ {@link ArtisticCreationPayload}
@@ -75,9 +76,8 @@ public class ItemAttributesPayloadSerializer
             case "luxury" -> pristineGson.fromJson(json, LuxuryCollectiblePayload.class);
             case "artistic" -> pristineGson.fromJson(json, ArtisticCreationPayload.class);
             case "precision" -> pristineGson.fromJson(json, PrecisionMechanicalPayload.class);
-            default ->
-                    throw new JsonParseException(
-                            "Unknown ItemAttributesPayload type discriminator: " + type);
+            default -> throw new JsonParseException(
+                    "Unknown ItemAttributesPayload type discriminator: " + type);
         };
     }
 }

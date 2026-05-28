@@ -22,7 +22,9 @@ public class JsonMapper {
             new GsonBuilder()
                     .setDateFormat("yyyy-MM-dd HH:mm:ss")
                     .registerTypeAdapter(Item.class, new ItemJsonDeserializer())
-                    .registerTypeAdapter(com.auction.core.users.User.class, new com.auction.core.users.serialization.UserJsonDeserializer())
+                    .registerTypeAdapter(
+                            com.auction.core.users.User.class,
+                            new com.auction.core.users.serialization.UserJsonDeserializer())
                     // Polymorphic Deserialization for ItemAttributesPayload subclasses.
                     // Uses a Pristine Gson instance internally to prevent StackOverflowError.
                     .registerTypeAdapter(

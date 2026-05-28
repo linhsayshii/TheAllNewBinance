@@ -32,8 +32,8 @@ import java.util.Map;
  * <ol>
  *   <li>Read {@code category} field to determine target product group and subclass.
  *   <li>Extract common fields (id, sellerId, name, etc.).
- *   <li>Collect product-group-specific fields from the JSON and construct the appropriate
- *       {@link ItemAttributesPayload} subclass.
+ *   <li>Collect product-group-specific fields from the JSON and construct the appropriate {@link
+ *       ItemAttributesPayload} subclass.
  *   <li>Delegate to {@link ItemFactoryProvider} passing the strongly-typed payload.
  * </ol>
  */
@@ -100,7 +100,8 @@ public class ItemJsonDeserializer implements JsonDeserializer<Item> {
                         .createItem(id, sellerId, name, description, imageUrl, isDeleted, payload);
 
         // 6. For LuxuryCollectible, re-inflate dynamic attributes into the Heterogeneous Container.
-        // The factory constructor sets fixed fields; dynamic container must be populated separately.
+        // The factory constructor sets fixed fields; dynamic container must be populated
+        // separately.
         if (item instanceof LuxuryCollectible lc && payload instanceof LuxuryCollectiblePayload p) {
             if (p.getWatchMovement() != null) {
                 lc.putAttribute(LuxuryAttributes.WATCH_MOVEMENT, p.getWatchMovement());

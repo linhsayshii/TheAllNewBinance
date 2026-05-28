@@ -26,6 +26,8 @@ public enum EventType {
     UNSUBSCRIBE_AUCTION, // Client: hủy đăng ký nhận broadcast của phiên đấu giá
     AUCTION_ACTIVATED, // Server -> Client: phát thông báo khi phiên đấu giá PENDING → ACTIVE
     AUCTION_EXTENDED, // Server -> Client: phát thông báo khi phiên đấu giá gia hạn endTime
+    AUCTION_CLOSED, // Server -> Client: phát thông báo khi phiên đấu giá kết thúc
+    BALANCE_UPDATE, // Server -> Client: đẩy cập nhật số dư ví realtime
 
     // Item
     GET_UPLOAD_SIGNATURE,

@@ -32,7 +32,8 @@ public interface IUserDao {
             String type,
             BigDecimal amount,
             String status,
-            String refId) throws SQLException;
+            String refId)
+            throws SQLException;
 
     public List<Map<String, Object>> getWalletTransactionsByUserId(Integer userId);
 }

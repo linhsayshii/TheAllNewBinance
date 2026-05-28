@@ -134,12 +134,21 @@ public class AuctionPageViewModel {
         }
 
         if (sellerUser != null) {
-            String name = safe(sellerUser.getFullName(), safe(sellerUser.getUsername(), "Unknown Seller"));
+            String name =
+                    safe(
+                            sellerUser.getFullName(),
+                            safe(sellerUser.getUsername(), "Unknown Seller"));
             sellerName.set(name);
             sellerEmail.set(safe(sellerUser.getEmail(), ""));
-            sellerJoinDate.set(sellerUser.getCreatedAt() != null
-                    ? "Member since " + sellerUser.getCreatedAt().format(java.time.format.DateTimeFormatter.ofPattern("MMM yyyy"))
-                    : "");
+            sellerJoinDate.set(
+                    sellerUser.getCreatedAt() != null
+                            ? "Member since "
+                                    + sellerUser
+                                            .getCreatedAt()
+                                            .format(
+                                                    java.time.format.DateTimeFormatter.ofPattern(
+                                                            "MMM yyyy"))
+                            : "");
         } else {
             sellerName.set("Unknown Seller");
             sellerEmail.set("");
@@ -180,14 +189,6 @@ public class AuctionPageViewModel {
     }
 
     public void updateCountdown(LocalDateTime now) {
-        if (status.get() == Auction.Status.PENDING) {
-            LocalDateTime start = startTime.get();
-            if (start != null && !now.isBefore(start)) {
-                status.set(Auction.Status.ACTIVE);
-                biddingEnabled.set(true);
-            }
-        }
-
         if (status.get() == Auction.Status.ACTIVE) {
             LocalDateTime end = endTime.get();
             if (end != null && !now.isBefore(end)) {
@@ -204,6 +205,8 @@ public class AuctionPageViewModel {
             }
             Duration remaining = Duration.between(now, start);
             if (remaining.isNegative() || remaining.isZero()) {
+                status.set(Auction.Status.ACTIVE);
+                biddingEnabled.set(true);
                 countdownText.set("00d 00h 00m 00s");
                 return;
             }

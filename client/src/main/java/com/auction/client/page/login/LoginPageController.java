@@ -44,7 +44,8 @@ public class LoginPageController implements Initializable, LifecycleAwareControl
         if (!viewModel.validateCredentials(username, password)) {
             lblError.setText("Please enter valid credentials.");
             lblError.setVisible(true);
-            NotificationService.getInstance().show("Please enter valid credentials.", NotificationType.WARNING);
+            NotificationService.getInstance()
+                    .show("Please enter valid credentials.", NotificationType.WARNING);
             return;
         }
 
@@ -68,9 +69,12 @@ public class LoginPageController implements Initializable, LifecycleAwareControl
                 () -> {
                     if (user != null) {
                         UserSessionService.getInstance().login(user);
-                        NotificationService.getInstance().show(
-                                "Logged in successfully! Welcome back, " + user.getUsername() + ".",
-                                NotificationType.SUCCESS);
+                        NotificationService.getInstance()
+                                .show(
+                                        "Logged in successfully! Welcome back, "
+                                                + user.getUsername()
+                                                + ".",
+                                        NotificationType.SUCCESS);
                         if (NavigationService.getInstance().isPopupOpen()) {
                             NavigationService.getInstance().closePopup();
                             return;

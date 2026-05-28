@@ -296,13 +296,15 @@ public class MockDataProvider {
             // Use the strongly-typed payload from the request, falling back to a default if null
             com.auction.core.dto.auction.ItemAttributesPayload attrs = req.getAttributes();
             if (attrs == null) {
-                attrs = switch (catEnum) {
-                    case WATCHES, FASHION, COLLECTIBLES, WINE ->
-                            new com.auction.core.dto.auction.LuxuryCollectiblePayload();
-                    case ART, MUSIC ->
-                            new com.auction.core.dto.auction.ArtisticCreationPayload();
-                    default -> new com.auction.core.dto.auction.PrecisionMechanicalPayload();
-                };
+                attrs =
+                        switch (catEnum) {
+                            case WATCHES, FASHION, COLLECTIBLES, WINE -> new com.auction.core.dto
+                                    .auction.LuxuryCollectiblePayload();
+                            case ART, MUSIC -> new com.auction.core.dto.auction
+                                    .ArtisticCreationPayload();
+                            default -> new com.auction.core.dto.auction
+                                    .PrecisionMechanicalPayload();
+                        };
             }
 
             Item newItem =

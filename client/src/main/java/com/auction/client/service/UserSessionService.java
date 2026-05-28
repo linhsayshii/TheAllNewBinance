@@ -14,7 +14,62 @@ public class UserSessionService {
 
     private ObjectProperty<User> currentUserProperty = new SimpleObjectProperty<>();
 
-    private UserSessionService() {}
+    private UserSessionService() {
+        try {
+            com.auction.client.service.NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            com.auction.core.protocol.EventType.BALANCE_UPDATE,
+                            "UserSessionService",
+                            message -> {
+                                try {
+                                    java.util.Map<?, ?> node =
+                                            com.auction.core.utils.JsonMapper.fromJson(
+                                                    message, java.util.Map.class);
+                                    if (node != null && Boolean.TRUE.equals(node.get("success"))) {
+                                        java.util.Map<?, ?> data =
+                                                (java.util.Map<?, ?>) node.get("data");
+                                        if (data != null) {
+                                            javafx.application.Platform.runLater(
+                                                    () -> {
+                                                        User current = getCurrentUser();
+                                                        if (current != null) {
+                                                            Object balObj = data.get("balance");
+                                                            Object lockObj =
+                                                                    data.get("lockedBalance");
+                                                            java.math.BigDecimal bal =
+                                                                    balObj instanceof Number n
+                                                                            ? java.math.BigDecimal
+                                                                                    .valueOf(
+                                                                                            n
+                                                                                                    .doubleValue())
+                                                                            : null;
+                                                            java.math.BigDecimal lock =
+                                                                    lockObj instanceof Number n
+                                                                            ? java.math.BigDecimal
+                                                                                    .valueOf(
+                                                                                            n
+                                                                                                    .doubleValue())
+                                                                            : null;
+                                                            current.syncFinancialState(bal, lock);
+                                                            currentUserProperty.set(null);
+                                                            currentUserProperty.set(current);
+                                                        }
+                                                    });
+                                        }
+                                    }
+                                } catch (Exception e) {
+                                    System.err.println(
+                                            "[UserSessionService] Failed to parse BALANCE_UPDATE: "
+                                                    + e.getMessage());
+                                }
+                            });
+        } catch (Exception e) {
+            System.err.println(
+                    "[UserSessionService] Failed to register BALANCE_UPDATE handler: "
+                            + e.getMessage());
+        }
+    }
 
     public static synchronized UserSessionService getInstance() {
         if (instance == null) {

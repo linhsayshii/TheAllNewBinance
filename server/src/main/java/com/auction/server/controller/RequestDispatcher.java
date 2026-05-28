@@ -232,8 +232,12 @@ public class RequestDispatcher {
             EventType type, Map<String, Object> payload, Integer sessionUserId) {
         switch (type) {
             case PLACE_BID, GET_BIDS_BY_BIDDER_ID -> payload.put("bidderId", sessionUserId);
-            case UPDATE_PROFILE, CHANGE_PASSWORD, LOGOUT, DEPOSIT, WITHDRAW, GET_WALLET_TRANSACTIONS ->
-                    payload.put("userId", sessionUserId);
+            case UPDATE_PROFILE,
+                    CHANGE_PASSWORD,
+                    LOGOUT,
+                    DEPOSIT,
+                    WITHDRAW,
+                    GET_WALLET_TRANSACTIONS -> payload.put("userId", sessionUserId);
             case CREATE_AUCTION -> payload.put("sellerId", sessionUserId);
             case GET_AUCTIONS_BY_SELLER -> {
                 if (!payload.containsKey("sellerId")) {

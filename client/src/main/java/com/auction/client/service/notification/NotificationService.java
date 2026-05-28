@@ -55,18 +55,20 @@ public class NotificationService {
         Notification notification = new Notification(message, type);
         ActiveNotificationHolder holder = new ActiveNotificationHolder(notification);
 
-        NotificationCard card = new NotificationCard(notification, () -> removeNotification(holder));
+        NotificationCard card =
+                new NotificationCard(notification, () -> removeNotification(holder));
         holder.setCard(card);
 
         activeHolders.add(holder);
         container.getChildren().add(card);
 
         PauseTransition autoDismiss = new PauseTransition(Duration.seconds(AUTO_DISMISS_SECONDS));
-        autoDismiss.setOnFinished(event -> {
-            if (activeHolders.contains(holder)) {
-                card.dismissWithAnimation();
-            }
-        });
+        autoDismiss.setOnFinished(
+                event -> {
+                    if (activeHolders.contains(holder)) {
+                        card.dismissWithAnimation();
+                    }
+                });
         holder.setTimer(autoDismiss);
         autoDismiss.play();
     }
@@ -109,11 +111,13 @@ public class NotificationService {
 
     private SceneService getSceneServiceRef() {
         try {
-            java.lang.reflect.Field field = NavigationService.class.getDeclaredField("sceneService");
+            java.lang.reflect.Field field =
+                    NavigationService.class.getDeclaredField("sceneService");
             field.setAccessible(true);
             return (SceneService) field.get(NavigationService.getInstance());
         } catch (Exception e) {
-            System.err.println("[NotificationService] Cannot access SceneService: " + e.getMessage());
+            System.err.println(
+                    "[NotificationService] Cannot access SceneService: " + e.getMessage());
             return null;
         }
     }

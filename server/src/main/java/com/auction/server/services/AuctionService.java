@@ -8,9 +8,9 @@ import com.auction.core.dto.auction.GetFeaturedAuctionsRequest;
 import com.auction.core.dto.auction.GetPublicAuctionsRequest;
 import com.auction.core.dto.auction.PromoteAuctionRequest;
 import com.auction.core.dto.auction.PublicAuctionDto;
+import com.auction.core.exception.auction.InvalidBidException;
 import com.auction.core.services.IAuctionService;
 import com.auction.server.dao.impl.IAuctionDao;
-import com.auction.core.exception.auction.InvalidBidException;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -82,7 +82,8 @@ public class AuctionService implements IAuctionService {
                         // 2. Persist Item on shared connection (Atomic Dual-Write, Step 1/2)
                         boolean itemSaved = itemDao.addItemWithConnection(conn, item);
                         if (!itemSaved || item.getId() == null) {
-                            throw new RuntimeException("Saving item failed — item_id not generated");
+                            throw new RuntimeException(
+                                    "Saving item failed — item_id not generated");
                         }
 
                         // 3. Create Auction linked to the generated item_id
@@ -103,7 +104,8 @@ public class AuctionService implements IAuctionService {
                         }
 
                         // 4. Persist Auction on shared connection (Atomic Dual-Write, Step 2/2)
-                        boolean auctionSaved = auctionDao.createAuctionWithConnection(conn, auction);
+                        boolean auctionSaved =
+                                auctionDao.createAuctionWithConnection(conn, auction);
                         if (!auctionSaved) {
                             throw new RuntimeException("Saving auction failed");
                         }
@@ -113,12 +115,10 @@ public class AuctionService implements IAuctionService {
                         // Lập lịch JVM ngay sau khi tạo phiên thành công
                         if (auction.getStatus() == Auction.Status.PENDING) {
                             AuctionSettlementScheduler.getInstance()
-                                    .scheduleAuctionStart(
-                                            auction.getId(), auction.getStartTime());
+                                    .scheduleAuctionStart(auction.getId(), auction.getStartTime());
                         } else if (auction.getStatus() == Auction.Status.ACTIVE) {
                             AuctionSettlementScheduler.getInstance()
-                                    .scheduleAuctionClose(
-                                            auction.getId(), auction.getEndTime());
+                                    .scheduleAuctionClose(auction.getId(), auction.getEndTime());
                         }
 
                         return auction;
@@ -135,7 +135,8 @@ public class AuctionService implements IAuctionService {
                                 e.addSuppressed(se); // Preserve rollback failure trace
                             }
                         }
-                        throw new RuntimeException("createAuction transaction failed, rolled back", e);
+                        throw new RuntimeException(
+                                "createAuction transaction failed, rolled back", e);
                     } finally {
                         if (conn != null) {
                             try {
@@ -176,7 +177,8 @@ public class AuctionService implements IAuctionService {
             boolean updated = auctionDao.updateAuctionForBidWithConnection(conn, bid, auction);
             if (!updated) {
                 throw new InvalidBidException(
-                        "Không thể cập nhật trạng thái đấu giá trong transaction, có thể do xung đột thầu.");
+                        "Không thể cập nhật trạng thái đấu giá trong transaction, có thể do xung"
+                                + " đột thầu.");
             }
             return CompletableFuture.completedFuture(null);
         } catch (SQLException e) {

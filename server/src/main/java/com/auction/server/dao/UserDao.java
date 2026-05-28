@@ -127,8 +127,8 @@ public class UserDao implements IUserDao {
     }
 
     /**
-     * Khóa dòng vật lý tại Database Engine dành cho Transaction nguyên khối.
-     * Bắt buộc sử dụng Connection dùng chung của Transaction hiện hành (FOR UPDATE).
+     * Khóa dòng vật lý tại Database Engine dành cho Transaction nguyên khối. Bắt buộc sử dụng
+     * Connection dùng chung của Transaction hiện hành (FOR UPDATE).
      */
     public User findByIdForUpdate(Connection conn, Integer id) throws SQLException {
         String sql =
@@ -147,8 +147,8 @@ public class UserDao implements IUserDao {
     }
 
     /**
-     * Đồng bộ hóa số dư và số dư đóng băng từ Domain Model RAM xuống Database.
-     * Bắt buộc sử dụng Connection dùng chung của Transaction hiện hành.
+     * Đồng bộ hóa số dư và số dư đóng băng từ Domain Model RAM xuống Database. Bắt buộc sử dụng
+     * Connection dùng chung của Transaction hiện hành.
      */
     public boolean updateBalanceAndLockedBalance(Connection conn, User user) throws SQLException {
         String sql =
@@ -208,7 +208,8 @@ public class UserDao implements IUserDao {
             String type,
             BigDecimal amount,
             String status,
-            String refId) throws SQLException {
+            String refId)
+            throws SQLException {
         String sql =
                 "INSERT INTO wallet_transactions (user_id, transaction_type, amount, status,"
                         + " reference_id) VALUES (?, ?, ?, ?, ?)";
@@ -230,7 +231,7 @@ public class UserDao implements IUserDao {
                 rs.getString("password"),
                 rs.getString("full_name"),
                 rs.getString("email"),
-                rs.getBigDecimal("balance"),        // Đọc dữ liệu dạng BigDecimal chính xác
+                rs.getBigDecimal("balance"), // Đọc dữ liệu dạng BigDecimal chính xác
                 rs.getBigDecimal("locked_balance"), // Đọc dữ liệu dạng BigDecimal chính xác
                 rs.getBoolean("is_active"));
     }

@@ -94,11 +94,11 @@ public class UserController extends BaseController {
     public String deposit(String request) {
         try {
             return handleAsync(
-                    request,
-                    DepositRequest.class,
-                    req -> userService.deposit(req).thenApply(v -> req),
-                    "Nạp tiền thất bại"
-            ).join();
+                            request,
+                            DepositRequest.class,
+                            req -> userService.deposit(req).thenApply(v -> req),
+                            "Nạp tiền thất bại")
+                    .join();
         } catch (CompletionException ex) {
             Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
             if (cause instanceof DomainException domainEx) {
@@ -113,11 +113,11 @@ public class UserController extends BaseController {
     public String withdraw(String request) {
         try {
             return handleAsync(
-                    request,
-                    WithdrawRequest.class,
-                    req -> userService.withdraw(req).thenApply(v -> req),
-                    "Rút tiền thất bại"
-            ).join();
+                            request,
+                            WithdrawRequest.class,
+                            req -> userService.withdraw(req).thenApply(v -> req),
+                            "Rút tiền thất bại")
+                    .join();
         } catch (CompletionException ex) {
             Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
             if (cause instanceof DomainException domainEx) {
@@ -133,7 +133,8 @@ public class UserController extends BaseController {
         if (authenticatedUserId == null) {
             return CompletableFuture.completedFuture(ApiResponse.error("Unauthorized"));
         }
-        return userService.getWalletTransactions(authenticatedUserId)
+        return userService
+                .getWalletTransactions(authenticatedUserId)
                 .thenApply(ApiResponse::success)
                 .exceptionally(ex -> ApiResponse.error("Failed to get wallet transactions"));
     }

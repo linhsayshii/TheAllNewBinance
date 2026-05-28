@@ -7,6 +7,8 @@ import com.auction.client.scene.LifecycleAwareController;
 import com.auction.client.scene.NavigationService;
 import com.auction.client.service.ImageLoader;
 import com.auction.client.service.NetworkService;
+import com.auction.client.service.notification.NotificationService;
+import com.auction.client.service.notification.NotificationType;
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
 import com.auction.core.dto.auction.GetAuctionDetailsRequest;
@@ -38,8 +40,6 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import com.auction.client.service.notification.NotificationService;
-import com.auction.client.service.notification.NotificationType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -233,19 +233,21 @@ public class AuctionPageController
 
             // Kiểm tra auctionId bằng .equals() (tránh so sánh reference của Integer với !=)
             Integer incomingAuctionId = incomingBid.getAuctionId();
-            if (incomingAuctionId != null
-                    && !incomingAuctionId.equals(viewModel.getAuctionId())) {
+            if (incomingAuctionId != null && !incomingAuctionId.equals(viewModel.getAuctionId())) {
                 return;
             }
-            Platform.runLater(() -> {
-                mergeSingleBid(incomingBid, isOwnBid);
-                if (isOwnBid) {
-                    NotificationService.getInstance().show(
-                            "Your bid of $" + MONEY_FORMAT.format(incomingBid.getAmount())
-                                    + " has been placed successfully!",
-                            NotificationType.SUCCESS);
-                }
-            });
+            Platform.runLater(
+                    () -> {
+                        mergeSingleBid(incomingBid, isOwnBid);
+                        if (isOwnBid) {
+                            NotificationService.getInstance()
+                                    .show(
+                                            "Your bid of $"
+                                                    + MONEY_FORMAT.format(incomingBid.getAmount())
+                                                    + " has been placed successfully!",
+                                            NotificationType.SUCCESS);
+                        }
+                    });
         } catch (Exception e) {
             System.err.println(
                     "Error processing place bid response in AuctionPage: " + e.getMessage());
@@ -494,8 +496,7 @@ public class AuctionPageController
                                 "sellerId", viewModel.getSellerId(),
                                 "sellerName", viewModel.sellerNameProperty().get(),
                                 "email", viewModel.sellerEmailProperty().get(),
-                                "joinDate", viewModel.sellerJoinDateProperty().get()
-                        ));
+                                "joinDate", viewModel.sellerJoinDateProperty().get()));
     }
 
     private void updateCountdownLabels(LocalDateTime now) {
@@ -637,9 +638,15 @@ public class AuctionPageController
         NotificationType type = NotificationType.INFO;
         if (title != null) {
             String lower = title.toLowerCase();
-            if (lower.contains("failed") || lower.contains("error") || lower.contains("closed") || lower.contains("not allowed")) {
+            if (lower.contains("failed")
+                    || lower.contains("error")
+                    || lower.contains("closed")
+                    || lower.contains("not allowed")) {
                 type = NotificationType.ERROR;
-            } else if (lower.contains("invalid") || lower.contains("low") || lower.contains("unavailable") || lower.contains("required")) {
+            } else if (lower.contains("invalid")
+                    || lower.contains("low")
+                    || lower.contains("unavailable")
+                    || lower.contains("required")) {
                 type = NotificationType.WARNING;
             } else if (lower.contains("success") || lower.contains("active")) {
                 type = NotificationType.SUCCESS;

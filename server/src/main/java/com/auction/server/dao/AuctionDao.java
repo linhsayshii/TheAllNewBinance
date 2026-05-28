@@ -20,7 +20,8 @@ public class AuctionDao implements IAuctionDao {
         try (Connection conn = DBConnection.getConnection()) {
             return createAuctionWithConnection(conn, auction);
         } catch (SQLException e) {
-            System.err.println("Error: Cannot open connection for createAuction! " + e.getMessage());
+            System.err.println(
+                    "Error: Cannot open connection for createAuction! " + e.getMessage());
         }
         return false;
     }
@@ -32,8 +33,7 @@ public class AuctionDao implements IAuctionDao {
                 "INSERT INTO auctions (item_id, starting_price, bid_increment, start_time,"
                     + " original_end_time, extended_end_time, status, is_deleted, created_at,"
                     + " snipe_threshold, snipe_extension) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-        try (PreparedStatement stmt =
-                conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             stmt.setInt(1, auction.getItemId());
             stmt.setDouble(2, auction.getStartingPrice());
             stmt.setDouble(3, auction.getBidIncrement());
@@ -57,7 +57,6 @@ public class AuctionDao implements IAuctionDao {
         }
         return false;
     }
-
 
     @Override
     public boolean updateAuctionInformation(Auction auction) {
@@ -159,7 +158,10 @@ public class AuctionDao implements IAuctionDao {
                     }
                     auction.setStatus(status);
 
-                    auction.setWinnerId(rs.getInt("winner_id"));
+                    int winnerId = rs.getInt("winner_id");
+                    auction.setWinnerId(rs.wasNull() ? null : winnerId);
+                    double finalPrice = rs.getDouble("final_price");
+                    auction.setFinalPrice(rs.wasNull() ? null : finalPrice);
                     auction.setCreatedAt(rs.getTimestamp("created_at").toLocalDateTime());
                     return auction;
                 }
@@ -636,9 +638,9 @@ public class AuctionDao implements IAuctionDao {
             throws SQLException {
         String sql =
                 "SELECT auction_id, item_id, starting_price, current_price, bid_increment,"
-                        + " start_time, end_time, original_end_time, status, winner_id,"
-                        + " snipe_threshold, snipe_extension, is_featured, featured_until,"
-                        + " promoted_description FROM auctions WHERE auction_id = ? FOR UPDATE";
+                    + " start_time, end_time, original_end_time, status, winner_id, final_price,"
+                    + " snipe_threshold, snipe_extension, is_featured, featured_until,"
+                    + " promoted_description FROM auctions WHERE auction_id = ? FOR UPDATE";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, auctionId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -661,12 +663,15 @@ public class AuctionDao implements IAuctionDao {
                         } catch (IllegalArgumentException e) {
                             System.err.println(
                                     "[AuctionDao] Warning: Invalid status in DB (FOR UPDATE): '"
-                                            + statusStr + "'. Falling back to PENDING.");
+                                            + statusStr
+                                            + "'. Falling back to PENDING.");
                         }
                     }
                     auction.setStatus(status);
                     int winnerId = rs.getInt("winner_id");
                     auction.setWinnerId(rs.wasNull() ? null : winnerId);
+                    double finalPrice = rs.getDouble("final_price");
+                    auction.setFinalPrice(rs.wasNull() ? null : finalPrice);
                     return auction;
                 }
             }
@@ -678,9 +683,9 @@ public class AuctionDao implements IAuctionDao {
     public boolean updateAuctionInformation(Connection conn, Auction auction) throws SQLException {
         String sql =
                 "UPDATE auctions SET item_id = ?, starting_price = ?, current_price = ?,"
-                        + " bid_increment = ?, start_time = ?, original_end_time = ?, end_time = ?,"
-                        + " status = ?, winner_id = ?, updated_at = ?, snipe_threshold = ?,"
-                        + " snipe_extension = ? WHERE auction_id = ?";
+                    + " bid_increment = ?, start_time = ?, original_end_time = ?, end_time = ?,"
+                    + " status = ?, winner_id = ?, final_price = ?, updated_at = ?, snipe_threshold"
+                    + " = ?, snipe_extension = ? WHERE auction_id = ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, auction.getItemId());
             stmt.setDouble(2, auction.getStartingPrice());
@@ -695,10 +700,15 @@ public class AuctionDao implements IAuctionDao {
             } else {
                 stmt.setNull(9, java.sql.Types.INTEGER);
             }
-            stmt.setTimestamp(10, Timestamp.valueOf(auction.getUpdatedAt()));
-            stmt.setInt(11, auction.getSnipeSettings()[0]);
-            stmt.setInt(12, auction.getSnipeSettings()[1]);
-            stmt.setInt(13, auction.getId());
+            if (auction.getFinalPrice() != null) {
+                stmt.setDouble(10, auction.getFinalPrice());
+            } else {
+                stmt.setNull(10, java.sql.Types.DOUBLE);
+            }
+            stmt.setTimestamp(11, Timestamp.valueOf(auction.getUpdatedAt()));
+            stmt.setInt(12, auction.getSnipeSettings()[0]);
+            stmt.setInt(13, auction.getSnipeSettings()[1]);
+            stmt.setInt(14, auction.getId());
             return stmt.executeUpdate() > 0;
         }
     }

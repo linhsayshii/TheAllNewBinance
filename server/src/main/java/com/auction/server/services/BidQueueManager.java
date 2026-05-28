@@ -6,13 +6,13 @@ import com.auction.core.exception.auction.AuctionClosedException;
 import com.auction.core.exception.auction.InvalidBidException;
 import com.auction.core.exception.user.UserNotFoundException;
 import com.auction.core.exception.wallet.InsufficientBalanceException;
+import com.auction.core.protocol.EventType;
 import com.auction.core.services.IAuctionService;
 import com.auction.core.users.User;
 import com.auction.server.dao.DBConnection;
 import com.auction.server.dao.impl.IAuctionDao;
 import com.auction.server.dao.impl.IBidDao;
 import com.auction.server.dao.impl.IUserDao;
-import com.auction.core.protocol.EventType;
 import com.auction.server.network.BroadcastBroker;
 import java.math.BigDecimal;
 import java.sql.Connection;
@@ -133,9 +133,9 @@ public class BidQueueManager {
     }
 
     /**
-     * Process a single bid task: validate price against DB, update auction, save bid.
-     * All within a DB transaction using shared Connection to prevent Deadlock.
-     * The result (success or error) completes the task's future.
+     * Process a single bid task: validate price against DB, update auction, save bid. All within a
+     * DB transaction using shared Connection to prevent Deadlock. The result (success or error)
+     * completes the task's future.
      */
     private void processBidTask(BidTask task) {
         CompletableFuture<Bid> future = task.getResultFuture();
@@ -171,12 +171,19 @@ public class BidQueueManager {
                 double depositAmount = auction.getStartingPrice() * 0.3;
                 BigDecimal depositBD = BigDecimal.valueOf(depositAmount);
                 if (user.getBalance().compareTo(depositBD) < 0) {
-                    throw new InsufficientBalanceException(
-                            "Số dư khả dụng không đủ đóng cọc 30%.");
+                    throw new InsufficientBalanceException("Số dư khả dụng không đủ đóng cọc 30%.");
                 }
-                // Dùng domain method holdBalance() — tự kiểm tra số dư và cập nhật balance/lockedBalance
+                // Dùng domain method holdBalance() — tự kiểm tra số dư và cập nhật
+                // balance/lockedBalance
                 user.holdBalance(depositBD);
                 userDao.updateBalanceAndLockedBalance(conn, user);
+                userDao.insertTransactionRecord(
+                        conn,
+                        bidderId,
+                        "WITHDRAW",
+                        depositBD,
+                        "SUCCESS",
+                        "BID_DEPOSIT_" + auctionId);
             }
 
             if (user.getBalance().compareTo(BigDecimal.valueOf(amount)) < 0) {
@@ -200,8 +207,7 @@ public class BidQueueManager {
 
             boolean saved = bidDao.saveBid(conn, bid);
             if (!saved) {
-                throw new InvalidBidException(
-                        "Không thể ghi nhận lịch sử thầu vào cơ sở dữ liệu.");
+                throw new InvalidBidException("Không thể ghi nhận lịch sử thầu vào cơ sở dữ liệu.");
             }
 
             DBConnection.commitTransaction();

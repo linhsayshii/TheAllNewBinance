@@ -6,6 +6,8 @@ import com.auction.client.scene.LifecycleAwareController;
 import com.auction.client.scene.NavigationService;
 import com.auction.client.service.NetworkService;
 import com.auction.client.service.UserSessionService;
+import com.auction.client.service.notification.NotificationService;
+import com.auction.client.service.notification.NotificationType;
 import com.auction.core.dto.auction.CreateAuctionRequest;
 import com.auction.core.dto.auction.ItemAttributesPayload;
 import com.auction.core.products.CategoryType;
@@ -24,8 +26,6 @@ import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
-import com.auction.client.service.notification.NotificationService;
-import com.auction.client.service.notification.NotificationType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.TextArea;
@@ -152,12 +152,20 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
         }
     }
 
+    private boolean submitting = false;
+
     @FXML
     private void handleSubmit() {
+        if (submitting) {
+            return;
+        }
+
         if (!UserSessionService.getInstance().isAuthenticated()) {
             showAlert("Error", "You must be logged in to create a listing.");
             return;
         }
+
+        submitting = true;
 
         String title = titleInput.getText();
 
@@ -165,6 +173,7 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
         String selectedCategory = categoryInput.getValue();
         if (selectedCategory == null || selectedCategory.trim().isEmpty()) {
             showAlert("Validation Error", "Please select a product category.");
+            submitting = false;
             return;
         }
 
@@ -172,6 +181,7 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
 
         if (title == null || title.isBlank() || description == null || description.isBlank()) {
             showAlert("Validation Error", "Please fill in all required item details.");
+            submitting = false;
             return;
         }
 
@@ -181,18 +191,21 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
             categoryType = CategoryType.valueOf(selectedCategory.trim().toUpperCase());
         } catch (IllegalArgumentException e) {
             showAlert("Validation Error", "Unknown product category selected.");
+            submitting = false;
             return;
         }
 
         CategoryDisplayStrategy strategy = strategyRegistry.get(categoryType);
         if (strategy == null) {
             showAlert("Validation Error", "No configuration found for the selected category.");
+            submitting = false;
             return;
         }
         if (!strategy.validateFields(dynamicFieldsContainer)) {
             showAlert(
                     "Validation Error",
                     "Please fill in all required product-specific fields correctly.");
+            submitting = false;
             return;
         }
 
@@ -203,10 +216,12 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
             increment = Double.parseDouble(bidIncrementInput.getText());
             if (startPrice < 0 || increment <= 0) {
                 showAlert("Validation Error", "Prices must be positive numbers.");
+                submitting = false;
                 return;
             }
         } catch (NumberFormatException e) {
             showAlert("Validation Error", "Please enter valid numeric values for prices.");
+            submitting = false;
             return;
         }
 
@@ -221,11 +236,13 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
                             endDateInput.getValue(), LocalTime.parse(endTimeInput.getText()));
         } catch (DateTimeParseException | NullPointerException e) {
             showAlert("Validation Error", "Please enter valid dates and times (HH:mm format).");
+            submitting = false;
             return;
         }
 
         if (endDateTime.isBefore(startDateTime) || endDateTime.isEqual(startDateTime)) {
             showAlert("Validation Error", "End time must be after start time.");
+            submitting = false;
             return;
         }
 
@@ -236,6 +253,7 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
                 uploadedImageUrl = imageUrlInput.getText();
             } else {
                 showAlert("Validation Error", "Please select an image or provide a URL.");
+                submitting = false;
                 return;
             }
         }
@@ -294,6 +312,7 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
                                                         attributesPayload);
                                             },
                                             (err) -> {
+                                                submitting = false;
                                                 Platform.runLater(
                                                         () ->
                                                                 showAlert(
@@ -302,6 +321,7 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
                                                                                 + err));
                                             });
                                 } else {
+                                    submitting = false;
                                     Platform.runLater(
                                             () ->
                                                     showAlert(
@@ -477,10 +497,12 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
 
             Platform.runLater(
                     () -> {
+                        submitting = false;
                         if (Boolean.TRUE.equals(success)) {
-                            NotificationService.getInstance().show(
-                                    "Your listing has been created successfully!",
-                                    NotificationType.SUCCESS);
+                            NotificationService.getInstance()
+                                    .show(
+                                            "Your listing has been created successfully!",
+                                            NotificationType.SUCCESS);
                             handleBack();
                         } else {
                             String msg = (String) response.get("message");

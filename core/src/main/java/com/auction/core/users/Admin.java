@@ -2,14 +2,10 @@ package com.auction.core.users;
 
 import java.math.BigDecimal;
 
-/**
- * Đại diện cho quản trị viên vận hành và kiểm duyệt hệ thống đấu giá.
- */
+/** Đại diện cho quản trị viên vận hành và kiểm duyệt hệ thống đấu giá. */
 public final class Admin extends User {
 
-    /**
-     * Constructor phạm vi package-private. Chỉ được gọi bởi UserFactory.
-     */
+    /** Constructor phạm vi package-private. Chỉ được gọi bởi UserFactory. */
     Admin(
             Integer id,
             String username,
@@ -19,7 +15,16 @@ public final class Admin extends User {
             BigDecimal balance,
             BigDecimal lockedBalance,
             Boolean isActive) {
-        super(id, username, password, fullName, email, balance, lockedBalance, Role.ADMIN, isActive);
+        super(
+                id,
+                username,
+                password,
+                fullName,
+                email,
+                balance,
+                lockedBalance,
+                Role.ADMIN,
+                isActive);
     }
 
     @Override

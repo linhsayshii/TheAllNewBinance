@@ -17,7 +17,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
-public class GeneralPageController {
+public class GeneralPageController implements com.auction.client.scene.LifecycleAwareController {
 
     private static final String AUCTION_CARD_FXML = "/fxml/components/item/auction-card.fxml";
     private static final String UPCOMING_AUCTION_CARD_FXML =
@@ -42,12 +42,53 @@ public class GeneralPageController {
 
     @FXML
     private void initialize() {
-        // Clear the client-side cache to ensure we get fresh status updates when navigating back
         com.auction.client.service.AuctionQueryService.clearCache();
+        refreshFeaturedAuctions();
+        registerNetworkHandlers();
+    }
 
-        liveAuctionCards.getChildren().clear();
-        upcomingAuctionCards.getChildren().clear();
+    private void registerNetworkHandlers() {
+        try {
+            com.auction.client.service.NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            com.auction.core.protocol.EventType.AUCTION_ACTIVATED,
+                            "GeneralPage",
+                            message -> {
+                                com.auction.client.service.AuctionQueryService.clearCache();
+                                refreshFeaturedAuctions();
+                            });
+            com.auction.client.service.NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            com.auction.core.protocol.EventType.AUCTION_CLOSED,
+                            "GeneralPage",
+                            message -> {
+                                com.auction.client.service.AuctionQueryService.clearCache();
+                                refreshFeaturedAuctions();
+                            });
+            com.auction.client.service.NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            com.auction.core.protocol.EventType.PROMOTE_AUCTION,
+                            "GeneralPage",
+                            message -> {
+                                com.auction.client.service.AuctionQueryService.clearCache();
+                                refreshFeaturedAuctions();
+                            });
 
+            // Đăng ký nhận thông báo từ Lobby Room (Room ID = 0)
+            com.auction.client.service.NetworkService.getInstance()
+                    .sendRequest(
+                            com.auction.core.protocol.EventType.SUBSCRIBE_AUCTION,
+                            java.util.Map.of("auctionId", 0));
+        } catch (Exception e) {
+            System.err.println(
+                    "[GeneralPage] Failed to register network handlers: " + e.getMessage());
+        }
+    }
+
+    private void refreshFeaturedAuctions() {
         java.util.concurrent.CompletableFuture.runAsync(
                 () -> {
                     List<ProductCardUiModel> liveCards = viewModel.loadLiveFeaturedAuctions();
@@ -56,6 +97,9 @@ public class GeneralPageController {
 
                     Platform.runLater(
                             () -> {
+                                liveAuctionCards.getChildren().clear();
+                                upcomingAuctionCards.getChildren().clear();
+
                                 for (ProductCardUiModel card : liveCards) {
                                     liveAuctionCards.getChildren().add(loadAuctionCard(card));
                                 }
@@ -78,6 +122,29 @@ public class GeneralPageController {
                                         upcomingBlockIndicators);
                             });
                 });
+    }
+
+    @Override
+    public void onUnload() {
+        try {
+            com.auction.client.service.NetworkService.getInstance()
+                    .sendRequest(
+                            com.auction.core.protocol.EventType.UNSUBSCRIBE_AUCTION,
+                            java.util.Map.of("auctionId", 0));
+            com.auction.client.service.NetworkService.getInstance()
+                    .getClient()
+                    .removeResponseHandler(
+                            com.auction.core.protocol.EventType.AUCTION_ACTIVATED, "GeneralPage");
+            com.auction.client.service.NetworkService.getInstance()
+                    .getClient()
+                    .removeResponseHandler(
+                            com.auction.core.protocol.EventType.AUCTION_CLOSED, "GeneralPage");
+            com.auction.client.service.NetworkService.getInstance()
+                    .getClient()
+                    .removeResponseHandler(
+                            com.auction.core.protocol.EventType.PROMOTE_AUCTION, "GeneralPage");
+        } catch (Exception ignored) {
+        }
     }
 
     @FXML
