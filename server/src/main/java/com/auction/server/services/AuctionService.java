@@ -283,12 +283,15 @@ public class AuctionService implements IAuctionService {
 
                     String cacheKey =
                             String.format(
-                                    "%d-%d-%s-%b-%b",
+                                    "%d-%d-%s-%b-%b-%s-%s-%b",
                                     request.getPage(),
                                     request.getSize(),
                                     String.join(",", statuses),
                                     request.isIncludeEndingSoon(),
-                                    request.isIncludeTrending());
+                                    request.isIncludeTrending(),
+                                    request.getCategory() != null ? request.getCategory() : "",
+                                    request.getItemType() != null ? request.getItemType() : "",
+                                    request.isOrderByPrioritizedStatus());
 
                     CacheEntry entry = publicAuctionsCache.get(cacheKey);
                     if (entry != null && LocalDateTime.now().isBefore(entry.expiryTime)) {
@@ -296,19 +299,26 @@ public class AuctionService implements IAuctionService {
                     }
 
                     int offset = (request.getPage() - 1) * request.getSize();
+                    // Build a request copy with normalized statuses to ensure DAO parses correctly
+                    GetPublicAuctionsRequest normalizedReq = new GetPublicAuctionsRequest();
+                    normalizedReq.setPage(request.getPage());
+                    normalizedReq.setSize(request.getSize());
+                    normalizedReq.setStatus(String.join(",", statuses));
+                    normalizedReq.setIncludeEndingSoon(request.isIncludeEndingSoon());
+                    normalizedReq.setIncludeTrending(request.isIncludeTrending());
+                    normalizedReq.setCategory(request.getCategory());
+                    normalizedReq.setItemType(request.getItemType());
+                    normalizedReq.setOrderByPrioritizedStatus(request.isOrderByPrioritizedStatus());
+
                     List<PublicAuctionDto> data =
-                            auctionDao.getPublicAuctions(
-                                    offset,
-                                    request.getSize(),
-                                    statuses,
-                                    request.isIncludeEndingSoon(),
-                                    request.isIncludeTrending());
+                            auctionDao.getPublicAuctions(offset, request.getSize(), normalizedReq);
 
                     publicAuctionsCache.put(
                             cacheKey, new CacheEntry(data, LocalDateTime.now().plusSeconds(30)));
                     return data;
                 });
     }
+
 
     private List<String> normalizeStatuses(String status) {
         if (status == null || status.isBlank()) {

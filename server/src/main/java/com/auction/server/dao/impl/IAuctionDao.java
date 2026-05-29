@@ -2,6 +2,7 @@ package com.auction.server.dao.impl;
 
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
+import com.auction.core.dto.auction.GetPublicAuctionsRequest;
 import com.auction.core.dto.auction.PublicAuctionDto;
 import java.sql.Connection;
 import java.sql.SQLException;
@@ -60,11 +61,7 @@ public interface IAuctionDao {
     List<Auction> getAuctionsBySellerId(Integer sellerId);
 
     List<PublicAuctionDto> getPublicAuctions(
-            int offset,
-            int limit,
-            List<String> statuses,
-            boolean includeEndingSoon,
-            boolean includeTrending);
+            int offset, int limit, GetPublicAuctionsRequest request);
 
     /** Cập nhật isFeatured, featuredUntil, promotedDescription cho một auction. */
     boolean promoteAuction(

@@ -9,7 +9,8 @@ public enum SceneRegistry {
     PUBLIC_SELLER_PAGE("/fxml/pages/public-seller-page.fxml", "Seller Profile"),
     CREATE_LISTING_PAGE("/fxml/pages/create-listing-page.fxml", "Create Listing"),
     SELLERS_PAGE("/fxml/pages/sellers-page.fxml", "Sellers"),
-    ADMIN_PAGE("/fxml/pages/admin-page.fxml", "Admin Portal");
+    ADMIN_PAGE("/fxml/pages/admin-page.fxml", "Admin Portal"),
+    CATEGORIZED_AUCTION_PAGE("/fxml/pages/categorized-auction-page.fxml", "Explore Auctions");
 
     private final String fxmlPath;
     private final String title;

@@ -374,21 +374,36 @@ public class AuctionDao implements IAuctionDao {
     public List<com.auction.core.dto.auction.PublicAuctionDto> getPublicAuctions(
             int offset,
             int limit,
-            List<String> statuses,
-            boolean includeEndingSoon,
-            boolean includeTrending) {
+            com.auction.core.dto.auction.GetPublicAuctionsRequest request) {
+        boolean includeEndingSoon = request.isIncludeEndingSoon();
+        boolean includeTrending = request.isIncludeTrending();
+
         List<String> safeStatuses =
-                statuses == null
+                request.getStatus() == null
                         ? List.of()
-                        : statuses.stream()
+                        : java.util.Arrays.stream(request.getStatus().split(","))
                                 .filter(java.util.Objects::nonNull)
                                 .map(String::trim)
                                 .map(String::toUpperCase)
                                 .filter(s -> !s.isEmpty())
+                                .distinct()
                                 .toList();
 
         if (safeStatuses.isEmpty()) {
             safeStatuses = List.of("ACTIVE", "PENDING");
+        }
+
+        // Resolve itemType -> allowedCategories (LuxuryCollectible = WATCHES/FASHION/COLLECTIBLES/WINE, etc.)
+        List<String> allowedCategories = null;
+        if (request.getItemType() != null && !request.getItemType().isBlank()) {
+            String typeKey = request.getItemType().trim().toUpperCase().replace("_", "");
+            if ("LUXURYCOLLECTIBLE".equals(typeKey)) {
+                allowedCategories = List.of("WATCHES", "FASHION", "COLLECTIBLES", "WINE");
+            } else if ("ARTISTICCREATION".equals(typeKey)) {
+                allowedCategories = List.of("ART", "MUSIC");
+            } else if ("PRECISIONMECHANICAL".equals(typeKey)) {
+                allowedCategories = List.of("SPORTS", "CAMERAS");
+            }
         }
 
         String statusPlaceholders =
@@ -397,8 +412,9 @@ public class AuctionDao implements IAuctionDao {
         StringBuilder sql =
                 new StringBuilder(
                         "SELECT a.auction_id, a.item_id, i.name as item_name, i.image_url as"
-                            + " thumbnail_url, a.current_price, a.start_time, a.end_time, a.status,"
-                            + " u.full_name as seller_display_name ");
+                            + " thumbnail_url, a.current_price, a.start_time, a.end_time,"
+                            + " a.status, u.full_name as seller_display_name,"
+                            + " i.category as item_category ");
 
         if (includeTrending) {
             sql.append(", COUNT(b.bid_id) as bid_count ");
@@ -425,19 +441,44 @@ public class AuctionDao implements IAuctionDao {
                     "AND ((a.status = 'PENDING' AND a.start_time >= ?) OR a.status <> 'PENDING') ");
         }
 
+        if (request.getCategory() != null && !request.getCategory().isBlank()) {
+            sql.append("AND i.category = ? ");
+        }
+
+        if (allowedCategories != null && !allowedCategories.isEmpty()) {
+            String inPlaceholders =
+                    allowedCategories.stream().map(c -> "?").collect(Collectors.joining(", "));
+            sql.append("AND i.category IN (").append(inPlaceholders).append(") ");
+        }
+
         if (includeTrending) {
             sql.append(
                     "GROUP BY a.auction_id, a.item_id, i.name, i.image_url, a.current_price,"
-                            + " a.start_time, a.end_time, a.status, u.full_name ");
+                        + " a.start_time, a.end_time, a.status, u.full_name, i.category ");
             sql.append("ORDER BY bid_count DESC, a.end_time ASC, a.start_time ASC ");
-        } else if (includeEndingSoon) {
-            sql.append("ORDER BY (CASE WHEN a.status = 'ACTIVE' THEN a.end_time END) IS NULL ASC, ")
+        } else if (request.isOrderByPrioritizedStatus()) {
+            sql.append("ORDER BY ")
+                    .append("CASE ")
+                    .append("WHEN a.status = 'ACTIVE' THEN 1 ")
+                    .append("WHEN a.status = 'PENDING' THEN 2 ")
+                    .append("WHEN a.status = 'ENDED' THEN 3 ")
+                    .append("ELSE 4 ")
+                    .append("END ASC, ")
                     .append("CASE WHEN a.status = 'ACTIVE' THEN a.end_time END ASC, ")
-                    .append("(CASE WHEN a.status = 'PENDING' THEN a.start_time END) IS NULL ASC, ")
+                    .append("CASE WHEN a.status = 'PENDING' THEN a.start_time END ASC, ")
+                    .append("CASE WHEN a.status = 'ENDED' THEN a.end_time END DESC, ")
+                    .append("a.auction_id DESC ");
+        } else if (includeEndingSoon) {
+            sql.append(
+                            "ORDER BY (CASE WHEN a.status = 'ACTIVE' THEN a.end_time END) IS NULL"
+                                    + " ASC, ")
+                    .append("CASE WHEN a.status = 'ACTIVE' THEN a.end_time END ASC, ")
+                    .append(
+                            "(CASE WHEN a.status = 'PENDING' THEN a.start_time END) IS NULL ASC, ")
                     .append("CASE WHEN a.status = 'PENDING' THEN a.start_time END ASC, ")
                     .append("a.auction_id DESC ");
         } else {
-            sql.append("ORDER BY a.auction_id DESC "); // default fallback
+            sql.append("ORDER BY a.auction_id DESC ");
         }
 
         sql.append("LIMIT ? OFFSET ?");
@@ -459,6 +500,16 @@ public class AuctionDao implements IAuctionDao {
                 stmt.setTimestamp(paramIndex++, now);
             }
 
+            if (request.getCategory() != null && !request.getCategory().isBlank()) {
+                stmt.setString(paramIndex++, request.getCategory().trim().toUpperCase());
+            }
+
+            if (allowedCategories != null && !allowedCategories.isEmpty()) {
+                for (String cat : allowedCategories) {
+                    stmt.setString(paramIndex++, cat);
+                }
+            }
+
             stmt.setInt(paramIndex++, limit);
             stmt.setInt(paramIndex, offset);
 
@@ -475,6 +526,7 @@ public class AuctionDao implements IAuctionDao {
                     dto.setEndTime(rs.getTimestamp("end_time").toLocalDateTime());
                     dto.setStatus(rs.getString("status"));
                     dto.setSellerDisplayName(rs.getString("seller_display_name"));
+                    dto.setItemCategory(rs.getString("item_category"));
                     result.add(dto);
                 }
             }

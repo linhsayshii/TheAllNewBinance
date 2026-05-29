@@ -12,6 +12,7 @@ public class PublicAuctionDto {
     private LocalDateTime endTime;
     private String status;
     private String sellerDisplayName;
+    private String itemCategory;
     // Star Auction fields
     private Boolean isFeatured;
     private LocalDateTime featuredUntil;
@@ -116,6 +117,14 @@ public class PublicAuctionDto {
 
     public void setSellerDisplayName(String sellerDisplayName) {
         this.sellerDisplayName = sellerDisplayName;
+    }
+
+    public String getItemCategory() {
+        return itemCategory;
+    }
+
+    public void setItemCategory(String itemCategory) {
+        this.itemCategory = itemCategory;
     }
 
     public Boolean getIsFeatured() {

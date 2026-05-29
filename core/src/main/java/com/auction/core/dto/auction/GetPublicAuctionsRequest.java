@@ -6,6 +6,9 @@ public class GetPublicAuctionsRequest {
     private String status = "ACTIVE,PENDING";
     private boolean includeEndingSoon = true;
     private boolean includeTrending = false;
+    private String category;
+    private String itemType;
+    private boolean orderByPrioritizedStatus = false;
 
     public GetPublicAuctionsRequest() {}
 
@@ -56,5 +59,29 @@ public class GetPublicAuctionsRequest {
 
     public void setIncludeTrending(boolean includeTrending) {
         this.includeTrending = includeTrending;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public void setCategory(String category) {
+        this.category = category;
+    }
+
+    public String getItemType() {
+        return itemType;
+    }
+
+    public void setItemType(String itemType) {
+        this.itemType = itemType;
+    }
+
+    public boolean isOrderByPrioritizedStatus() {
+        return orderByPrioritizedStatus;
+    }
+
+    public void setOrderByPrioritizedStatus(boolean orderByPrioritizedStatus) {
+        this.orderByPrioritizedStatus = orderByPrioritizedStatus;
     }
 }

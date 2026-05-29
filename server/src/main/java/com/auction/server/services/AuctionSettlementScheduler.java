@@ -89,15 +89,27 @@ public class AuctionSettlementScheduler {
                             + " timers...");
 
             // 1. Phục hồi và lập lịch đóng phiên cho các Auction ACTIVE
+            com.auction.core.dto.auction.GetPublicAuctionsRequest activeReq =
+                    new com.auction.core.dto.auction.GetPublicAuctionsRequest();
+            activeReq.setStatus("ACTIVE");
+            activeReq.setIncludeEndingSoon(false);
+            activeReq.setIncludeTrending(false);
+
             List<PublicAuctionDto> activeAuctions =
-                    auctionDao.getPublicAuctions(0, 10000, List.of("ACTIVE"), false, false);
+                    auctionDao.getPublicAuctions(0, 10000, activeReq);
             for (PublicAuctionDto dto : activeAuctions) {
                 scheduleAuctionClose(dto.getAuctionId(), dto.getEndTime());
             }
 
             // 2. Phục hồi và lập lịch mở phiên cho các Auction PENDING
+            com.auction.core.dto.auction.GetPublicAuctionsRequest pendingReq =
+                    new com.auction.core.dto.auction.GetPublicAuctionsRequest();
+            pendingReq.setStatus("PENDING");
+            pendingReq.setIncludeEndingSoon(false);
+            pendingReq.setIncludeTrending(false);
+
             List<PublicAuctionDto> pendingAuctions =
-                    auctionDao.getPublicAuctions(0, 10000, List.of("PENDING"), false, false);
+                    auctionDao.getPublicAuctions(0, 10000, pendingReq);
             for (PublicAuctionDto dto : pendingAuctions) {
                 scheduleAuctionStart(dto.getAuctionId(), dto.getStartTime());
             }

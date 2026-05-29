@@ -9,7 +9,7 @@ public class NavbarComponentController implements LifecycleAwareController {
 
     @FXML
     private void handleGoToAuctions() {
-        NavigationService.getInstance().navigateTo(SceneRegistry.GENERAL_PAGE);
+        NavigationService.getInstance().navigateTo(SceneRegistry.CATEGORIZED_AUCTION_PAGE);
     }
 
     @FXML
