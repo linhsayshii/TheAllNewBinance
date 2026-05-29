@@ -11,6 +11,7 @@ import com.auction.core.services.IUserService;
 import com.auction.core.users.User;
 import com.auction.core.utils.JsonMapper;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -155,5 +156,44 @@ public class UserController extends BaseController {
         safeUser.put("role", user.getRole());
         safeUser.put("isActive", user.getIsActive());
         return safeUser;
+    }
+
+    /**
+     * Returns all users for admin management. Filters sensitive fields via toSafeUser().
+     */
+    public String getAllUsersForAdmin(String payload) {
+        try {
+            final List<User> users = userService.getAllUsers().join();
+            final List<Map<String, Object>> safeUsers =
+                    users.stream().map(this::toSafeUser).toList();
+            return ApiResponse.success(safeUsers);
+        } catch (Exception ex) {
+            return ApiResponse.error("Không thể tải danh sách người dùng.");
+        }
+    }
+
+    /**
+     * Toggles the active/banned status of a target user. Admin-only endpoint.
+     * Validates that targetUserId is present and valid before delegating to service layer.
+     */
+    public String toggleUserStatus(String payload) {
+        try {
+            @SuppressWarnings("unchecked")
+            final Map<String, Object> req = JsonMapper.fromJson(payload, Map.class);
+            if (req == null || !req.containsKey("targetUserId")) {
+                return ApiResponse.error("Thiếu mã định danh người dùng đích.");
+            }
+            final Integer targetUserId = ((Number) req.get("targetUserId")).intValue();
+            final boolean success = userService.toggleUserStatus(targetUserId).join();
+            if (success) {
+                return ApiResponse.successMessage("Cập nhật trạng thái người dùng thành công.");
+            }
+            return ApiResponse.error("Cập nhật trạng thái thất bại.");
+        } catch (CompletionException ex) {
+            final Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
+            return ApiResponse.error(cause.getMessage());
+        } catch (Exception ex) {
+            return ApiResponse.error(ex.getMessage());
+        }
     }
 }

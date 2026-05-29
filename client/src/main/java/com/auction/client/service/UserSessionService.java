@@ -64,6 +64,34 @@ public class UserSessionService {
                                                     + e.getMessage());
                                 }
                             });
+
+            com.auction.client.service.NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            com.auction.core.protocol.EventType.FORCE_LOGOUT_ADMIN,
+                            "UserSessionServiceForceLogout",
+                            message -> javafx.application.Platform.runLater(
+                                    () -> {
+                                        currentUserProperty.set(null);
+                                        if (com.auction.client.scene.NavigationService
+                                                .getInstance()
+                                                .isPopupOpen()) {
+                                            com.auction.client.scene.NavigationService
+                                                    .getInstance()
+                                                    .closePopup();
+                                        }
+                                        com.auction.client.scene.NavigationService
+                                                .getInstance()
+                                                .navigateTo(
+                                                        com.auction.client.config.SceneRegistry
+                                                                .GENERAL_PAGE);
+                                        com.auction.client.service.notification
+                                                .NotificationService.getInstance()
+                                                .show(
+                                                        "Tài khoản của bạn đã bị vô hiệu hóa bởi Admin.",
+                                                        com.auction.client.service.notification
+                                                                .NotificationType.ERROR);
+                                    }));
         } catch (Exception e) {
             System.err.println(
                     "[UserSessionService] Failed to register BALANCE_UPDATE handler: "

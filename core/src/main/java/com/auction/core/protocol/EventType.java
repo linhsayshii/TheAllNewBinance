@@ -22,6 +22,8 @@ public enum EventType {
     GET_FEATURED_AUCTIONS, // Anonymous: lấy danh sách Star Auction cho Carousel
     GET_ALL_AUCTIONS_ADMIN, // Admin only: lấy tất cả auctions theo status
     GET_ALL_USERS_ADMIN, // Admin only: lấy tất cả users
+    TOGGLE_USER_STATUS_ADMIN, // Admin only: kích hoạt/vô hiệu hóa tài khoản người dùng
+    FORCE_LOGOUT_ADMIN, // Server -> Client: cưỡng bức đăng xuất khi tài khoản bị khóa
     SUBSCRIBE_AUCTION, // Client: đăng ký nhận broadcast của phiên đấu giá
     UNSUBSCRIBE_AUCTION, // Client: hủy đăng ký nhận broadcast của phiên đấu giá
     AUCTION_ACTIVATED, // Server -> Client: phát thông báo khi phiên đấu giá PENDING → ACTIVE

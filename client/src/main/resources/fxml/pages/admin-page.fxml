@@ -103,6 +103,7 @@
                                 <TableColumn fx:id="colRole"         text="Role"     prefWidth="90" />
                                 <TableColumn fx:id="colBalance"      text="Balance"  prefWidth="110" />
                                 <TableColumn fx:id="colUserStatus"   text="Status"   prefWidth="90" />
+                                <TableColumn fx:id="colAction"       text="Action"   prefWidth="100" sortable="false" />
                             </columns>
                         </TableView>
                     </VBox>

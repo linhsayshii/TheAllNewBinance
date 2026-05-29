@@ -27,4 +27,8 @@ public interface IUserService {
     CompletableFuture<Void> withdraw(WithdrawRequest request);
 
     CompletableFuture<List<Map<String, Object>>> getWalletTransactions(Integer userId);
+
+    CompletableFuture<List<User>> getAllUsers();
+
+    CompletableFuture<Boolean> toggleUserStatus(Integer targetUserId);
 }

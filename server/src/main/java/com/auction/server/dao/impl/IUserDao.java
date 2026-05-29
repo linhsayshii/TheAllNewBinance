@@ -36,4 +36,8 @@ public interface IUserDao {
             throws SQLException;
 
     public List<Map<String, Object>> getWalletTransactionsByUserId(Integer userId);
+
+    public List<User> findAll();
+
+    public boolean updateActiveStatus(Integer userId, boolean isActive);
 }

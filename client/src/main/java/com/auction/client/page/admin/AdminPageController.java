@@ -19,8 +19,6 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -64,7 +62,7 @@ public class AdminPageController implements LifecycleAwareController {
     // ── Content ──────────────────────────────────────────────────────────
     @FXML private StackPane contentArea;
 
-    // ── Users section ────────────────────────────────────────────────────
+    // ── Users section ────────────────────────────────────────────────────────────────────
     @FXML private VBox usersSection;
     @FXML private Label userCountLabel;
     @FXML private TableView<UserRow> usersTable;
@@ -74,6 +72,7 @@ public class AdminPageController implements LifecycleAwareController {
     @FXML private TableColumn<UserRow, String> colRole;
     @FXML private TableColumn<UserRow, String> colBalance;
     @FXML private TableColumn<UserRow, String> colUserStatus;
+    @FXML private TableColumn<UserRow, Void> colAction;
 
     // ── Listings section ─────────────────────────────────────────────────
     @FXML private VBox listingsSection;
@@ -125,6 +124,52 @@ public class AdminPageController implements LifecycleAwareController {
         colRole.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().role()));
         colBalance.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().balance()));
         colUserStatus.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().status()));
+
+        // CHECKSTYLE:OFF
+        colAction.setCellFactory(
+                col ->
+                        new javafx.scene.control.TableCell<>() {
+                            private final javafx.scene.control.Button btn =
+                                    new javafx.scene.control.Button();
+
+                            {
+                                btn.getStyleClass().add("admin-ban-btn");
+                                btn.setOnAction(
+                                        e -> {
+                                            final UserRow row =
+                                                    getTableView().getItems().get(getIndex());
+                                            toggleUserStatus(row);
+                                        });
+                            }
+
+                            @Override
+                            protected void updateItem(Void item, boolean empty) {
+                                super.updateItem(item, empty);
+                                if (empty) {
+                                    setGraphic(null);
+                                } else {
+                                    final UserRow row =
+                                            getTableView().getItems().get(getIndex());
+                                    if (row != null
+                                            && "Admin".equalsIgnoreCase(row.role())) {
+                                        btn.setDisable(true);
+                                        btn.setText("\u2014");
+                                        btn.setStyle("-fx-opacity: 0.5;");
+                                    } else {
+                                        btn.setDisable(false);
+                                        btn.setStyle("");
+                                        btn.setText(
+                                                row != null
+                                                                && "Active".equalsIgnoreCase(
+                                                                        row.status())
+                                                        ? "Ban"
+                                                        : "Activate");
+                                    }
+                                    setGraphic(btn);
+                                }
+                            }
+                        });
+        // CHECKSTYLE:ON
     }
 
     private void showSection(Toggle sel) {
@@ -143,109 +188,176 @@ public class AdminPageController implements LifecycleAwareController {
         }
     }
 
-    // ── Data loading ─────────────────────────────────────────────────────
+    // ── Data loading ───────────────────────────────────────────────────────────────────
 
     private void loadDataAsync() {
-        java.util.concurrent.CompletableFuture.runAsync(
-                () -> {
-                    fetchUsers();
-                    fetchAllAuctions();
-                    Platform.runLater(
-                            () -> {
-                                userCountLabel.setText(userRows.size() + " users");
-                                listingCountLabel.setText(allAuctions.size() + " auctions");
-                                renderCurrentListingTab();
-                            });
-                });
+        fetchUsers();
+        fetchAllAuctions();
     }
 
     @SuppressWarnings("unchecked")
     private void fetchUsers() {
-        try {
-            NetworkService ns = NetworkService.getInstance();
-            CountDownLatch latch = new CountDownLatch(1);
-
-            String corr = ns.sendRequest(EventType.GET_ALL_USERS_ADMIN, null);
-            ns.addCorrelationHandler(
-                    corr,
-                    raw -> {
-                        try {
-                            Map<?, ?> resp = JsonMapper.fromJson(raw, Map.class);
-                            if (Boolean.TRUE.equals(resp.get("success"))) {
-                                Object data = resp.get("data");
-                                if (data instanceof List<?> list) {
-                                    for (Object entry : list) {
-                                        String json = JsonMapper.toJson(entry);
-                                        User u = JsonMapper.fromJson(json, User.class);
-                                        if (u != null) {
-                                            userRows.add(
-                                                    new UserRow(
-                                                            u.getId(),
-                                                            u.getUsername() != null
-                                                                    ? u.getUsername()
-                                                                    : "—",
-                                                            u.getEmail() != null
-                                                                    ? u.getEmail()
-                                                                    : "—",
-                                                            u.getRole() != null
-                                                                    ? u.getRole().name()
-                                                                    : "USER",
-                                                            "$"
-                                                                    + MONEY_FMT.format(
-                                                                            u.getBalance() != null
-                                                                                    ? u.getBalance()
-                                                                                            .doubleValue()
-                                                                                    : 0.0),
-                                                            "Active"));
-                                        }
-                                    }
-                                }
-                            }
-                        } finally {
-                            latch.countDown();
-                        }
-                    });
-
-            latch.await(TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-        }
+        final NetworkService ns = NetworkService.getInstance();
+        ns.sendRequestAsync(EventType.GET_ALL_USERS_ADMIN, null)
+                .thenAccept(
+                        raw ->
+                                Platform.runLater(
+                                        () -> {
+                                            try {
+                                                final Map<?, ?> resp =
+                                                        JsonMapper.fromJson(raw, Map.class);
+                                                if (Boolean.TRUE.equals(resp.get("success"))) {
+                                                    userRows.clear();
+                                                    final Object data = resp.get("data");
+                                                    if (data instanceof List<?> list) {
+                                                        for (final Object entry : list) {
+                                                            final String json =
+                                                                    JsonMapper.toJson(entry);
+                                                            final User u =
+                                                                    JsonMapper.fromJson(
+                                                                            json, User.class);
+                                                            if (u != null) {
+                                                                userRows.add(
+                                                                        new UserRow(
+                                                                                u.getId(),
+                                                                                u.getUsername()
+                                                                                                != null
+                                                                                        ? u.getUsername()
+                                                                                        : "—",
+                                                                                u.getEmail() != null
+                                                                                        ? u.getEmail()
+                                                                                        : "—",
+                                                                                u.getRole() != null
+                                                                                        ? u.getRole()
+                                                                                                .name()
+                                                                                        : "USER",
+                                                                                "$"
+                                                                                        + MONEY_FMT
+                                                                                                .format(
+                                                                                                        u.getBalance()
+                                                                                                                        != null
+                                                                                                                ? u.getBalance()
+                                                                                                                        .doubleValue()
+                                                                                                                : 0.0),
+                                                                                Boolean.TRUE.equals(
+                                                                                                u.getIsActive())
+                                                                                        ? "Active"
+                                                                                        : "Banned"));
+                                                            }
+                                                        }
+                                                    }
+                                                    userCountLabel.setText(
+                                                            userRows.size() + " users");
+                                                }
+                                            } catch (Exception e) {
+                                                System.err.println(
+                                                        "Error parsing users: " + e.getMessage());
+                                            }
+                                        }));
     }
 
     @SuppressWarnings("unchecked")
     private void fetchAllAuctions() {
-        try {
-            NetworkService ns = NetworkService.getInstance();
-            CountDownLatch latch = new CountDownLatch(1);
+        final NetworkService ns = NetworkService.getInstance();
+        ns.sendRequestAsync(EventType.GET_ALL_AUCTIONS_ADMIN, null)
+                .thenAccept(
+                        raw ->
+                                Platform.runLater(
+                                        () -> {
+                                            try {
+                                                final Map<?, ?> resp =
+                                                        JsonMapper.fromJson(raw, Map.class);
+                                                if (Boolean.TRUE.equals(resp.get("success"))) {
+                                                    allAuctions.clear();
+                                                    final Object data = resp.get("data");
+                                                    if (data instanceof List<?> list) {
+                                                        for (final Object entry : list) {
+                                                            final String json =
+                                                                    JsonMapper.toJson(entry);
+                                                            final PublicAuctionDto dto =
+                                                                    JsonMapper.fromJson(
+                                                                            json,
+                                                                            PublicAuctionDto.class);
+                                                            if (dto != null) {
+                                                                allAuctions.add(dto);
+                                                            }
+                                                        }
+                                                    }
+                                                    listingCountLabel.setText(
+                                                            allAuctions.size() + " auctions");
+                                                    renderCurrentListingTab();
+                                                }
+                                            } catch (Exception e) {
+                                                System.err.println(
+                                                        "Error parsing auctions: "
+                                                                + e.getMessage());
+                                            }
+                                        }));
+    }
 
-            String corr = ns.sendRequest(EventType.GET_ALL_AUCTIONS_ADMIN, null);
-            ns.addCorrelationHandler(
-                    corr,
-                    raw -> {
-                        try {
-                            Map<?, ?> resp = JsonMapper.fromJson(raw, Map.class);
-                            if (Boolean.TRUE.equals(resp.get("success"))) {
-                                Object data = resp.get("data");
-                                if (data instanceof List<?> list) {
-                                    for (Object entry : list) {
-                                        String json = JsonMapper.toJson(entry);
-                                        PublicAuctionDto dto =
-                                                JsonMapper.fromJson(json, PublicAuctionDto.class);
-                                        if (dto != null) {
-                                            allAuctions.add(dto);
-                                        }
-                                    }
-                                }
-                            }
-                        } finally {
-                            latch.countDown();
-                        }
-                    });
-
-            latch.await(TIMEOUT_MS, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
+    private void toggleUserStatus(final UserRow row) {
+        if (row == null) {
+            return;
         }
+        if ("Admin".equalsIgnoreCase(row.role())) {
+            NotificationService.getInstance()
+                    .show(
+                            "Không thể thao tác trên tài khoản Admin",
+                            NotificationType.ERROR);
+            return;
+        }
+        final Map<String, Object> req = Map.of("targetUserId", row.id());
+        final NetworkService ns = NetworkService.getInstance();
+        ns.sendRequestAsync(EventType.TOGGLE_USER_STATUS_ADMIN, req)
+                .thenAccept(
+                        raw ->
+                                Platform.runLater(
+                                        () -> {
+                                            try {
+                                                final Map<?, ?> resp =
+                                                        JsonMapper.fromJson(raw, Map.class);
+                                                final boolean ok =
+                                                        Boolean.TRUE.equals(resp.get("success"));
+                                                final String msg =
+                                                        ok
+                                                                ? "Cập nhật trạng thái thành công"
+                                                                : String.valueOf(
+                                                                        resp.get("message"));
+                                                NotificationService.getInstance()
+                                                        .show(
+                                                                msg,
+                                                                ok
+                                                                        ? NotificationType.SUCCESS
+                                                                        : NotificationType.ERROR);
+                                                if (ok) {
+                                                    // Cập nhật trạng thái trực tiếp tại chỗ trên
+                                                    // TableView, tránh xóa bảng gây đơ giao diện
+                                                    final String newStatus =
+                                                            "Active".equalsIgnoreCase(row.status())
+                                                                    ? "Banned"
+                                                                    : "Active";
+                                                    final UserRow updatedRow =
+                                                            new UserRow(
+                                                                    row.id(),
+                                                                    row.username(),
+                                                                    row.email(),
+                                                                    row.role(),
+                                                                    row.balance(),
+                                                                    newStatus);
+                                                    final int index =
+                                                            usersTable.getItems().indexOf(row);
+                                                    if (index >= 0) {
+                                                        usersTable
+                                                                .getItems()
+                                                                .set(index, updatedRow);
+                                                    }
+                                                }
+                                            } catch (Exception e) {
+                                                System.err.println(
+                                                        "Error toggling user status: "
+                                                                + e.getMessage());
+                                            }
+                                        }));
     }
 
     // ── Listing tabs ─────────────────────────────────────────────────────

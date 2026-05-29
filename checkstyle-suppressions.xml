@@ -17,4 +17,6 @@
     <suppress files="MockDataProvider\.java" checks="[a-zA-Z0-9]*"/>
     <suppress files="MockAuctionClient\.java" checks="[a-zA-Z0-9]*"/>
     <suppress files="RequestDispatcher\.java" checks="Indentation"/>
+    <!-- Anonymous inner class in lambda CellFactory exceeds Checkstyle nesting level -->
+    <suppress files="AdminPageController\.java" checks="Indentation"/>
 </suppressions>

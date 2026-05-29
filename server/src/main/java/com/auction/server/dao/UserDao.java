@@ -264,4 +264,35 @@ public class UserDao implements IUserDao {
         }
         return list;
     }
+
+    @Override
+    public List<User> findAll() {
+        final String sql = "SELECT * FROM users ORDER BY user_id ASC";
+        final List<User> list = new ArrayList<>();
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql);
+                ResultSet rs = stmt.executeQuery()) {
+            while (rs.next()) {
+                list.add(mapUser(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("Error: Cannot find all users! " + e.getMessage());
+        }
+        return list;
+    }
+
+    @Override
+    public boolean updateActiveStatus(Integer userId, boolean isActive) {
+        final String sql = "UPDATE users SET is_active = ?, updated_at = ? WHERE user_id = ?";
+        try (Connection conn = DBConnection.getConnection();
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setBoolean(1, isActive);
+            stmt.setTimestamp(2, Timestamp.valueOf(java.time.LocalDateTime.now()));
+            stmt.setInt(3, userId);
+            return stmt.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("Error: Cannot update active status! " + e.getMessage());
+        }
+        return false;
+    }
 }

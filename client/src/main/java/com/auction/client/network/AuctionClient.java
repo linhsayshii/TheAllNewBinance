@@ -152,11 +152,10 @@ public class AuctionClient extends WebSocketClient {
             System.err.println("Cannot send request: Socket is not open");
             return;
         }
-        Map<String, Object> request =
-                Map.of(
-                        "type", type.wireValue(),
-                        "correlationId", correlationId,
-                        "payload", payload);
+        java.util.Map<String, Object> request = new java.util.HashMap<>();
+        request.put("type", type.wireValue());
+        request.put("correlationId", correlationId);
+        request.put("payload", payload);
         String json = JsonMapper.toJson(request);
         send(json);
     }

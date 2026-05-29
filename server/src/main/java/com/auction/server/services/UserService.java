@@ -70,9 +70,13 @@ public class UserService implements IUserService {
                             || isBlank(request.getPassword())) {
                         return null;
                     }
-                    User user = userDao.findByUsername(request.getUsername().trim());
+                    final User user = userDao.findByUsername(request.getUsername().trim());
                     if (user != null
                             && PasswordHasher.verify(request.getPassword(), user.getPassword())) {
+                        if (!Boolean.TRUE.equals(user.getIsActive())) {
+                            throw new IllegalArgumentException(
+                                    "Tài khoản của bạn đã bị vô hiệu hóa bởi Admin.");
+                        }
                         return user;
                     }
                     return null;
@@ -316,5 +320,34 @@ public class UserService implements IUserService {
     public CompletableFuture<List<Map<String, Object>>> getWalletTransactions(Integer userId) {
         return CompletableFuture.supplyAsync(
                 () -> userDao.getWalletTransactionsByUserId(userId), DBExecutor.getExecutor());
+    }
+
+    @Override
+    public CompletableFuture<List<User>> getAllUsers() {
+        return CompletableFuture.supplyAsync(
+                () -> userDao.findAll(), DBExecutor.getExecutor());
+    }
+
+    @Override
+    public CompletableFuture<Boolean> toggleUserStatus(Integer targetUserId) {
+        return CompletableFuture.supplyAsync(
+                () -> {
+                    final User user = userDao.findById(targetUserId);
+                    if (user == null) {
+                        throw new IllegalArgumentException("Không tìm thấy người dùng.");
+                    }
+                    if (user.getRole() == User.Role.ADMIN) {
+                        throw new IllegalArgumentException(
+                                "Không thể vô hiệu hóa tài khoản Admin hệ thống.");
+                    }
+                    final boolean newStatus = !Boolean.TRUE.equals(user.getIsActive());
+                    final boolean success = userDao.updateActiveStatus(targetUserId, newStatus);
+                    if (success && !newStatus) {
+                        com.auction.server.network.BroadcastBroker.getInstance()
+                                .forceLogoutAndDisconnectUser(targetUserId);
+                    }
+                    return success;
+                },
+                DBExecutor.getExecutor());
     }
 }

@@ -82,6 +82,39 @@ public final class BroadcastBroker {
     }
 
     /**
+     * Gửi sự kiện FORCE_LOGOUT_ADMIN tới tất cả các kết nối WebSocket của người dùng bị
+     * khóa, sau đó đóng kết nối với mã 1008 (Policy Violation). Sử dụng shallow copy
+     * để tránh ConcurrentModificationException khi onClose() xóa phần tử khỏi Set.
+     */
+    public void forceLogoutAndDisconnectUser(int userId) {
+        final Set<WebSocket> conns = userConnections.get(userId);
+        if (conns == null || conns.isEmpty()) {
+            return;
+        }
+        final Map<String, Object> message =
+                Map.of(
+                        "type", EventType.FORCE_LOGOUT_ADMIN.wireValue(),
+                        "success", true,
+                        "data", Map.of("reason", "banned"));
+        final String json = JsonMapper.toJson(message);
+        final java.util.List<WebSocket> shallowCopy = new java.util.ArrayList<>(conns);
+        for (final WebSocket conn : shallowCopy) {
+            if (conn.isOpen()) {
+                try {
+                    conn.send(json);
+                    conn.close(1008, "Banned by Admin");
+                } catch (Exception e) {
+                    System.err.println(
+                            "[BroadcastBroker] Lỗi khi ngắt kết nối user "
+                                    + userId
+                                    + ": "
+                                    + e.getMessage());
+                }
+            }
+        }
+    }
+
+    /**
      * Registers a WebSocket connection into an auction room. If the connection was previously
      * watching a different room, it is automatically evicted from the old room first.
      *

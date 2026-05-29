@@ -154,3 +154,23 @@
 .admin-card-promote-btn:disabled {
     -fx-opacity: 0.6;
 }
+
+/* ── Admin Ban/Activate Button ── */
+.admin-ban-btn {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-background-color: transparent;
+    -fx-border-color: -theme-primary;
+    -fx-border-width: 1;
+    -fx-border-radius: 4;
+    -fx-background-radius: 4;
+    -fx-text-fill: -theme-primary;
+    -fx-padding: 4 8 4 8;
+    -fx-cursor: hand;
+}
+
+.admin-ban-btn:hover {
+    -fx-background-color: -theme-primary;
+    -fx-text-fill: white;
+}

@@ -164,6 +164,26 @@ public class RequestDispatcher {
                                             ? error("Auction controller is not configured")
                                             : auctionCtrl.getAllAuctionsForAdmin(payload));
                         }
+                        case EventType.GET_ALL_USERS_ADMIN -> {
+                            if (!isAdminSession(sessionUserId)) {
+                                yield CompletableFuture.completedFuture(
+                                        error("Forbidden: Admin access required."));
+                            }
+                            yield CompletableFuture.completedFuture(
+                                    userCtrl == null
+                                            ? error("User controller is not configured")
+                                            : userCtrl.getAllUsersForAdmin(payload));
+                        }
+                        case EventType.TOGGLE_USER_STATUS_ADMIN -> {
+                            if (!isAdminSession(sessionUserId)) {
+                                yield CompletableFuture.completedFuture(
+                                        error("Forbidden: Admin access required."));
+                            }
+                            yield CompletableFuture.completedFuture(
+                                    userCtrl == null
+                                            ? error("User controller is not configured")
+                                            : userCtrl.toggleUserStatus(payload));
+                        }
                         default -> CompletableFuture.completedFuture(
                                 error("Endpoint not implemented: " + type.name()));
                     };
