@@ -10,10 +10,10 @@
     "endTime": "2026-05-23 01:19:00",
     "originalEndTime": "2026-05-22 21:00:00",
     "status": "ACTIVE",
-    "winnerId": 0,
-    "finalPrice": 0.0,
+    "winnerId": null,
+    "finalPrice": null,
     "isFeatured": true,
-    "featuredUntil": "2026-05-15 00:00:00",
+    "featuredUntil": "2026-06-15 00:00:00",
     "promotedDescription": "Mô hình siêu xe tỉ lệ 1:18, độ chi tiết cực cao, sơn tĩnh điện bóng loáng."
   },
   {
@@ -25,12 +25,12 @@
     "bidIncrement": 1.0,
     "startTime": "2026-05-19 10:30:00",
     "endTime": "2026-05-23 20:00:00",
-    "originalEndTime": "2026-05-13 20:00:00",
+    "originalEndTime": "2026-05-23 20:00:00",
     "status": "ACTIVE",
-    "winnerId": 0,
-    "finalPrice": 0.0,
+    "winnerId": null,
+    "finalPrice": null,
     "isFeatured": true,
-    "featuredUntil": "2026-05-15 00:00:00",
+    "featuredUntil": "2026-06-15 00:00:00",
     "promotedDescription": "Đồng hồ cơ lộ máy phong cách cổ điển, dây da bò thật, bảo hành 12 tháng."
   },
   {
@@ -44,10 +44,10 @@
     "endTime": "2026-05-24 18:00:00",
     "originalEndTime": "2026-05-24 18:00:00",
     "status": "ACTIVE",
-    "winnerId": 0,
-    "finalPrice": 0.0,
+    "winnerId": null,
+    "finalPrice": null,
     "isFeatured": true,
-    "featuredUntil": "2026-05-15 00:00:00",
+    "featuredUntil": "2026-06-15 00:00:00",
     "promotedDescription": "Tai nghe chống ồn chủ động, âm bass mạnh mẽ, pin trâu 40h liên tục."
   },
   {
@@ -61,9 +61,11 @@
     "endTime": "2026-05-24 22:00:00",
     "originalEndTime": "2026-05-24 22:00:00",
     "status": "ACTIVE",
-    "winnerId": 0,
-    "finalPrice": 0.0,
-    "isFeatured": false
+    "winnerId": null,
+    "finalPrice": null,
+    "isFeatured": false,
+    "featuredUntil": null,
+    "promotedDescription": null
   },
   {
     "id": 1005,
@@ -74,11 +76,13 @@
     "bidIncrement": 0.2,
     "startTime": "2026-05-21 10:21:00",
     "endTime": "2026-05-25 20:00:00",
-    "originalEndTime": "2026-05-18 20:00:00",
+    "originalEndTime": "2026-05-25 20:00:00",
     "status": "PENDING",
-    "winnerId": 0,
-    "finalPrice": 0.0,
-    "isFeatured": true
+    "winnerId": null,
+    "finalPrice": null,
+    "isFeatured": true,
+    "featuredUntil": "2026-06-15 00:00:00",
+    "promotedDescription": "Bộ lắp ráp Millennium Falcon siêu cấp, hơn 7500 mảnh chi tiết."
   },
   {
     "id": 1006,
@@ -89,11 +93,13 @@
     "bidIncrement": 0.5,
     "startTime": "2026-05-25 09:00:00",
     "endTime": "2026-05-26 21:00:00",
-    "originalEndTime": "2026-05-19 21:00:00",
+    "originalEndTime": "2026-05-26 21:00:00",
     "status": "PENDING",
-    "winnerId": 0,
-    "finalPrice": 0.0,
-    "isFeatured": false
+    "winnerId": null,
+    "finalPrice": null,
+    "isFeatured": false,
+    "featuredUntil": null,
+    "promotedDescription": null
   },
   {
     "id": 1007,
@@ -108,7 +114,9 @@
     "status": "ENDED",
     "winnerId": 1,
     "finalPrice": 11.2,
-    "isFeatured": false
+    "isFeatured": false,
+    "featuredUntil": null,
+    "promotedDescription": null
   },
   {
     "id": 1008,
@@ -121,8 +129,10 @@
     "endTime": "2026-05-02 18:00:00",
     "originalEndTime": "2026-05-02 18:00:00",
     "status": "ENDED",
-    "winnerId": 0,
-    "finalPrice": 0.0,
-    "isFeatured": false
+    "winnerId": null,
+    "finalPrice": null,
+    "isFeatured": false,
+    "featuredUntil": null,
+    "promotedDescription": null
   }
 ]

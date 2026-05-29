@@ -5,7 +5,11 @@
     "name": "Đồng hồ Vintage Omega Seamaster 1967",
     "description": "Đồng hồ cổ Omega Seamaster sản xuất năm 1967, mặt số màu xanh navy, dây da nguyên bản. Tình trạng rất tốt, có đầy đủ giấy tờ đi kèm.",
     "category": "WATCHES",
-    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779285761/DongHo101_vsxcra.jpg"
+    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779285761/DongHo101_vsxcra.jpg",
+    "brand": "Omega",
+    "condition": "Excellent",
+    "hasCertificate": true,
+    "watchMovement": "Automatic"
   },
   {
     "id": 102,
@@ -13,7 +17,11 @@
     "name": "Túi Hermès Birkin 30 Da Crocodile",
     "description": "Túi Hermès Birkin 30 da cá sấu màu nâu cognac năm 2019. Phụ kiện đầy đủ, hộp và giấy tờ gốc.",
     "category": "FASHION",
-    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779285761/Tui102_afleiv.jpg"
+    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779285761/Tui102_afleiv.jpg",
+    "brand": "Hermès",
+    "condition": "Like New",
+    "hasCertificate": true,
+    "fashionSize": "30"
   },
   {
     "id": 103,
@@ -21,7 +29,9 @@
     "name": "Tranh Sơn Dầu \"Hà Nội Mùa Đông\" - Bùi Xuân Phái",
     "description": "Tác phẩm sơn dầu trên canvas, kích thước 60×80cm. Chứng nhận xác thực từ nhà đấu giá Christie's 2015.",
     "category": "ART",
-    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779241324/tranh-son-dau-treo-tuong-ha-noi-mua-dong_advapd.jpg"
+    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779241324/tranh-son-dau-treo-tuong-ha-noi-mua-dong_advapd.jpg",
+    "artist": "Bùi Xuân Phái",
+    "yearCreated": 1980
   },
   {
     "id": 104,
@@ -29,7 +39,9 @@
     "name": "Guitar Acoustic Martin D-28 1975",
     "description": "Guitar acoustic huyền thoại Martin D-28 sản xuất 1975 tại Nazareth, PA. Âm thanh cực kỳ rich và warm. Đã được luthier kiểm tra.",
     "category": "MUSIC",
-    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779285761/Guitar104_f0wzst.jpg"
+    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779285761/Guitar104_f0wzst.jpg",
+    "artist": "Martin",
+    "yearCreated": 1975
   },
   {
     "id": 105,
@@ -37,7 +49,10 @@
     "name": "Bộ Lego Star Wars Millennium Falcon 75192",
     "description": "Bộ Lego 75192 Ultimate Collector Series, 7541 mảnh. Còn nguyên hộp, chưa mở. Phiên bản giới hạn năm 2017.",
     "category": "COLLECTIBLES",
-    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779285762/Lego105_m8af5e.jpg"
+    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779285762/Lego105_m8af5e.jpg",
+    "brand": "LEGO",
+    "condition": "New",
+    "hasCertificate": true
   },
   {
     "id": 106,
@@ -45,7 +60,9 @@
     "name": "Xe Đạp Pinarello Dogma F12 2022",
     "description": "Khung carbon T1100 3K Torayca, size 53. Gruppo Shimano Dura-Ace Di2 R9270 12-speed. Bánh Fulcrum Racing Zero Carbon.",
     "category": "SPORTS",
-    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779265652/xeDap106_acc2ro.jpg"
+    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779265652/xeDap106_acc2ro.jpg",
+    "model": "Dogma F12",
+    "warrantyMonths": 24
   },
   {
     "id": 107,
@@ -53,7 +70,9 @@
     "name": "Máy Ảnh Leica M6 + Summicron 35mm f/2",
     "description": "Leica M6 TTL Chrome 0.72 như mới, shutter đã qua bảo dưỡng 2024. Kèm Summicron-M 35mm f/2 ASPH đời 7, CLA 2023.",
     "category": "CAMERAS",
-    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779285761/MayAnh107_fs6u0b.jpg"
+    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779285761/MayAnh107_fs6u0b.jpg",
+    "model": "Leica M6",
+    "warrantyMonths": 12
   },
   {
     "id": 108,
@@ -61,6 +80,10 @@
     "name": "Rượu Vang Petrus 1982 Pomerol",
     "description": "Chai Petrus 1982 Pomerol, vintage huyền thoại. Được bảo quản trong hầm nhiệt độ 14°C liên tục. Robert Parker 100/100 điểm.",
     "category": "WINE",
-    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779285762/RuouVang108_fleeuh.jpg"
+    "imageUrl": "https://res.cloudinary.com/dpclmah9p/image/upload/v1779285762/RuouVang108_fleeuh.jpg",
+    "brand": "Petrus",
+    "condition": "Excellent",
+    "hasCertificate": true,
+    "bottleSize": 0.75
   }
 ]
