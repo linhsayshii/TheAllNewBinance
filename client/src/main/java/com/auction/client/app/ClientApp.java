@@ -36,7 +36,7 @@ public class ClientApp extends Application {
         ItemFactoryProvider.initialize();
 
         // Init network FIRST — controllers register handlers on initialize()
-        NetworkService.init("ws://localhost:8080");
+        NetworkService.init("wss://binance.hnglinh.io.vn");
 
         // ── Mock Mode ──────────────────────────────────────────────────
         if (AppConfig.isMockMode()) {
