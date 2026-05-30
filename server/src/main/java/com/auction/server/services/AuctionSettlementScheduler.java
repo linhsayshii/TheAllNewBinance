@@ -88,28 +88,16 @@ public class AuctionSettlementScheduler {
                     "[AuctionSettlementScheduler] Initializing active and pending auction"
                             + " timers...");
 
-            // 1. Phục hồi và lập lịch đóng phiên cho các Auction ACTIVE
-            com.auction.core.dto.auction.GetPublicAuctionsRequest activeReq =
-                    new com.auction.core.dto.auction.GetPublicAuctionsRequest();
-            activeReq.setStatus("ACTIVE");
-            activeReq.setIncludeEndingSoon(false);
-            activeReq.setIncludeTrending(false);
-
+            // 1. Phục hồi và lập lịch đóng phiên cho các Auction ACTIVE (lấy tất cả không lọc thời gian)
             List<PublicAuctionDto> activeAuctions =
-                    auctionDao.getPublicAuctions(0, 10000, activeReq);
+                    auctionDao.getAllAuctionsForAdmin(List.of("ACTIVE"), 0, 10000);
             for (PublicAuctionDto dto : activeAuctions) {
                 scheduleAuctionClose(dto.getAuctionId(), dto.getEndTime());
             }
 
-            // 2. Phục hồi và lập lịch mở phiên cho các Auction PENDING
-            com.auction.core.dto.auction.GetPublicAuctionsRequest pendingReq =
-                    new com.auction.core.dto.auction.GetPublicAuctionsRequest();
-            pendingReq.setStatus("PENDING");
-            pendingReq.setIncludeEndingSoon(false);
-            pendingReq.setIncludeTrending(false);
-
+            // 2. Phục hồi và lập lịch mở phiên cho các Auction PENDING (lấy tất cả không lọc thời gian)
             List<PublicAuctionDto> pendingAuctions =
-                    auctionDao.getPublicAuctions(0, 10000, pendingReq);
+                    auctionDao.getAllAuctionsForAdmin(List.of("PENDING"), 0, 10000);
             for (PublicAuctionDto dto : pendingAuctions) {
                 scheduleAuctionStart(dto.getAuctionId(), dto.getStartTime());
             }
@@ -389,7 +377,7 @@ public class AuctionSettlementScheduler {
 
                             auction.setWinnerId(winnerId);
                             auction.setFinalPrice(highestBid.getAmount());
-                            auctionDao.updateAuctionInformation(conn, auction);
+                            auction.setStatus(Auction.Status.ENDED);
                         } else {
                             // Winner bùng tiền: tước cọc 30% sang Seller làm phạt
                             winner.commitBid(depositAmountBD);
@@ -413,9 +401,9 @@ public class AuctionSettlementScheduler {
                                     "SUCCESS",
                                     "PENALTY_" + auctionId);
 
+                            auction.setWinnerId(null);
                             auction.setFinalPrice(0.0);
                             auction.setStatus(Auction.Status.CANCELLED);
-                            auctionDao.updateAuctionInformation(conn, auction);
                         }
                     }
                 }
@@ -428,11 +416,15 @@ public class AuctionSettlementScheduler {
                                 .distinct()
                                 .filter(id -> !id.equals(winId))
                                 .collect(Collectors.toList());
+            } else {
+                // Không có ai thầu: hủy phiên đấu giá
+                auction.setWinnerId(null);
+                auction.setFinalPrice(0.0);
+                auction.setStatus(Auction.Status.CANCELLED);
             }
 
-            if (auction.getStatus() != Auction.Status.CANCELLED) {
-                auction.setStatus(Auction.Status.ENDED);
-            }
+            // Ghi nhận trạng thái cuối cùng xuống DB trước khi commit transaction
+            auctionDao.updateAuctionInformation(conn, auction);
 
             DBConnection.commitTransaction();
 
