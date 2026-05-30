@@ -350,10 +350,18 @@ public class AuctionSettlementScheduler {
                         BigDecimal depositAmountBD = BigDecimal.valueOf(depositAmount);
                         BigDecimal remainingAmount = totalWinAmount.subtract(depositAmountBD);
 
-                        if (winner.getBalance().compareTo(remainingAmount) >= 0) {
+                        BigDecimal actualLockDeduction = winner.getLockedBalance().min(depositAmountBD);
+                        BigDecimal balanceDeductionForDeposit = depositAmountBD.subtract(actualLockDeduction);
+                        BigDecimal totalBalanceDeduction = remainingAmount.add(balanceDeductionForDeposit);
+
+                        if (winner.getBalance().compareTo(totalBalanceDeduction) >= 0) {
                             // Winner đủ tiền: thanh toán phần còn lại, chuyển full cho Seller
-                            winner.commitBid(depositAmountBD);
-                            winner.withdraw(remainingAmount);
+                            if (actualLockDeduction.compareTo(BigDecimal.ZERO) > 0) {
+                                winner.commitBid(actualLockDeduction);
+                            }
+                            if (totalBalanceDeduction.compareTo(BigDecimal.ZERO) > 0) {
+                                winner.withdraw(totalBalanceDeduction);
+                            }
                             seller.deposit(totalWinAmount);
 
                             userDao.updateBalanceAndLockedBalance(conn, winner);
@@ -380,7 +388,16 @@ public class AuctionSettlementScheduler {
                             auction.setStatus(Auction.Status.ENDED);
                         } else {
                             // Winner bùng tiền: tước cọc 30% sang Seller làm phạt
-                            winner.commitBid(depositAmountBD);
+                            if (actualLockDeduction.compareTo(BigDecimal.ZERO) > 0) {
+                                winner.commitBid(actualLockDeduction);
+                            }
+                            if (balanceDeductionForDeposit.compareTo(BigDecimal.ZERO) > 0) {
+                                BigDecimal actualBalanceDeduction = winner.getBalance()
+                                        .min(balanceDeductionForDeposit);
+                                if (actualBalanceDeduction.compareTo(BigDecimal.ZERO) > 0) {
+                                    winner.withdraw(actualBalanceDeduction);
+                                }
+                            }
                             seller.deposit(depositAmountBD);
                             userDao.updateBalanceAndLockedBalance(conn, winner);
                             userDao.updateBalanceAndLockedBalance(conn, seller);
