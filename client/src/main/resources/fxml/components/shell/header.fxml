@@ -43,7 +43,7 @@
                         onAction="#handleGoToAdmin" visible="false" managed="false" />
             </children>
         </HBox>
-        <Button onAction="#handleToggleTheme" styleClass="gp-theme-icon-btn">
+        <Button onAction="#handleToggleTheme" styleClass="gp-theme-icon-btn" visible="false" managed="false">
             <graphic>
                 <FontIcon fx:id="themeModeIcon" iconLiteral="fas-sun" iconSize="18" styleClass="gp-theme-mode-icon" />
             </graphic>
