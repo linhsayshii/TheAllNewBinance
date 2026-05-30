@@ -564,16 +564,9 @@ public class MockDataProvider {
             data.put("timestamp", timestamp);
             data.put("apiKey", apiKey);
 
-            Map<String, Object> response = new java.util.HashMap<>();
-            response.put("status", "success");
-            response.put("data", data);
-
-            return JsonMapper.toJson(response);
+            return successJson(data);
         } catch (Exception e) {
-            Map<String, Object> response = new java.util.HashMap<>();
-            response.put("status", "error");
-            response.put("message", e.getMessage());
-            return JsonMapper.toJson(response);
+            return errorJson(e.getMessage());
         }
     }
 

@@ -25,7 +25,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 
 /**
  * Kiểm thử ranh giới luồng (Thread Boundary Validation) cho {@link ProductDetailPageController}.
@@ -50,8 +49,8 @@ import org.mockito.Mockito;
 public class ProductDetailPageThreadBoundaryTest extends BaseUiTest {
 
     private ProductDetailPageController loadedController;
-    private ProductDetailPageController controllerSpy;
     private MockAuctionClient mockClient;
+    private volatile Consumer<java.util.List<com.auction.core.auction.Bid>> drawChartInterceptor = null;
 
     @BeforeAll
     static void initNetworkServiceWithMock() {
@@ -85,9 +84,13 @@ public class ProductDetailPageThreadBoundaryTest extends BaseUiTest {
         // Bước 1: Bootstrap NavigationService với SceneService mock.
         // Header FXML component gọi NavigationService.getInstance().isDarkTheme() trong
         // initialize() — nếu singleton null sẽ ném NPE ngay lúc FXMLLoader.load().
-        // Dùng Mockito.mock() để tránh khởi tạo SceneService thật (cần Stage thật + stylesheets).
-        SceneService mockSceneService = Mockito.mock(SceneService.class);
-        Mockito.when(mockSceneService.isDarkTheme()).thenReturn(false);
+        // Tránh dùng Mockito.mock(SceneService.class) vì lỗi class-modification trên JDK 25.
+        SceneService mockSceneService = new SceneService(null, java.util.List.of()) {
+            @Override
+            public boolean isDarkTheme() {
+                return false;
+            }
+        };
         // NavigationService constructor tự gán instance = this — đây là cách chuẩn để bootstrap
         new NavigationService(mockSceneService);
 
@@ -95,11 +98,27 @@ public class ProductDetailPageThreadBoundaryTest extends BaseUiTest {
         FXMLLoader loader =
                 new FXMLLoader(
                         getClass().getResource("/fxml/pages/product-detail-page.fxml"));
+        // Cấu hình Controller Factory để tránh dùng Mockito.spy() gây lỗi class-modification trên JDK 25
+        loader.setControllerFactory(param -> {
+            if (param == ProductDetailPageController.class) {
+                return new ProductDetailPageController() {
+                    @Override
+                    public void drawChart(java.util.List<com.auction.core.auction.Bid> bids) {
+                        if (drawChartInterceptor != null) {
+                            drawChartInterceptor.accept(bids);
+                        }
+                        super.drawChart(bids);
+                    }
+                };
+            }
+            try {
+                return param.getDeclaredConstructor().newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
         Parent root = loader.load();
         loadedController = loader.getController();
-
-        // Tạo Spy sau khi FXML đã tiêm đầy đủ — tránh NPE trên @FXML fields
-        controllerSpy = Mockito.spy(loadedController);
 
         // Lấy MockAuctionClient để inject gói tin thẳng vào typedHandlers
         mockClient = (MockAuctionClient) NetworkService.getInstance().getClient();
@@ -110,6 +129,7 @@ public class ProductDetailPageThreadBoundaryTest extends BaseUiTest {
 
     @AfterEach
     void cleanupSystemProperty() {
+        drawChartInterceptor = null;
         // QUAN TRỌNG: Không reset NetworkService ở đây.
         // TestFX gọi start() mỗi test method nhưng @BeforeAll chỉ chạy 1 lần.
         // Nếu reset NetworkService ở @AfterEach, test tiếp theo sẽ gặp IllegalStateException.
@@ -140,36 +160,30 @@ public class ProductDetailPageThreadBoundaryTest extends BaseUiTest {
         CountDownLatch drawChartLatch = new CountDownLatch(1);
         AtomicReference<Throwable> threadException = new AtomicReference<>();
 
-        // Intercept drawChart() — phương thức public — để assert thread tại điểm cập nhật UI
-        Mockito.doAnswer(
-                        invocation -> {
-                            try {
-                                // ASSERT QUAN TRỌNG: Tại đây, luồng PHẢI là JavaFX Application
-                                // Thread.
-                                // Nếu không, Controller đang cập nhật UI Node từ Virtual Thread —
-                                // sẽ ném IllegalStateException trong production.
-                                assertTrue(
-                                        Platform.isFxApplicationThread(),
-                                        "drawChart() must be called on JavaFX Application Thread!"
-                                                + " Actual thread: "
-                                                + Thread.currentThread().getName());
+        // Cấu hình interceptor cho drawChart() để kiểm tra thread
+        drawChartInterceptor = bids -> {
+            try {
+                // ASSERT QUAN TRỌNG: Tại đây, luồng PHẢI là JavaFX Application Thread.
+                // Nếu không, Controller đang cập nhật UI Node từ Virtual Thread —
+                // sẽ ném IllegalStateException trong production.
+                assertTrue(
+                        Platform.isFxApplicationThread(),
+                        "drawChart() must be called on JavaFX Application Thread!"
+                                + " Actual thread: "
+                                + Thread.currentThread().getName());
 
-                                // Assert đồ thị Node không mồ côi (Live Scene Graph)
-                                assertNotNull(
-                                        loadedController.bidHistoryList().getScene(),
-                                        "bidHistoryList must be attached to a Live Scene Graph!");
-                            } catch (Throwable t) {
-                                threadException.set(t);
-                            } finally {
-                                drawChartLatch.countDown();
-                            }
-                            // Gọi thực tế của drawChart() để không phá vỡ flow
-                            return invocation.callRealMethod();
-                        })
-                .when(controllerSpy)
-                .drawChart(Mockito.anyList());
+                // Assert đồ thị Node không mồ côi (Live Scene Graph)
+                assertNotNull(
+                        loadedController.bidHistoryList().getScene(),
+                        "bidHistoryList must be attached to a Live Scene Graph!");
+            } catch (Throwable t) {
+                threadException.set(t);
+            } finally {
+                drawChartLatch.countDown();
+            }
+        };
 
-        // Thay thế handler gốc trong typedHandlers bằng version gọi qua controllerSpy
+        // Thay thế handler gốc trong typedHandlers bằng version gọi qua loadedController
         java.util.Map<String, Consumer<String>> placeBidHandlers =
                 mockClient.getTypedHandlers().get(EventType.PLACE_BID);
         Consumer<String> originalHandler =
@@ -182,14 +196,13 @@ public class ProductDetailPageThreadBoundaryTest extends BaseUiTest {
                     "PRODUCT_DETAIL_PAGE",
                     json -> {
                         // Dùng reflection để gọi private handlePlaceBidResponse trên
-                        // controllerSpy — đây là cách duy nhất intercept private method
-                        // trong khi vẫn đảm bảo Mockito Spy có thể theo dõi drawChart()
+                        // loadedController — đây là cách duy nhất intercept private method
                         try {
                             java.lang.reflect.Method method =
                                     ProductDetailPageController.class.getDeclaredMethod(
                                             "handlePlaceBidResponse", String.class);
                             method.setAccessible(true);
-                            method.invoke(controllerSpy, json);
+                            method.invoke(loadedController, json);
                         } catch (Exception e) {
                             threadException.set(e);
                             drawChartLatch.countDown();
@@ -273,16 +286,12 @@ public class ProductDetailPageThreadBoundaryTest extends BaseUiTest {
         CountDownLatch latch = new CountDownLatch(1);
 
         // Monitor: nếu drawChart() được gọi từ non-FX thread, ghi lại vi phạm
-        Mockito.doAnswer(
-                        invocation -> {
-                            if (!Platform.isFxApplicationThread()) {
-                                drawChartCalledOnNonFxThread.set(true);
-                            }
-                            latch.countDown();
-                            return invocation.callRealMethod();
-                        })
-                .when(controllerSpy)
-                .drawChart(Mockito.anyList());
+        drawChartInterceptor = bids -> {
+            if (!Platform.isFxApplicationThread()) {
+                drawChartCalledOnNonFxThread.set(true);
+            }
+            latch.countDown();
+        };
 
         // Gọi handler trực tiếp từ Virtual Thread (không qua MockAuctionClient)
         String bidJson =
@@ -299,7 +308,7 @@ public class ProductDetailPageThreadBoundaryTest extends BaseUiTest {
                                 ProductDetailPageController.class.getDeclaredMethod(
                                         "handlePlaceBidResponse", String.class);
                         method.setAccessible(true);
-                        method.invoke(controllerSpy, bidJson);
+                        method.invoke(loadedController, bidJson);
                     } catch (Exception e) {
                         latch.countDown();
                     }

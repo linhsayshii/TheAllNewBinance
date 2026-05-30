@@ -54,37 +54,11 @@ public class UserServiceTest {
     }
 
     private void injectMockConnection() throws Exception {
-        java.lang.reflect.Field field = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
-        field.setAccessible(true);
-        sun.misc.Unsafe unsafe = (sun.misc.Unsafe) field.get(null);
-
-        java.lang.reflect.Field realHolderField = DBConnection.class.getDeclaredField("REAL_CONNECTION_HOLDER");
-        Object realBase = unsafe.staticFieldBase(realHolderField);
-        long realOffset = unsafe.staticFieldOffset(realHolderField);
-
-        ThreadLocal<Connection> customHolder = ThreadLocal.withInitial(() -> mockConnection);
-        unsafe.putObject(realBase, realOffset, customHolder);
-
-        java.lang.reflect.Field proxyHolderField = DBConnection.class.getDeclaredField("PROXY_CONNECTION_HOLDER");
-        Object proxyBase = unsafe.staticFieldBase(proxyHolderField);
-        long proxyOffset = unsafe.staticFieldOffset(proxyHolderField);
-        unsafe.putObject(proxyBase, proxyOffset, customHolder);
+        DBConnection.setMockConnectionOverride(mockConnection);
     }
 
     private void cleanupMockConnection() throws Exception {
-        java.lang.reflect.Field field = sun.misc.Unsafe.class.getDeclaredField("theUnsafe");
-        field.setAccessible(true);
-        sun.misc.Unsafe unsafe = (sun.misc.Unsafe) field.get(null);
-
-        java.lang.reflect.Field realHolderField = DBConnection.class.getDeclaredField("REAL_CONNECTION_HOLDER");
-        Object realBase = unsafe.staticFieldBase(realHolderField);
-        long realOffset = unsafe.staticFieldOffset(realHolderField);
-        unsafe.putObject(realBase, realOffset, new ThreadLocal<Connection>());
-
-        java.lang.reflect.Field proxyHolderField = DBConnection.class.getDeclaredField("PROXY_CONNECTION_HOLDER");
-        Object proxyBase = unsafe.staticFieldBase(proxyHolderField);
-        long proxyOffset = unsafe.staticFieldOffset(proxyHolderField);
-        unsafe.putObject(proxyBase, proxyOffset, new ThreadLocal<Connection>());
+        DBConnection.setMockConnectionOverride(null);
     }
 
     /**

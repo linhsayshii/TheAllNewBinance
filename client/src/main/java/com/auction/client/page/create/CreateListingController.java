@@ -282,8 +282,7 @@ public class CreateListingController implements Initializable, LifecycleAwareCon
                                 }
 
                                 if (map != null
-                                        && map.containsKey("status")
-                                        && "success".equals(map.get("status"))) {
+                                        && Boolean.TRUE.equals(map.get("success"))) {
                                     @SuppressWarnings("unchecked")
                                     Map<String, Object> data =
                                             (Map<String, Object>) map.get("data");
