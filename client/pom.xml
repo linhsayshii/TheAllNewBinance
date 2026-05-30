@@ -15,6 +15,7 @@
 
     <properties>
         <javafx.version>21.0.4</javafx.version>
+        <javafx.platform>linux</javafx.platform> <!-- Default fallback platform -->
         <app.devMode>false</app.devMode>
         <app.hotReload>false</app.hotReload>
         <app.mockMode>false</app.mockMode>
@@ -31,24 +32,28 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
             <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-base</artifactId>
             <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
 
         <dependency>
@@ -188,10 +193,94 @@
                     </options>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.auction.client.app.Launcher</mainClass>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
 
     <profiles>
+        <!-- Detect Windows -->
+        <profile>
+            <id>javafx-win</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <javafx.platform>win</javafx.platform>
+            </properties>
+        </profile>
+        <!-- Detect Linux x86_64 -->
+        <profile>
+            <id>javafx-linux</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>linux</name>
+                </os>
+            </activation>
+            <properties>
+                <javafx.platform>linux</javafx.platform>
+            </properties>
+        </profile>
+        <!-- Detect macOS Intel (x86_64) -->
+        <profile>
+            <id>javafx-mac-x64</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                    <arch>x86_64</arch>
+                </os>
+            </activation>
+            <properties>
+                <javafx.platform>mac</javafx.platform>
+            </properties>
+        </profile>
+        <!-- Detect macOS ARM64 (Apple Silicon) -->
+        <profile>
+            <id>javafx-mac-arm64</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <properties>
+                <javafx.platform>mac-aarch64</javafx.platform>
+            </properties>
+        </profile>
+
         <profile>
             <id>dev</id>
             <properties>
