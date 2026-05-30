@@ -23,6 +23,7 @@ public class ProfileAuctionCardController {
 
     private static final long MAX_CLICK_DURATION_MILLIS = 250;
 
+    @FXML private javafx.scene.layout.VBox cardRoot;
     @FXML private javafx.scene.layout.StackPane imageContainer;
     @FXML private Label imageLabel;
     @FXML private Label titleLabel;
@@ -86,8 +87,16 @@ public class ProfileAuctionCardController {
         ImageLoader.loadImage(model.imageUrl(), imageContainer, imageLabel);
 
         titleLabel.setText(model.title() != null ? model.title() : "Untitled");
-        priceCaptionLabel.setText(
-                model.priceCaption() != null ? model.priceCaption() : "Current bid");
+        String caption = "Current bid";
+        if (model.badgeLabel() != null) {
+            String badge = model.badgeLabel().toUpperCase();
+            switch (badge) {
+                case "LIVE", "WINNING", "OUTBID" -> caption = "Current bid";
+                case "PENDING" -> caption = "Opening bid";
+                case "WON", "SOLD", "UNSOLD", "CANCELLED" -> caption = "Final bid";
+            }
+        }
+        priceCaptionLabel.setText(caption);
         priceLabel.setText(model.price() != null ? model.price() : "$—");
         timeLabel.setText(model.timeInfo() != null ? model.timeInfo() : "");
 
@@ -96,6 +105,18 @@ public class ProfileAuctionCardController {
         badgeLabel.getStyleClass().removeIf(sc -> sc.startsWith("badge-"));
         if (model.badgeStyleClass() != null && !model.badgeStyleClass().isBlank()) {
             badgeLabel.getStyleClass().add(model.badgeStyleClass());
+        }
+
+        // Apply card-level status class for dynamic styling (similar to general page cards)
+        if (cardRoot != null) {
+            cardRoot.getStyleClass().removeAll("profile-card-live", "profile-card-pending", "profile-card-ended");
+            String badge = model.badgeLabel() != null ? model.badgeLabel().toUpperCase() : "";
+            switch (badge) {
+                case "LIVE", "WINNING", "OUTBID" -> cardRoot.getStyleClass().add("profile-card-live");
+                case "PENDING" -> cardRoot.getStyleClass().add("profile-card-pending");
+                case "WON", "SOLD", "UNSOLD", "CANCELLED" -> cardRoot.getStyleClass().add("profile-card-ended");
+                default -> cardRoot.getStyleClass().add("profile-card-live");
+            }
         }
 
         // Promote button — show only when callback is provided
