@@ -1,5 +1,16 @@
 package com.auction.server.services;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
 import com.auction.core.dto.auction.CreateAuctionRequest;
@@ -11,16 +22,6 @@ import com.auction.core.dto.auction.PublicAuctionDto;
 import com.auction.core.exception.auction.InvalidBidException;
 import com.auction.core.services.IAuctionService;
 import com.auction.server.dao.impl.IAuctionDao;
-import java.sql.Connection;
-import java.sql.SQLException;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.LocalTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class AuctionService implements IAuctionService {
     private final IAuctionDao auctionDao;
@@ -121,6 +122,7 @@ public class AuctionService implements IAuctionService {
                                     .scheduleAuctionClose(auction.getId(), auction.getEndTime());
                         }
 
+                        publicAuctionsCache.clear(); // Xóa cache khi có phiên mới
                         return auction;
 
                     } catch (Exception e) {
@@ -160,6 +162,7 @@ public class AuctionService implements IAuctionService {
             throw new InvalidBidException(
                     "Không thể cập nhật trạng thái đấu giá, có thể do xung đột thầu.");
         }
+        publicAuctionsCache.clear(); // Xóa cache khi đặt giá thành công
         return CompletableFuture.completedFuture(null);
     }
 
@@ -180,6 +183,7 @@ public class AuctionService implements IAuctionService {
                         "Không thể cập nhật trạng thái đấu giá trong transaction, có thể do xung"
                                 + " đột thầu.");
             }
+            publicAuctionsCache.clear(); // Xóa cache khi đặt giá thành công trong transaction
             return CompletableFuture.completedFuture(null);
         } catch (SQLException e) {
             CompletableFuture<Void> failed = new CompletableFuture<>();
@@ -200,6 +204,7 @@ public class AuctionService implements IAuctionService {
                             // Hủy bỏ mọi tác vụ lập lịch đang chờ của auctionId này
                             AuctionSettlementScheduler.getInstance()
                                     .cancelScheduledTasks(auctionId);
+                            publicAuctionsCache.clear(); // Xóa cache khi xóa phiên
                         }
                     }
                     return auction;
@@ -373,8 +378,12 @@ public class AuctionService implements IAuctionService {
 
                     // Fallback description n\u1ebfu r\u1ed7ng s\u1ebd x\u1eed l\u00fd \u1edf DAO
                     // (d\u00f9ng item description)
-                    return auctionDao.promoteAuction(
+                    boolean promoted = auctionDao.promoteAuction(
                             request.getAuctionId(), featuredUntil, request.getShortDescription());
+                    if (promoted) {
+                        publicAuctionsCache.clear(); // Xóa cache khi quảng bá phiên
+                    }
+                    return promoted;
                 });
     }
 

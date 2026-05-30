@@ -25,7 +25,7 @@ public class AuctionQueryService {
     private static final long RESPONSE_TIMEOUT_MS = 5000;
     private static final long OPEN_WAIT_TIMEOUT_MS = 5000;
     private static final long OPEN_WAIT_STEP_MS = 100;
-    private static final long CLIENT_CACHE_TTL_MS = 10_000;
+    private static final long CLIENT_CACHE_TTL_MS = 0;
     private static final String STATUS_ACTIVE = "ACTIVE";
     private static final String STATUS_PENDING = "PENDING";
     private static final DateTimeFormatter UPCOMING_TIME_FORMAT =
@@ -43,25 +43,7 @@ public class AuctionQueryService {
             List<ProductCardUiModel> liveAuctions, List<ProductCardUiModel> upcomingAuctions) {}
 
     public AuctionFeed getFeaturedAuctionFeed() {
-        long now = System.currentTimeMillis();
-        if (now < cacheExpiresAtMillis
-                && (!cachedFeed.liveAuctions().isEmpty()
-                        || !cachedFeed.upcomingAuctions().isEmpty())) {
-            return cachedFeed;
-        }
-
-        AuctionFeed feed = fetchPublicAuctions();
-        if (!feed.liveAuctions().isEmpty() || !feed.upcomingAuctions().isEmpty()) {
-            cachedFeed = feed;
-            cacheExpiresAtMillis = now + CLIENT_CACHE_TTL_MS;
-            return feed;
-        }
-
-        if (!cachedFeed.liveAuctions().isEmpty() || !cachedFeed.upcomingAuctions().isEmpty()) {
-            return cachedFeed;
-        }
-
-        return new AuctionFeed(List.of(), List.of());
+        return fetchPublicAuctions();
     }
 
     public List<ProductCardUiModel> getFeaturedAuctions() {
