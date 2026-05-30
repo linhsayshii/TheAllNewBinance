@@ -1,7 +1,7 @@
 /* dark.css */
 .root {
     /* --- NỀN TẢNG (BACKGROUND & SURFACE) --- */
-    -theme-bg-main:      -color-text-900;    /* Nền tổng: Đen ánh tím cực sâu */
+    -theme-bg-main:      -color-black;    /* Nền tổng: Đen */
     -theme-bg-surface:   -color-text-800;    /* Card/Panel: Sáng hơn nền 1 tone để tạo khối */
     -theme-border:       -color-text-600;    /* Viền hiển thị rõ trên nền tối */
 
@@ -12,12 +12,12 @@
 
     /* --- MÀU CHỦ ĐẠO (BRAND COLORS) --- */
     /* Trong Dark Mode, màu 500 thường bị chìm. Ta nên lùi về 400 hoặc 300 để nó rực lên */
-    -theme-primary:        -color-primary-400; 
-    -theme-primary-hover:  -color-primary-300; /* Rực sáng hơn khi hover */
-    -theme-primary-active: -color-primary-200;
+    -theme-primary:        -color-secondary-400; 
+    -theme-primary-hover:  -color-secondary-300; /* Rực sáng hơn khi hover */
+    -theme-primary-active: -color-secondary-200;
 
-    -theme-secondary:        -color-secondary-400;
-    -theme-secondary-hover:  -color-secondary-300;
+    -theme-secondary:        -color-primary-400;
+    -theme-secondary-hover:  -color-primary-300;
 
     -theme-accent:         -color-accent-400;
 

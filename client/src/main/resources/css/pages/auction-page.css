@@ -308,14 +308,28 @@
     -fx-background-insets: 0;
     -fx-background-color: transparent;
     -fx-border-color: transparent;
+    -fx-padding: 0;
 }
 
 .auction-bid-list .list-cell {
     -fx-font-family: "Montserrat";
-    -fx-font-size: 12px;
-    -fx-padding: 6 4 6 4;
-    -fx-border-color: transparent transparent -theme-secondary transparent;
+    -fx-font-size: 13px;
+    -fx-padding: 10 8 10 8;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -theme-border transparent;
+    -fx-border-width: 0 0 1 0;
     -fx-text-fill: -theme-text-main;
+}
+
+.auction-bid-list .list-cell:filled:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.04);
+    -fx-text-fill: -theme-primary;
+}
+
+.auction-bid-list .list-cell:filled:selected {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-text-fill: -theme-primary;
+    -fx-font-weight: bold;
 }
 
 .auction-bid-list .list-cell:empty {

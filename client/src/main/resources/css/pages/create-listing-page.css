@@ -93,17 +93,30 @@
     -fx-font-family: 'Montserrat';
     -fx-font-size: 13px;
     -fx-font-weight: 600;
-    -fx-text-fill: -theme-text-muted;
+    -fx-text-fill: -theme-text-main;
     -fx-padding: 0 0 4 0;
 }
 
 .create-listing-input, 
 .create-listing-textarea, 
-.create-listing-combo, 
+.create-listing-combo {
+    -fx-background-color: -theme-bg-main;
+    -fx-text-fill: -theme-text-main;
+    -fx-prompt-text-fill: -theme-text-muted;
+    -fx-border-color: -theme-border;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-border-width: 1;
+    -fx-font-family: 'Montserrat';
+    -fx-font-size: 14px;
+    -fx-padding: 10 14;
+    -fx-focus-traversable: true;
+}
+
 .create-listing-datepicker {
     -fx-background-color: -theme-bg-main;
     -fx-text-fill: -theme-text-main;
-    -fx-prompt-text-fill: -theme-text-main;
+    -fx-prompt-text-fill: -theme-text-muted;
     -fx-border-color: -theme-border;
     -fx-border-radius: 8;
     -fx-background-radius: 8;
@@ -157,7 +170,51 @@
 .create-listing-datepicker > .date-picker-display-node {
     -fx-background-color: transparent;
     -fx-padding: 0;
+    -fx-text-fill: -theme-text-main;
 }
+
+/* Style cho popup lịch của DatePicker */
+.date-picker-popup {
+    -fx-background-color: -theme-bg-surface;
+    -fx-border-color: -theme-border;
+    -fx-border-width: 1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+}
+
+.date-picker-popup .label {
+    -fx-text-fill: -theme-text-main;
+}
+
+.date-picker-popup .button {
+    -fx-text-fill: -theme-text-main;
+    -fx-background-color: transparent;
+}
+
+.date-picker-popup .date-cell {
+    -fx-text-fill: -theme-text-main;
+    -fx-background-color: transparent;
+}
+
+.date-picker-popup .day-name {
+    -fx-text-fill: -theme-text-secondary;
+}
+
+.date-picker-popup .date-cell:hover {
+    -fx-background-color: -theme-border;
+    -fx-text-fill: -theme-primary;
+}
+
+.date-picker-popup .selected {
+    -fx-background-color: -theme-primary;
+    -fx-text-fill: -theme-text-on-fill;
+}
+
+.date-picker-popup .previous-month,
+.date-picker-popup .next-month {
+    -fx-text-fill: -theme-text-muted;
+}
+
 
 /* ============================================================
    Image Upload Row

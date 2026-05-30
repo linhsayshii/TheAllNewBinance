@@ -114,4 +114,8 @@
     -color-info-700: #214096;
     -color-info-800: #1E2E6B;
     -color-info-900: #1C1D41;
+
+    /* --- OTHER --- */
+    -color-black: #000000;
+    -color-white: #FFFFFF;
 }
