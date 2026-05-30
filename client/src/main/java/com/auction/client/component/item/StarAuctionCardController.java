@@ -184,10 +184,10 @@ public class StarAuctionCardController {
                 if (totalHours >= 24) {
                     long days = totalHours / 24;
                     long hours = totalHours % 24;
-                    timeLabel.setText(String.format("Ends in %dd %dh", days, hours));
+                    timeLabel.setText(String.format("Ends after %dd %dh", days, hours));
                 } else {
                     long minutes = remaining.toMinutesPart();
-                    timeLabel.setText(String.format("Ends in %dh %dm", totalHours, minutes));
+                    timeLabel.setText(String.format("Ends after %dh %dm", totalHours, minutes));
                 }
             }
         }

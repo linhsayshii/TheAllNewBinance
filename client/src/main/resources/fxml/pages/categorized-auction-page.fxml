@@ -50,10 +50,7 @@
                         </HBox>
 
                         <!-- Subcategory rows populated dynamically by Controller -->
-                        <VBox fx:id="subcategoriesContainer" spacing="0.0">
-                            <padding>
-                                <Insets top="0.0" right="48.0" bottom="0.0" left="48.0" />
-                            </padding>
+                        <VBox fx:id="subcategoriesContainer" spacing="0.0" styleClass="page-content-inset">
                         </VBox>
 
                         <fx:include source="../components/shell/footer.fxml" />

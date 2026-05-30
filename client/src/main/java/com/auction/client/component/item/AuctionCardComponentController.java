@@ -68,7 +68,7 @@ public class AuctionCardComponentController {
 
         ImageLoader.loadImage(model.imageUrl(), imageContainer, imageLabel);
 
-        timeLeftLabel.setText("End in " + model.timeLeft());
+        timeLeftLabel.setText("Ends after " + model.timeLeft());
         titleLabel.setText(model.title());
         priceLabel.setText(model.currentBid());
         biddersLabel.setText("People bidding");

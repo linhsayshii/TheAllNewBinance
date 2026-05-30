@@ -1,8 +1,10 @@
 package com.auction.client.page.auction;
 
 import com.auction.client.component.item.AuctionCardComponentController;
+import com.auction.client.component.item.EndedAuctionCardComponentController;
 import com.auction.client.component.item.UpcomingAuctionCardComponentController;
 import com.auction.client.dto.ProductCardUiModel;
+import com.auction.client.exception.SceneLoadException;
 import com.auction.client.scene.LifecycleAwareController;
 import com.auction.client.service.NetworkService;
 import com.auction.core.protocol.EventType;
@@ -33,6 +35,7 @@ public class CategorizedAuctionPageController implements LifecycleAwareControlle
     private static final String AUCTION_CARD_FXML = "/fxml/components/item/auction-card.fxml";
     private static final String UPCOMING_CARD_FXML =
             "/fxml/components/item/upcoming-auction-card.fxml";
+    private static final String ENDED_CARD_FXML = "/fxml/components/item/ended-auction-card.fxml";
     private static final String HANDLER_ID = "CategorizedAuctionPage";
     private static final double TARGET_CARD_WIDTH = 400.0;
 
@@ -247,6 +250,8 @@ public class CategorizedAuctionPageController implements LifecycleAwareControlle
         for (ProductCardUiModel card : cards) {
             if (card.isUpcoming()) {
                 cardsContainer.getChildren().add(loadUpcomingCard(card));
+            } else if (card.isEnded()) {
+                cardsContainer.getChildren().add(loadEndedCard(card));
             } else {
                 cardsContainer.getChildren().add(loadLiveCard(card));
             }
@@ -446,7 +451,7 @@ public class CategorizedAuctionPageController implements LifecycleAwareControlle
             ctrl.setData(card);
             return root;
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to load auction-card component", e);
+            throw new SceneLoadException("Failed to load auction-card component", e);
         }
     }
 
@@ -458,7 +463,19 @@ public class CategorizedAuctionPageController implements LifecycleAwareControlle
             ctrl.setData(card);
             return root;
         } catch (IOException e) {
-            throw new IllegalStateException("Failed to load upcoming-auction-card component", e);
+            throw new SceneLoadException("Failed to load upcoming-auction-card component", e);
+        }
+    }
+
+    private VBox loadEndedCard(ProductCardUiModel card) {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource(ENDED_CARD_FXML));
+        try {
+            VBox root = loader.load();
+            EndedAuctionCardComponentController ctrl = loader.getController();
+            ctrl.setData(card);
+            return root;
+        } catch (IOException e) {
+            throw new SceneLoadException("Failed to load ended-auction-card component", e);
         }
     }
 

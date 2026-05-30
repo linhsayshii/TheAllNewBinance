@@ -10,7 +10,7 @@ import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 
-public class UpcomingAuctionCardComponentController {
+public class EndedAuctionCardComponentController {
 
     private static final long MAX_CLICK_DURATION_MILLIS = 250;
 
@@ -18,13 +18,13 @@ public class UpcomingAuctionCardComponentController {
 
     @FXML private Label imageLabel;
 
-    @FXML private Label timeStartLabel;
+    @FXML private Label timeLeftLabel;
 
     @FXML private Label titleLabel;
 
     @FXML private Label priceLabel;
 
-    @FXML private Label watchersLabel;
+    @FXML private Label biddersLabel;
 
     private long pressStartedAtNanos;
     private Integer auctionId;
@@ -65,9 +65,9 @@ public class UpcomingAuctionCardComponentController {
 
         ImageLoader.loadImage(model.imageUrl(), imageContainer, imageLabel);
 
-        timeStartLabel.setText("Starts after " + model.timeLeft());
+        timeLeftLabel.setText("Ended");
         titleLabel.setText(model.title());
         priceLabel.setText(model.currentBid());
-        watchersLabel.setText("People are watching");
+        biddersLabel.setText("people bidded");
     }
 }

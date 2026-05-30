@@ -1,5 +1,17 @@
 package com.auction.client.page.auction;
 
+import java.net.URL;
+import java.text.DecimalFormat;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
+
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.network.ClientExceptionFactory;
 import com.auction.client.scene.DataReceivable;
@@ -20,17 +32,7 @@ import com.auction.core.exception.auction.ShillBiddingForbiddenException;
 import com.auction.core.exception.wallet.InsufficientBalanceException;
 import com.auction.core.protocol.EventType;
 import com.auction.core.utils.JsonMapper;
-import java.net.URL;
-import java.text.DecimalFormat;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
+
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -296,14 +298,19 @@ public class AuctionPageController
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Lịch sử giá");
 
+        Comparator<Bid> strictBidComparator = Comparator.comparing(
+                Bid::getCreatedAt,
+                Comparator.nullsLast(Comparator.naturalOrder())
+        ).thenComparing(
+                Bid::getId,
+                Comparator.nullsLast(Comparator.naturalOrder())
+        );
+
         List<Bid> sorted =
                 bids == null
                         ? List.of()
                         : bids.stream()
-                                .sorted(
-                                        Comparator.comparing(
-                                                Bid::getCreatedAt,
-                                                Comparator.nullsLast(Comparator.naturalOrder())))
+                                .sorted(strictBidComparator)
                                 .toList();
 
         for (Bid bid : sorted) {
@@ -681,7 +688,7 @@ public class AuctionPageController
 
     private void updateBidAmountPromptText() {
         double minimum = viewModel.minimumBidAmount();
-        bidAmountInput.setPromptText("$" + MONEY_FORMAT.format(minimum));
+        bidAmountInput.setPromptText("$" + MONEY_FORMAT.format(minimum) + " or up");
     }
 
     private void updateStatusViews() {

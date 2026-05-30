@@ -63,7 +63,7 @@
             <HBox alignment="CENTER_LEFT" spacing="12.0" styleClass="sa-card-meta-row">
                 <Label fx:id="sellerLabel" text="by Seller" styleClass="sa-card-seller" />
                 <Region HBox.hgrow="ALWAYS" />
-                <Label fx:id="timeLabel" text="Ends in 2d 4h" styleClass="sa-card-time" />
+                <Label fx:id="timeLabel" text="Ends after 2d 4h" styleClass="sa-card-time" />
             </HBox>
 
             <padding>

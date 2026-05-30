@@ -168,12 +168,16 @@ public class AuctionPageViewModel {
             return;
         }
 
+        Comparator<Bid> strictBidComparator = Comparator.comparing(
+                Bid::getCreatedAt,
+                Comparator.nullsLast(Comparator.naturalOrder())
+        ).thenComparing(
+                Bid::getId,
+                Comparator.nullsLast(Comparator.naturalOrder())
+        );
+
         bidHistory.stream()
-                .sorted(
-                        Comparator.comparing(
-                                        Bid::getCreatedAt,
-                                        Comparator.nullsLast(Comparator.naturalOrder()))
-                                .reversed())
+                .sorted(strictBidComparator.reversed())
                 .forEach(bids::add);
 
         bidderCountText.set(bids.size() + " people bidding");

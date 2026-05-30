@@ -22,7 +22,7 @@
 
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <children>
-                <Label fx:id="timeLeftLabel" text="End in 02h 31m" styleClass="auction-card-time-left" />
+                <Label fx:id="timeLeftLabel" text="Ends after 02h 31m" styleClass="auction-card-time-left" />
                 <Region HBox.hgrow="ALWAYS" />
                 <StackPane prefHeight="3.0" prefWidth="190.0" styleClass="auction-card-progress-track">
                     <children>

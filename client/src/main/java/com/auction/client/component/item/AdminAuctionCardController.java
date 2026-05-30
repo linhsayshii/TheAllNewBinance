@@ -138,9 +138,9 @@ public class AdminAuctionCardController {
         Duration rem = Duration.between(now, endTime);
         long h = rem.toHours();
         if (h >= 24) {
-            return String.format("Ends in %dd %dh", h / 24, h % 24);
+            return String.format("Ends after %dd %dh", h / 24, h % 24);
         }
-        return String.format("Ends in %dh %dm", h, rem.toMinutesPart());
+        return String.format("Ends after %dh %dm", h, rem.toMinutesPart());
     }
 
     private boolean isPrimaryClick(MouseEvent e) {
