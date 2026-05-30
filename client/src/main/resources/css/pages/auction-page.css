@@ -99,6 +99,9 @@
 
 .auction-right-col {
     -fx-alignment: top-center;
+    -fx-min-width: 350;
+    -fx-pref-width: 350;
+    -fx-max-width: 350;
 }
 
 /* Timer Panel */
