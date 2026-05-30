@@ -1,13 +1,11 @@
 package com.auction.client.unit.service;
 
+import com.auction.client.service.CssDependencyIndex;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import com.auction.client.service.CssDependencyIndex;
 
 class CssDependencyIndexTest {
 
@@ -21,7 +19,9 @@ class CssDependencyIndexTest {
         Path tokensCss = baseDir.resolve("tokens.css");
         Path cardCss = componentsDir.resolve("card.css");
 
-        Files.writeString(appCss, "@import url(\"base/tokens.css\");\n@import url(\"components/card.css\");\n");
+        Files.writeString(
+                appCss,
+                "@import url(\"base/tokens.css\");\n@import url(\"components/card.css\");\n");
         Files.writeString(tokensCss, ":root { -fx-font-size: 14px; }\n");
         Files.writeString(cardCss, ".card { -fx-padding: 8px; }\n");
 

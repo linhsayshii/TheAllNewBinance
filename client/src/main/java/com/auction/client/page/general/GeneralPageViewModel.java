@@ -19,4 +19,12 @@ public class GeneralPageViewModel {
     public List<ProductCardUiModel> loadFeaturedAuctions() {
         return auctionQueryService.getFeaturedAuctions();
     }
+
+    public List<ProductCardUiModel> loadLiveFeaturedAuctions() {
+        return auctionQueryService.getFeaturedAuctionFeed().liveAuctions();
+    }
+
+    public List<ProductCardUiModel> loadUpcomingFeaturedAuctions() {
+        return auctionQueryService.getFeaturedAuctionFeed().upcomingAuctions();
+    }
 }

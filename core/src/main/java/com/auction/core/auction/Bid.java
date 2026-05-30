@@ -16,10 +16,23 @@ public class Bid extends Entity {
         this.amount = amount;
     }
 
-    public Integer getId() { return id; }
-    public void setId(Integer id) { this.id = id; }
-    
-    public Integer getAuctionId() { return auctionId; }
-    public Integer getBidderId() { return bidderId; }
-    public Double getAmount() { return amount; }
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public Integer getAuctionId() {
+        return auctionId;
+    }
+
+    public Integer getBidderId() {
+        return bidderId;
+    }
+
+    public Double getAmount() {
+        return amount;
+    }
 }

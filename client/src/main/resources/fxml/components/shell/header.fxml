@@ -1,20 +1,52 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Priority?>
 <?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.image.Image?>
+<?import org.kordamp.ikonli.javafx.FontIcon?>
 
 <HBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
-    fx:controller="com.auction.client.component.shell.HeaderComponentController"
-      spacing="8.0" styleClass="header-root">
-    <children>
-                <Label text="TheAllNewBinance" styleClass="header-brand" onMouseClicked="#handleGoToGeneral" />
-        <Region HBox.hgrow="ALWAYS" />
-        <Label text="Live Auctions" styleClass="header-context" />
-    </children>
+      fx:controller="com.auction.client.component.shell.HeaderComponentController"
+      alignment="CENTER_LEFT" spacing="20.0" styleClass="gp-top-bar">
     <padding>
-        <Insets top="14" right="20" bottom="14" left="20" />
+        <Insets top="18.0" right="52.0" bottom="18.0" left="52.0" />
     </padding>
+    <children>
+        <ImageView fitHeight="40.0" pickOnBounds="true" preserveRatio="true" onMouseClicked="#handleGoToGeneral" styleClass="gp-logo-img">
+            <image>
+                <Image url="@../../../images/branding/logo.png" />
+            </image>
+        </ImageView>
+        <TextField promptText="Search items and sellers" prefWidth="520.0" styleClass="gp-search-field" />
+        <Region HBox.hgrow="ALWAYS" />
+        <HBox fx:id="guestContainer" alignment="CENTER" spacing="20">
+            <children>
+                <Hyperlink text="Log in" onAction="#handleGoToLogin" styleClass="gp-top-link" />
+                <Button text="Sign Up" onAction="#handleGoToRegister" styleClass="gp-signup-btn" />
+            </children>
+        </HBox>
+        <HBox fx:id="authContainer" alignment="CENTER" spacing="16" visible="false" managed="false">
+            <children>
+                <Label text="Notifications" styleClass="gp-top-link" />
+                <Hyperlink fx:id="usernameLink" text="Username" styleClass="gp-top-link" />
+                <Button text="+ Create Listing" styleClass="profile-create-btn"
+                        onAction="#handleCreateListing" />
+                <Button fx:id="adminBtn" text="⚙ Admin" styleClass="gp-admin-btn"
+                        onAction="#handleGoToAdmin" visible="false" managed="false" />
+            </children>
+        </HBox>
+        <Button onAction="#handleToggleTheme" styleClass="gp-theme-icon-btn" visible="false" managed="false">
+            <graphic>
+                <FontIcon fx:id="themeModeIcon" iconLiteral="fas-sun" iconSize="18" styleClass="gp-theme-mode-icon" />
+            </graphic>
+        </Button>
+    </children>
 </HBox>

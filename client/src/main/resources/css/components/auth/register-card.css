@@ -1,0 +1,71 @@
+.register-card-root {
+    -fx-background-color: -theme-bg-main;
+    -fx-min-width: 450;
+    -fx-pref-width: 450;
+    -fx-max-width: 450;
+    -fx-min-height: 550;
+    -fx-pref-height: 550;
+    -fx-max-height: 550;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.15), 15, 0, 0, 4);
+}
+
+.register-card-root .page-title {
+    -fx-font-family: 'Montserrat Bold';
+    -fx-font-size: 24px;
+    -fx-text-fill: -theme-text-main;
+    -fx-padding: 0 0 20 0;
+}
+
+.register-card-root .input-field {
+    -fx-font-family: 'Montserrat Regular';
+    -fx-font-size: 14px;
+    -fx-text-fill: -theme-text-main;
+    -fx-prompt-text-fill: #999999;
+    -fx-background-color: -theme-bg-main;
+    -fx-border-color: #cccccc;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 12 14;
+    -fx-focus-traversable: true;
+}
+
+.register-card-root .input-field:focused {
+    -fx-border-color: -theme-primary;
+}
+
+.register-card-root .btn-theme-primary {
+    -fx-font-family: 'Montserrat SemiBold';
+    -fx-font-size: 14px;
+    -fx-text-fill: white;
+    -fx-background-color: -theme-primary;
+    -fx-background-radius: 6;
+    -fx-padding: 12 20;
+    -fx-cursor: hand;
+    -fx-focus-traversable: true;
+}
+
+.register-card-root .btn-theme-primary:hover {
+    -fx-background-color: derive(-theme-primary, -10%);
+}
+
+.register-card-root .btn-link {
+    -fx-font-family: 'Montserrat Regular';
+    -fx-font-size: 12px;
+    -fx-text-fill: -theme-accent;
+    -fx-background-color: transparent;
+    -fx-cursor: hand;
+    -fx-focus-traversable: true;
+}
+
+.register-card-root .btn-link:hover {
+    -fx-text-fill: -theme-primary;
+    -fx-underline: true;
+}
+
+.register-card-root .error-label {
+    -fx-font-family: 'Montserrat Regular';
+    -fx-font-size: 12px;
+    -fx-text-fill: -theme-error;
+}

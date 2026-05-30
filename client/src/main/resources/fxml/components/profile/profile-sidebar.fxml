@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<!--
+  ProfileSidebar: shared user-info panel included in both
+  PersonalProfilePage and PublicSellerPage.
+
+  The parent controller must call ProfileSidebarController.bind(viewModel)
+  after the include is resolved via the nested controller injection pattern
+  (fx:id on the <fx:include> + Controller suffix field in parent controller).
+-->
+<VBox xmlns="http://javafx.com/javafx/21"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.auction.client.component.profile.ProfileSidebarController"
+      styleClass="profile-sidebar-user-card">
+
+    <!-- Avatar circle with initial -->
+    <StackPane fx:id="avatarCircle" styleClass="profile-avatar-circle">
+        <Label fx:id="avatarInitialLabel" text="?" styleClass="profile-avatar-initial" />
+    </StackPane>
+
+    <Label fx:id="usernameLabel"  text="Username"       styleClass="profile-user-name"      />
+    <Label fx:id="userIdTagLabel" text="#0000"          styleClass="profile-user-id-tag"     />
+    <Label fx:id="joinDateLabel"  text="Member since —" styleClass="profile-user-join-date"  />
+    <Label fx:id="emailLabel"     text=""               styleClass="profile-user-email"      />
+
+</VBox>

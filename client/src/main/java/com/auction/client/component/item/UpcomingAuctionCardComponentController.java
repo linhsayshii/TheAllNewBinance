@@ -1,12 +1,10 @@
 package com.auction.client.component.item;
 
-import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
-
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.dto.ProductCardUiModel;
 import com.auction.client.scene.NavigationService;
-
+import com.auction.client.service.ImageLoader;
+import java.util.Map;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
@@ -16,29 +14,20 @@ public class UpcomingAuctionCardComponentController {
 
     private static final long MAX_CLICK_DURATION_MILLIS = 250;
 
-    private static final List<UpcomingAuctionCardViewData> FAKE_DATA = List.of(
-        new UpcomingAuctionCardViewData("Item Image", "Vintage Rolex Submariner", "$12,600", "Starts at 02h 31m", "36 people are watching"),
-        new UpcomingAuctionCardViewData("Item Image", "Hermes Birkin 30 Togo", "$8,900", "Starts at 11h 20m", "18 people are watching"),
-        new UpcomingAuctionCardViewData("Item Image", "1968 Fender Telecaster", "$15,300", "Starts at 01d 03h", "52 people are watching")
-    );
+    @FXML private javafx.scene.layout.StackPane imageContainer;
 
-    @FXML
-    private Label imageLabel;
+    @FXML private Label imageLabel;
 
-    @FXML
-    private Label timeStartLabel;
+    @FXML private Label timeStartLabel;
 
-    @FXML
-    private Label titleLabel;
+    @FXML private Label titleLabel;
 
-    @FXML
-    private Label priceLabel;
+    @FXML private Label priceLabel;
 
-    @FXML
-    private Label watchersLabel;
+    @FXML private Label watchersLabel;
 
-    private boolean hasExternalData;
     private long pressStartedAtNanos;
+    private Integer auctionId;
 
     @FXML
     private void handleMousePressed(MouseEvent event) {
@@ -53,23 +42,18 @@ public class UpcomingAuctionCardComponentController {
             return;
         }
 
-        NavigationService.getInstance().navigateTo(SceneRegistry.PRODUCT_DETAIL_PAGE);
+        if (auctionId != null) {
+            NavigationService.getInstance()
+                    .navigateTo(SceneRegistry.AUCTION_PAGE, Map.of("auctionId", auctionId));
+        }
     }
 
     private boolean isPrimaryClickOnly(MouseEvent event) {
         long pressDurationMillis = (System.nanoTime() - pressStartedAtNanos) / 1_000_000L;
         return event != null
-            && event.getButton() == MouseButton.PRIMARY
-            && event.isStillSincePress()
-            && pressDurationMillis <= MAX_CLICK_DURATION_MILLIS;
-    }
-
-    @FXML
-    private void initialize() {
-        if (!hasExternalData) {
-            int randomIndex = ThreadLocalRandom.current().nextInt(FAKE_DATA.size());
-            applyData(FAKE_DATA.get(randomIndex));
-        }
+                && event.getButton() == MouseButton.PRIMARY
+                && event.isStillSincePress()
+                && pressDurationMillis <= MAX_CLICK_DURATION_MILLIS;
     }
 
     public void setData(ProductCardUiModel model) {
@@ -77,36 +61,13 @@ public class UpcomingAuctionCardComponentController {
             return;
         }
 
-        hasExternalData = true;
-        applyData(new UpcomingAuctionCardViewData(
-            "Item Image",
-            model.title(),
-            model.currentBid(),
-            "Starts at " + model.timeLeft(),
-            "36 people are watching"
-        ));
-    }
+        this.auctionId = model.auctionId();
 
-    public void useFakeData(int index) {
-        int boundedIndex = Math.floorMod(index, FAKE_DATA.size());
-        hasExternalData = true;
-        applyData(FAKE_DATA.get(boundedIndex));
-    }
+        ImageLoader.loadImage(model.imageUrl(), imageContainer, imageLabel);
 
-    private void applyData(UpcomingAuctionCardViewData data) {
-        imageLabel.setText(data.imageText());
-        timeStartLabel.setText(data.timeStart());
-        titleLabel.setText(data.title());
-        priceLabel.setText(data.price());
-        watchersLabel.setText(data.watchers());
-    }
-
-    private record UpcomingAuctionCardViewData(
-        String imageText,
-        String title,
-        String price,
-        String timeStart,
-        String watchers
-    ) {
+        timeStartLabel.setText("Starts after " + model.timeLeft());
+        titleLabel.setText(model.title());
+        priceLabel.setText(model.currentBid());
+        watchersLabel.setText("People are watching");
     }
 }

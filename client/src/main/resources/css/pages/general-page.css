@@ -1,111 +1,38 @@
 .general-page-root {
-    -fx-background-color: -app-bg;
-}
-
-.gp-top-bar {
-    -fx-background-color: -surface-bg;
-    -fx-border-color: transparent transparent -brand transparent;
-    -fx-border-width: 0 0 1 0;
-}
-
-.gp-logo-line {
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 20px;
-    -fx-font-weight: 800;
-    -fx-text-fill: -brand;
-}
-
-.gp-search-field {
-    -fx-background-color: transparent;
-    -fx-border-color: -brand;
-    -fx-border-width: 1;
-    -fx-font-family: "Inria Serif";
-    -fx-font-size: 14px;
-    -fx-text-fill: -text-primary;
-    -fx-prompt-text-fill: rgba(93, 45, 57, 0.9);
-    -fx-padding: 10 14 10 14;
-}
-
-.gp-top-link {
-    -fx-font-family: "Inria Serif";
-    -fx-font-size: 16px;
-    -fx-text-fill: -text-primary;
-    -fx-border-color: transparent;
-    -fx-underline: false;
-}
-
-.gp-signup-btn {
-    -fx-background-color: -brand;
-    -fx-text-fill: white;
-    -fx-font-family: "Inria Serif";
-    -fx-font-size: 16px;
-    -fx-padding: 8 14 8 14;
-    -fx-background-radius: 0;
-}
-
-.gp-theme-icon-btn {
-    -fx-background-color: transparent;
-    -fx-border-color: -brand;
-    -fx-border-width: 1;
-    -fx-padding: 7 10 7 10;
-    -fx-cursor: hand;
-}
-
-.gp-theme-mode-icon {
-    -fx-icon-color: -brand;
-}
-
-.gp-nav-bar {
-    -fx-background-color: -surface-bg;
-    -fx-border-color: transparent transparent -brand transparent;
-    -fx-border-width: 0 0 1 0;
-}
-
-.gp-nav-item {
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 16px;
-    -fx-font-weight: 600;
-    -fx-text-fill: -brand;
+    -fx-background-color: -theme-bg-main;
 }
 
 .gp-scroll {
-    -fx-background-color: -app-bg;
-    -fx-background: -app-bg;
+    -fx-background-color: -theme-bg-main;
+    -fx-background: -theme-bg-main;
 }
 
 .gp-scroll > .viewport {
-    -fx-background-color: -app-bg;
+    -fx-background-color: -theme-bg-main;
 }
 
 .gp-content-root {
-    -fx-background-color: -app-bg;
+    -fx-background-color: -theme-bg-main;
 }
 
 .gp-banner-pane {
-    -fx-background-color: -panel-bg;
-}
-
-.gp-banner-title {
-    -fx-font-family: "Montserrat";
-    -fx-font-size: 42px;
-    -fx-font-weight: 800;
-    -fx-text-fill: -text-primary;
+    -fx-background-color: -theme-bg-main;
 }
 
 .gp-section-wrap {
-    -fx-padding: 0 0 0 120;
+    -fx-padding: 0 0 0 0;
 }
 
 .gp-section-title {
-    -fx-font-family: "Inria Serif";
-    -fx-font-size: 32px;
-    -fx-font-weight: 700;
-    -fx-text-fill: -text-primary;
-    -fx-padding: 40 0 0 0;
+    -fx-font-family: "Lora";
+    -fx-font-size: 40px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -theme-primary;
+    -fx-padding: 0 0 0 0;
 }
 
 .gp-section-divider {
-    -fx-background-color: -text-primary;
+    -fx-background-color: -theme-text-main;
     -fx-padding: 0 0 0 0;
 }
 
@@ -113,9 +40,9 @@
     -fx-background-color: transparent;
     -fx-background: transparent;
     -fx-border-color: transparent;
-    -fx-padding: 0 0 16 0;
+    -fx-padding: 0 0 40 0;
     -fx-fit-to-height: true;
-    -fx-pannable: true;
+    -fx-pannable: false;
 }
 
 .gp-cards-scroll > .viewport {
@@ -139,7 +66,7 @@
 }
 
 .gp-cards-nav-icon {
-    -fx-icon-color: -brand;
+    -fx-icon-color: -theme-primary;
 }
 
 .gp-cards-nav-btn:disabled {
@@ -157,11 +84,51 @@
     -fx-min-height: 6;
     -fx-pref-height: 6;
     -fx-max-height: 6;
-    -fx-background-color: rgba(93, 45, 57, 0.25);
+    -fx-background-color: rgba(29, 12, 25, 0.25);
     -fx-background-radius: 999;
     -fx-cursor: hand;
 }
 
 .gp-block-indicator-active {
-    -fx-background-color: -brand;
+    -fx-background-color: -theme-primary;
+}
+
+/* ── Category Selector Tabs ─────────────────────────────────────────── */
+.gp-category-tabs-wrap {
+    -fx-alignment: center;
+    -fx-border-color: rgba(255, 255, 255, 0.08);
+    -fx-border-width: 0 0 1 0;
+}
+
+.gp-category-tab-btn {
+    -fx-background-color: rgba(255, 255, 255, 0.03);
+    -fx-border-color: rgba(255, 255, 255, 0.12);
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-font-family: "Outfit";
+    -fx-font-size: 16px;
+    -fx-font-weight: 500;
+    -fx-text-fill: -theme-text-main;
+    -fx-padding: 10 24;
+    -fx-cursor: hand;
+}
+
+.gp-category-tab-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-border-color: -theme-primary;
+}
+
+.gp-category-tab-btn-active {
+    -fx-background-color: -theme-primary;
+    -fx-border-color: -theme-primary;
+    -fx-text-fill: -theme-bg-main;
+    -fx-font-weight: 600;
+}
+
+.gp-empty-state-label {
+    -fx-font-family: "Outfit";
+    -fx-font-size: 14px;
+    -fx-text-fill: -theme-text-secondary;
+    -fx-padding: 24 0;
 }

@@ -1,0 +1,229 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.shape.Circle?>
+
+<VBox xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+    fx:controller="com.auction.client.page.auction.AuctionPageController"
+    styleClass="auction-page-root">
+  <children>
+    <VBox>
+      <children>
+        <fx:include source="../components/shell/header.fxml" />
+        <fx:include source="../components/shell/navbar.fxml" />
+      </children>
+    </VBox>
+
+    <ScrollPane fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED" styleClass="auction-scroll">
+      <content>
+        <VBox styleClass="auction-content-root">
+          <children>
+            <HBox spacing="32" styleClass="auction-main-grid, page-content-inset">
+              <children>
+
+                <!-- ====== LEFT COLUMN ====== -->
+                <VBox spacing="20" styleClass="auction-left-col" HBox.hgrow="ALWAYS">
+                  <children>
+                    <!-- Category + Title -->
+                    <VBox spacing="4">
+                      <children>
+                        <Label fx:id="categoryLabel" text="CATEGORY" styleClass="auction-category" />
+                        <Label fx:id="titleLabel" text="Item Name" wrapText="true" styleClass="auction-title" />
+                      </children>
+                    </VBox>
+
+                    <!-- Image Placeholder -->
+                    <StackPane fx:id="imageContainer" styleClass="auction-image-box">
+                      <children>
+                        <Label fx:id="imageLabel" text="Item Image" styleClass="auction-image-text" />
+                      </children>
+                    </StackPane>
+
+                    <!-- Price History -->
+                    <VBox spacing="10">
+                      <children>
+                        <Label text="Price History" styleClass="auction-section-title" />
+                        <Separator styleClass="auction-separator" />
+                        <StackPane styleClass="auction-chart-box">
+                          <children>
+                            <LineChart fx:id="bidHistoryChart" prefHeight="240" animated="false" legendVisible="false" styleClass="bid-history-chart">
+                              <xAxis>
+                                <CategoryAxis fx:id="xAxisTime" label="Time" />
+                              </xAxis>
+                              <yAxis>
+                                <NumberAxis fx:id="yAxisPrice" label="Price" />
+                              </yAxis>
+                            </LineChart>
+                          </children>
+                        </StackPane>
+                      </children>
+                    </VBox>
+
+                    <!-- Description -->
+                    <VBox spacing="10">
+                      <children>
+                        <Label text="Product Description" styleClass="auction-section-title" />
+                        <Separator styleClass="auction-separator" />
+                        <Label fx:id="descriptionLabel" text="No description" wrapText="true" styleClass="auction-description" />
+                      </children>
+                    </VBox>
+                  </children>
+                </VBox>
+
+                <!-- ====== RIGHT COLUMN ====== -->
+                <VBox spacing="0" styleClass="auction-right-col" prefWidth="340" minWidth="300" maxWidth="380">
+                  <children>
+
+                    <!-- Timer Panel -->
+                    <VBox styleClass="auction-timer-panel">
+                      <children>
+                        <HBox alignment="CENTER_LEFT">
+                          <children>
+                            <Label fx:id="statusTimePrefixLabel" text="End At" styleClass="auction-timer-date" />
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label fx:id="dayLabel" text="Tuesday 03:06" styleClass="auction-timer-date" />
+                          </children>
+                        </HBox>
+                        <HBox alignment="CENTER" spacing="0" styleClass="auction-timer-digits">
+                          <children>
+                            <VBox alignment="CENTER" styleClass="auction-timer-cell">
+                              <children>
+                                <Label fx:id="countdownDaysLabel" text="00" styleClass="auction-timer-number" />
+                                <Label text="DAYS" styleClass="auction-timer-unit" />
+                              </children>
+                            </VBox>
+                            <Separator orientation="VERTICAL" styleClass="auction-timer-sep" />
+                            <VBox alignment="CENTER" styleClass="auction-timer-cell">
+                              <children>
+                                <Label fx:id="countdownHoursLabel" text="00" styleClass="auction-timer-number" />
+                                <Label text="HOURS" styleClass="auction-timer-unit" />
+                              </children>
+                            </VBox>
+                            <Separator orientation="VERTICAL" styleClass="auction-timer-sep" />
+                            <VBox alignment="CENTER" styleClass="auction-timer-cell">
+                              <children>
+                                <Label fx:id="countdownMinutesLabel" text="00" styleClass="auction-timer-number" />
+                                <Label text="MINUTES" styleClass="auction-timer-unit" />
+                              </children>
+                            </VBox>
+                            <Separator orientation="VERTICAL" styleClass="auction-timer-sep" />
+                            <VBox alignment="CENTER" styleClass="auction-timer-cell">
+                              <children>
+                                <Label fx:id="countdownSecondsLabel" text="00" styleClass="auction-timer-number" />
+                                <Label text="SECONDS" styleClass="auction-timer-unit" />
+                              </children>
+                            </VBox>
+                          </children>
+                        </HBox>
+                        <!-- Progress bar accent line -->
+                        <Region styleClass="auction-timer-progress" />
+                      </children>
+                    </VBox>
+
+                    <!-- Bidding Panel -->
+                    <VBox spacing="16" styleClass="auction-bid-panel">
+                      <children>
+                        <!-- Current Bid -->
+                        <VBox spacing="2">
+                          <children>
+                            <Label fx:id="priceCaptionLabel" text="Current Bid" styleClass="auction-bid-caption" />
+                            <Label fx:id="currentBidLabel" text="\$0.00" styleClass="auction-bid-price" />
+                          </children>
+                        </VBox>
+
+                        <Separator styleClass="auction-separator" />
+
+                        <!-- Seller Info -->
+                        <HBox alignment="CENTER_LEFT" spacing="12" styleClass="auction-seller-row" onMouseClicked="#handleGoToSellerProfile">
+                          <children>
+                            <StackPane styleClass="auction-seller-avatar">
+                              <children>
+                                <Circle radius="22" styleClass="auction-avatar-circle" />
+                              </children>
+                            </StackPane>
+                            <VBox spacing="2">
+                              <children>
+                                <Label fx:id="sellerNameLabel" text="Unknown Seller" styleClass="auction-seller-name" />
+                                <HBox spacing="12">
+                                  <children>
+                                    <Label text="Seller other items" styleClass="auction-seller-link" />
+                                    <Label text="Message seller" styleClass="auction-seller-link" />
+                                  </children>
+                                </HBox>
+                              </children>
+                            </VBox>
+                            <Region HBox.hgrow="ALWAYS" />
+                            <Label text="›" styleClass="auction-seller-arrow" />
+                          </children>
+                        </HBox>
+
+                        <!-- Bidding Input Area (hidden when ended) -->
+                        <VBox fx:id="biddingInputArea" spacing="10">
+                          <children>
+                            <TextField fx:id="bidAmountInput" promptText="\$99.09 or up" styleClass="auction-bid-input" />
+                            <HBox spacing="10">
+                              <children>
+                                <Button fx:id="placeBidButton" text="Place Bid" onAction="#handlePlaceBid" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="auction-btn-outline" />
+                                <Button text="Set Auto Bid" onAction="#handleSetAutoBid" maxWidth="Infinity" HBox.hgrow="ALWAYS" styleClass="auction-btn-filled" />
+                              </children>
+                            </HBox>
+                          </children>
+                        </VBox>
+
+                        <!-- Winner Box (shown only when ended) -->
+                        <VBox fx:id="winnerBox" spacing="8" styleClass="auction-winner-box" visible="false" managed="false">
+                          <children>
+                            <Label text="AUCTION ENDED" styleClass="auction-winner-title" />
+                            <Label fx:id="winnerLabel" text="Selected by Winner" styleClass="auction-winner-text" />
+                          </children>
+                        </VBox>
+
+                        <!-- Login Prompt -->
+                        <StackPane fx:id="loginPromptBox" styleClass="auction-login-prompt-box">
+                          <children>
+                            <Label fx:id="loginPromptLabel" text="Please log in or sign up to place a bid" styleClass="auction-login-prompt" />
+                          </children>
+                        </StackPane>
+
+                        <!-- Bid History -->
+                        <VBox spacing="6">
+                          <children>
+                            <Label text="Bid History" styleClass="auction-bid-history-title" />
+                            <Label fx:id="bidderCountLabel" text="0 people is bidding" styleClass="auction-bidder-count" />
+                            <ListView fx:id="bidHistoryList" prefHeight="180" styleClass="auction-bid-list" />
+                          </children>
+                        </VBox>
+
+                      </children>
+                    </VBox>
+
+                  </children>
+                </VBox>
+
+              </children>
+            </HBox>
+
+            <fx:include source="../components/shell/footer.fxml" />
+          </children>
+        </VBox>
+      </content>
+      <VBox.vgrow>
+        <Priority fx:constant="ALWAYS" />
+      </VBox.vgrow>
+    </ScrollPane>
+  </children>
+</VBox>

@@ -1,103 +1,103 @@
 package com.auction.server.controller;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.auction.core.auction.Auction;
 import com.auction.core.dto.auction.CreateAuctionRequest;
 import com.auction.core.dto.auction.GetAuctionBySellerIdRequest;
 import com.auction.core.dto.auction.GetAuctionDetailsRequest;
+import com.auction.core.dto.auction.GetFeaturedAuctionsRequest;
+import com.auction.core.dto.auction.PromoteAuctionRequest;
 import com.auction.core.services.IAuctionService;
-import com.auction.core.utils.JsonMapper;
+import java.util.List;
+import java.util.Map;
 
-public class AuctionController {
-	private final IAuctionService auctionService;
+public class AuctionController extends BaseController {
+    private final IAuctionService auctionService;
 
-	public AuctionController(IAuctionService auctionService) {
-		this.auctionService = auctionService;
-	}
+    public AuctionController(IAuctionService auctionService) {
+        this.auctionService = auctionService;
+    }
 
-	public String createAuction(String payload) {
-		try {
-			CreateAuctionRequest createAuctionRequest = JsonMapper.fromJson(payload, CreateAuctionRequest.class);
-			Auction auction = auctionService.createAuction(createAuctionRequest).join();
-			return JsonMapper.toJson(successResponse(auction));
-		} catch (IllegalArgumentException ex) {
-			return JsonMapper.toJson(errorResponse(ex.getMessage()));
-		} catch (Exception ex) {
-			return JsonMapper.toJson(errorResponse("Internal server error"));
-		}
-	}
+    public String createAuction(String payload) {
+        return handleSync(
+                payload,
+                CreateAuctionRequest.class,
+                req -> auctionService.createAuction(req).join(),
+                "Internal server error");
+    }
 
-	public String getAuctionDetails(String payload) {
-		try {
-			GetAuctionDetailsRequest getAuctionDetailsRequest = JsonMapper.fromJson(payload,
-					GetAuctionDetailsRequest.class);
-			Auction auction = auctionService.getAuctionDetails(getAuctionDetailsRequest.getAuctionId()).join();
-			if (auction == null) {
-				return JsonMapper.toJson(errorResponse("Auction not found"));
-			}
-			return JsonMapper.toJson(successResponse(auction));
-		} catch (IllegalArgumentException ex) {
-			return JsonMapper.toJson(errorResponse(ex.getMessage()));
-		} catch (Exception ex) {
-			return JsonMapper.toJson(errorResponse("Internal server error"));
-		}
-	}
+    public String getAuctionDetails(String payload) {
+        return handleSync(
+                payload,
+                GetAuctionDetailsRequest.class,
+                req -> {
+                    com.auction.core.dto.auction.AuctionDetailsDto details =
+                            auctionService.getAuctionDetails(req.getAuctionId()).join();
+                    if (details == null) {
+                        throw new IllegalArgumentException("Auction not found");
+                    }
+                    return details;
+                },
+                "Auction not found");
+    }
 
-	public String getAuctionsBySellerId(String payload) {
-		try {
-			GetAuctionBySellerIdRequest getAuctionBySellerIdRequest = JsonMapper.fromJson(payload,
-					GetAuctionBySellerIdRequest.class);
-			List<Auction> auctions = auctionService.getAuctionsBySellerId(getAuctionBySellerIdRequest).join();
-			if (auctions == null) {
-				return JsonMapper.toJson(errorResponse("Failed to get auctions by seller id"));
-			}
-			return JsonMapper.toJson(successResponse(auctions));
-		} catch (IllegalArgumentException ex) {
-			return JsonMapper.toJson(errorResponse(ex.getMessage()));
-		} catch (Exception ex) {
-			return JsonMapper.toJson(errorResponse("Internal server error"));
-		}
-	}
+    public String getAuctionsBySellerId(String payload) {
+        return handleSync(
+                payload,
+                GetAuctionBySellerIdRequest.class,
+                req -> {
+                    List<Auction> auctions =
+                            auctionService.getAuctionsBySellerId(req).join();
+                    if (auctions == null) {
+                        throw new IllegalArgumentException("Failed to get auctions by seller id");
+                    }
+                    return auctions;
+                },
+                "Internal server error");
+    }
 
-	public String getPublicAuctions(String payload) {
-		try {
-			com.auction.core.dto.auction.GetPublicAuctionsRequest request;
-			if (payload == null || payload.isBlank() || payload.equals("null")) {
-				request = new com.auction.core.dto.auction.GetPublicAuctionsRequest();
-			} else {
-				request = JsonMapper.fromJson(payload, com.auction.core.dto.auction.GetPublicAuctionsRequest.class);
-			}
-			List<com.auction.core.dto.auction.PublicAuctionDto> auctions = auctionService.getPublicAuctions(request)
-					.join();
-			return JsonMapper.toJson(successResponse(auctions));
-		} catch (IllegalArgumentException ex) {
-			return JsonMapper.toJson(errorResponse(ex.getMessage()));
-		} catch (Exception ex) {
-			return JsonMapper.toJson(errorResponse("Internal server error"));
-		}
-	}
+    public String getPublicAuctions(String payload) {
+        String requestPayload = (payload == null || payload.isBlank() || "null".equals(payload)) ? "{}" : payload;
+        return handleSync(
+                requestPayload,
+                com.auction.core.dto.auction.GetPublicAuctionsRequest.class,
+                req -> auctionService.getPublicAuctions(req).join(),
+                "Internal server error");
+    }
 
-	private Map<String, Object> successResponse(Auction auction) {
-		Map<String, Object> response = new HashMap<>();
-		response.put("success", true);
-		response.put("data", auction);
-		return response;
-	}
+    public String promoteAuction(String payload) {
+        return handleSync(
+                payload,
+                PromoteAuctionRequest.class,
+                req -> {
+                    Boolean success = auctionService.promoteAuction(req).join();
+                    if (!Boolean.TRUE.equals(success)) {
+                        throw new IllegalStateException("Promote failed, please try again.");
+                    }
+                    return "Promoted successfully!";
+                },
+                "Promote failed, please try again.");
+    }
 
-	private Map<String, Object> successResponse(List<?> dataList) {
-		Map<String, Object> response = new HashMap<>();
-		response.put("success", true);
-		response.put("data", dataList);
-		return response;
-	}
+    public String getFeaturedAuctions(String payload) {
+        String requestPayload = (payload == null || payload.isBlank() || "null".equals(payload)) ? "{}" : payload;
+        return handleSync(
+                requestPayload,
+                GetFeaturedAuctionsRequest.class,
+                req -> auctionService.getFeaturedAuctions(req).join(),
+                "Internal server error");
+    }
 
-	private Map<String, Object> errorResponse(String message) {
-		Map<String, Object> response = new HashMap<>();
-		response.put("success", false);
-		response.put("message", message);
-		return response;
-	}
+    public String getAllAuctionsForAdmin(String payload) {
+        String requestPayload = (payload == null || payload.isBlank() || "null".equals(payload)) ? "{}" : payload;
+        return handleSync(
+                requestPayload,
+                Map.class,
+                req -> {
+                    String status = (String) req.getOrDefault("status", null);
+                    int page = req.containsKey("page") ? ((Number) req.get("page")).intValue() : 1;
+                    int size = req.containsKey("size") ? ((Number) req.get("size")).intValue() : 20;
+                    return auctionService.getAllAuctionsForAdmin(status, page, size).join();
+                },
+                "Internal server error");
+    }
 }

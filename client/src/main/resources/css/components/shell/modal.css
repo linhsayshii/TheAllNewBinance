@@ -3,7 +3,7 @@
 }
 
 .app-modal-dialog {
-    -fx-background-color: -surface-bg;
+    -fx-background-color: -theme-bg-main;
     -fx-background-radius: 12;
     -fx-border-color: rgba(0, 0, 0, 0.14);
     -fx-border-width: 1;

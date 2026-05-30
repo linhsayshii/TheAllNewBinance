@@ -1,17 +1,15 @@
 package com.auction.core.dto.bid;
 
+import com.auction.core.auction.Bid;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.auction.core.auction.Bid;
 
 public class GetBidByAuctionIdRequest {
     private Integer auctionId;
     private Integer userId;
     private List<Bid> bids = new ArrayList<>();
 
-    public GetBidByAuctionIdRequest() {
-    }
+    public GetBidByAuctionIdRequest() {}
 
     public GetBidByAuctionIdRequest(Integer auctionId, Integer userId, List<Bid> bids) {
         this.auctionId = auctionId;

@@ -1,14 +1,12 @@
 package com.auction.client.component.control;
 
 import com.auction.client.service.ThemeService;
-
 import javafx.fxml.FXML;
 import javafx.scene.control.ToggleButton;
 
 public class ThemeToggleComponentController {
 
-    @FXML
-    private ToggleButton themeToggle;
+    @FXML private ToggleButton themeToggle;
 
     private final ThemeService themeService = ThemeService.getInstance();
 

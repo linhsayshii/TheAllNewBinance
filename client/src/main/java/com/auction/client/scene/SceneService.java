@@ -1,18 +1,19 @@
 package com.auction.client.scene;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.auction.client.config.AppConfig;
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.exception.SceneLoadException;
 import com.auction.client.service.ResourceLoader;
 import com.auction.client.service.ThemeService;
-
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 
@@ -38,17 +39,26 @@ public class SceneService {
     }
 
     public void switchTo(SceneRegistry sceneRegistry) {
+        switchTo(sceneRegistry, null);
+    }
+
+    public void switchTo(SceneRegistry sceneRegistry, Map<String, Object> data) {
         try {
             FXMLLoader loader = new FXMLLoader(resourceLoader.requireUrl(sceneRegistry.fxmlPath()));
             Parent root = loader.load();
-            
+
             // Clean up old controller
             if (currentController instanceof LifecycleAwareController) {
                 ((LifecycleAwareController) currentController).onUnload();
             }
-            
+
             // Keep reference to new controller
             currentController = loader.getController();
+
+            // Pass navigation data to controller if it supports it
+            if (data != null && currentController instanceof DataReceivable) {
+                ((DataReceivable) currentController).onDataReceived(data);
+            }
 
             closePopup();
 
@@ -56,21 +66,34 @@ public class SceneService {
                 sceneHost = new StackPane();
             }
             sceneHost.getChildren().setAll(root);
-            
-            Scene scene = new Scene(sceneHost);
+
+            // Reuse existing scene if sceneHost is already the root of one
+            Scene scene = sceneHost.getScene();
+            if (scene == null) {
+                scene = new Scene(sceneHost);
+                trackScene(scene);
+            }
             applyStylesheets(scene, false);
             themeService.apply(scene, themeService.currentTheme());
             stage.setTitle(sceneRegistry.title());
             stage.setScene(scene);
             currentSceneRegistry = sceneRegistry;
-            trackScene(scene);
         } catch (IOException e) {
             throw new SceneLoadException("Could not load scene " + sceneRegistry.name(), e);
         }
     }
 
+    public StackPane getSceneHost() {
+        return sceneHost;
+    }
+
     public SceneRegistry currentSceneRegistry() {
         return currentSceneRegistry;
+    }
+
+    /** Returns the controller of the currently displayed scene, or null if none. */
+    public Object getCurrentController() {
+        return currentController;
     }
 
     public Scene currentScene() {
@@ -126,9 +149,12 @@ public class SceneService {
             if (modalDialog == null) {
                 modalDialog = new StackPane();
                 modalDialog.getStyleClass().add("app-modal-dialog");
-                modalDialog.setPrefWidth(500);
-                modalDialog.setMinWidth(500);
-                modalDialog.setMaxWidth(500);
+                modalDialog.setMinWidth(Region.USE_COMPUTED_SIZE);
+                modalDialog.setPrefWidth(Region.USE_COMPUTED_SIZE);
+                modalDialog.setMaxWidth(Region.USE_COMPUTED_SIZE);
+                modalDialog.setMinHeight(Region.USE_COMPUTED_SIZE);
+                modalDialog.setPrefHeight(Region.USE_COMPUTED_SIZE);
+                modalDialog.setMaxHeight(Region.USE_COMPUTED_SIZE);
                 modalDialog.setOnMouseClicked(event -> event.consume());
             }
 
@@ -137,6 +163,10 @@ public class SceneService {
             if (!sceneHost.getChildren().contains(modalOverlay)) {
                 sceneHost.getChildren().add(modalOverlay);
             }
+
+            // Let popup content CSS dictate dialog size (e.g. login-card/register-card).
+            syncModalSizeWithContent(popupRoot);
+            Platform.runLater(() -> syncModalSizeWithContent(popupRoot));
 
             modalController = nextModalController;
         } catch (IOException e) {
@@ -159,7 +189,9 @@ public class SceneService {
     }
 
     public boolean isPopupOpen() {
-        return sceneHost != null && modalOverlay != null && sceneHost.getChildren().contains(modalOverlay);
+        return sceneHost != null
+                && modalOverlay != null
+                && sceneHost.getChildren().contains(modalOverlay);
     }
 
     public void toggleTheme() {
@@ -178,7 +210,10 @@ public class SceneService {
     private void applyStylesheets(Scene scene, boolean cacheBust) {
         for (String stylesheet : stylesheets) {
             String baseUrl = resourceLoader.requireUrl(stylesheet).toExternalForm();
-            scene.getStylesheets().removeIf(current -> current.equals(baseUrl) || current.startsWith(baseUrl + "?v="));
+            scene.getStylesheets()
+                    .removeIf(
+                            current ->
+                                    current.equals(baseUrl) || current.startsWith(baseUrl + "?v="));
             scene.getStylesheets().add(withCacheBusting(baseUrl, cacheBust));
         }
     }
@@ -195,5 +230,32 @@ public class SceneService {
             return;
         }
         activeScenes.add(scene);
+    }
+
+    private void syncModalSizeWithContent(Parent popupRoot) {
+        popupRoot.applyCss();
+        popupRoot.autosize();
+
+        double width = popupRoot.prefWidth(-1);
+        double height = popupRoot.prefHeight(-1);
+
+        if (width <= 0 || Double.isNaN(width)) {
+            width = popupRoot.getLayoutBounds().getWidth();
+        }
+        if (height <= 0 || Double.isNaN(height)) {
+            height = popupRoot.getLayoutBounds().getHeight();
+        }
+
+        if (width > 0) {
+            modalDialog.setMinWidth(width);
+            modalDialog.setPrefWidth(width);
+            modalDialog.setMaxWidth(width);
+        }
+
+        if (height > 0) {
+            modalDialog.setMinHeight(height);
+            modalDialog.setPrefHeight(height);
+            modalDialog.setMaxHeight(height);
+        }
     }
 }
