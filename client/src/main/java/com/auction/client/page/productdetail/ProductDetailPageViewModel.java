@@ -35,7 +35,9 @@ public class ProductDetailPageViewModel {
         return safe(value, fallback).toUpperCase();
     }
 
-    private static final DecimalFormat MONEY_FORMAT = new DecimalFormat("#,##0.00");
+    private static final DecimalFormat MONEY_FORMAT = new DecimalFormat(
+            "#,##0.00",
+            java.text.DecimalFormatSymbols.getInstance(java.util.Locale.US));
 
     private final IntegerProperty auctionId = new SimpleIntegerProperty(0);
     private final IntegerProperty bidderId = new SimpleIntegerProperty(0);

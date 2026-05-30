@@ -9,20 +9,30 @@ public class DBConnection {
     private static final String DB_NAME = "theallnewbinance"; // Database name
     private static final String USER = "binance"; // MySQL username
     private static final String PASSWORD = "PasswordCucManh!"; // MySQL password
-    private static final String URL =
-            "jdbc:mysql://localhost:3306/"
-                    + DB_NAME
-                    + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh";
+    private static final String URL = "jdbc:mysql://localhost:3306/"
+            + DB_NAME
+            + "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Ho_Chi_Minh";
 
     // ThreadLocal to manage database connections
-    private static final ThreadLocal<Connection> REAL_CONNECTION_HOLDER = new ThreadLocal<>();
-    private static final ThreadLocal<Connection> PROXY_CONNECTION_HOLDER = new ThreadLocal<>();
-    private static final ThreadLocal<Boolean> IN_TRANSACTION_HOLDER =
-            ThreadLocal.withInitial(() -> false);
+    private static ThreadLocal<Connection> REAL_CONNECTION_HOLDER = new ThreadLocal<>();
+    private static ThreadLocal<Connection> PROXY_CONNECTION_HOLDER = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> IN_TRANSACTION_HOLDER = ThreadLocal.withInitial(() -> false);
 
-    private DBConnection() {}
+    private static Connection mockConnectionOverride = null;
+
+    public static void setMockConnectionOverride(Connection conn) {
+        mockConnectionOverride = conn;
+    }
+
+    private DBConnection() {
+    }
 
     public static Connection getConnection() {
+        if (mockConnectionOverride != null) {
+            REAL_CONNECTION_HOLDER.set(mockConnectionOverride);
+            PROXY_CONNECTION_HOLDER.set(mockConnectionOverride);
+            return mockConnectionOverride;
+        }
         Connection realConn = REAL_CONNECTION_HOLDER.get();
         try {
             if (realConn == null || realConn.isClosed()) {
@@ -31,23 +41,21 @@ public class DBConnection {
                 REAL_CONNECTION_HOLDER.set(realConn);
 
                 final Connection target = realConn;
-                Connection proxyConn =
-                        (Connection)
-                                Proxy.newProxyInstance(
-                                        Connection.class.getClassLoader(),
-                                        new Class<?>[] {Connection.class},
-                                        (proxy, method, args) -> {
-                                            if ("close".equals(method.getName())) {
-                                                if (IN_TRANSACTION_HOLDER.get()) {
-                                                    return null;
-                                                } else {
-                                                    PROXY_CONNECTION_HOLDER.remove();
-                                                    REAL_CONNECTION_HOLDER.remove();
-                                                    return method.invoke(target, args);
-                                                }
-                                            }
-                                            return method.invoke(target, args);
-                                        });
+                Connection proxyConn = (Connection) Proxy.newProxyInstance(
+                        Connection.class.getClassLoader(),
+                        new Class<?>[] {Connection.class},
+                        (proxy, method, args) -> {
+                            if ("close".equals(method.getName())) {
+                                if (IN_TRANSACTION_HOLDER.get()) {
+                                    return null;
+                                } else {
+                                    PROXY_CONNECTION_HOLDER.remove();
+                                    REAL_CONNECTION_HOLDER.remove();
+                                    return method.invoke(target, args);
+                                }
+                            }
+                            return method.invoke(target, args);
+                        });
                 PROXY_CONNECTION_HOLDER.set(proxyConn);
             }
         } catch (Exception e) {

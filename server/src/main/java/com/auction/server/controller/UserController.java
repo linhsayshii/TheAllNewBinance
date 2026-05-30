@@ -6,15 +6,12 @@ import com.auction.core.dto.user.UpdatePasswordRequest;
 import com.auction.core.dto.user.UpdateProfileRequest;
 import com.auction.core.dto.wallet.DepositRequest;
 import com.auction.core.dto.wallet.WithdrawRequest;
-import com.auction.core.exception.DomainException;
 import com.auction.core.services.IUserService;
 import com.auction.core.users.User;
-import com.auction.core.utils.JsonMapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 public class UserController extends BaseController {
     private final IUserService userService;
@@ -71,62 +68,36 @@ public class UserController extends BaseController {
     }
 
     public String logout(String request) {
-        if (request == null) {
-            return ApiResponse.error("Request payload is required");
-        }
-        try {
-            @SuppressWarnings("unchecked")
-            Map<String, Object> payload = JsonMapper.fromJson(request, Map.class);
-            if (payload == null || !payload.containsKey("userId")) {
-                return ApiResponse.error("Invalid logout payload");
-            }
-
-            Integer userId = ((Number) payload.get("userId")).intValue();
-            userService.logout(userId).join();
-            return ApiResponse.successMessage("Logged out successfully");
-        } catch (IllegalArgumentException ex) {
-            return ApiResponse.error(ex.getMessage());
-        } catch (Exception ex) {
-            return ApiResponse.error("Logout failed");
-        }
+        return handleSync(
+                request,
+                Map.class,
+                req -> {
+                    if (req == null || !req.containsKey("userId")) {
+                        throw new IllegalArgumentException("Invalid logout payload");
+                    }
+                    Integer userId = ((Number) req.get("userId")).intValue();
+                    userService.logout(userId).join();
+                    return "Logged out successfully";
+                },
+                "Logout failed");
     }
 
     /** Deposits funds into the authenticated user's wallet. */
-    public String deposit(String request) {
-        try {
-            return handleAsync(
-                            request,
-                            DepositRequest.class,
-                            req -> userService.deposit(req).thenApply(v -> req),
-                            "Nạp tiền thất bại")
-                    .join();
-        } catch (CompletionException ex) {
-            Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-            if (cause instanceof DomainException domainEx) {
-                return ApiResponse.error(domainEx.getErrorCode(), domainEx.getMessage());
-            }
-            String msg = cause.getMessage() != null ? cause.getMessage() : "Nạp tiền thất bại";
-            return ApiResponse.error(msg);
-        }
+    public CompletableFuture<String> deposit(String request) {
+        return handleAsync(
+                request,
+                DepositRequest.class,
+                req -> userService.deposit(req).thenApply(v -> (Object) req),
+                "Nạp tiền thất bại");
     }
 
     /** Withdraws funds from the authenticated user's wallet. */
-    public String withdraw(String request) {
-        try {
-            return handleAsync(
-                            request,
-                            WithdrawRequest.class,
-                            req -> userService.withdraw(req).thenApply(v -> req),
-                            "Rút tiền thất bại")
-                    .join();
-        } catch (CompletionException ex) {
-            Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-            if (cause instanceof DomainException domainEx) {
-                return ApiResponse.error(domainEx.getErrorCode(), domainEx.getMessage());
-            }
-            String msg = cause.getMessage() != null ? cause.getMessage() : "Rút tiền thất bại";
-            return ApiResponse.error(msg);
-        }
+    public CompletableFuture<String> withdraw(String request) {
+        return handleAsync(
+                request,
+                WithdrawRequest.class,
+                req -> userService.withdraw(req).thenApply(v -> (Object) req),
+                "Rút tiền thất bại");
     }
 
     /** Returns wallet transaction history for the authenticated user. */
@@ -162,14 +133,15 @@ public class UserController extends BaseController {
      * Returns all users for admin management. Filters sensitive fields via toSafeUser().
      */
     public String getAllUsersForAdmin(String payload) {
-        try {
-            final List<User> users = userService.getAllUsers().join();
-            final List<Map<String, Object>> safeUsers =
-                    users.stream().map(this::toSafeUser).toList();
-            return ApiResponse.success(safeUsers);
-        } catch (Exception ex) {
-            return ApiResponse.error("Không thể tải danh sách người dùng.");
-        }
+        String requestPayload = (payload == null || payload.isBlank() || "null".equals(payload)) ? "{}" : payload;
+        return handleSync(
+                requestPayload,
+                Map.class,
+                req -> {
+                    List<User> users = userService.getAllUsers().join();
+                    return users.stream().map(this::toSafeUser).toList();
+                },
+                "Không thể tải danh sách người dùng.");
     }
 
     /**
@@ -177,23 +149,20 @@ public class UserController extends BaseController {
      * Validates that targetUserId is present and valid before delegating to service layer.
      */
     public String toggleUserStatus(String payload) {
-        try {
-            @SuppressWarnings("unchecked")
-            final Map<String, Object> req = JsonMapper.fromJson(payload, Map.class);
-            if (req == null || !req.containsKey("targetUserId")) {
-                return ApiResponse.error("Thiếu mã định danh người dùng đích.");
-            }
-            final Integer targetUserId = ((Number) req.get("targetUserId")).intValue();
-            final boolean success = userService.toggleUserStatus(targetUserId).join();
-            if (success) {
-                return ApiResponse.successMessage("Cập nhật trạng thái người dùng thành công.");
-            }
-            return ApiResponse.error("Cập nhật trạng thái thất bại.");
-        } catch (CompletionException ex) {
-            final Throwable cause = ex.getCause() != null ? ex.getCause() : ex;
-            return ApiResponse.error(cause.getMessage());
-        } catch (Exception ex) {
-            return ApiResponse.error(ex.getMessage());
-        }
+        return handleSync(
+                payload,
+                Map.class,
+                req -> {
+                    if (req == null || !req.containsKey("targetUserId")) {
+                        throw new IllegalArgumentException("Thiếu mã định danh người dùng đích.");
+                    }
+                    Integer targetUserId = ((Number) req.get("targetUserId")).intValue();
+                    boolean success = userService.toggleUserStatus(targetUserId).join();
+                    if (!success) {
+                        throw new IllegalStateException("Cập nhật trạng thái thất bại.");
+                    }
+                    return "Cập nhật trạng thái người dùng thành công.";
+                },
+                "Cập nhật trạng thái thất bại.");
     }
 }
