@@ -389,7 +389,7 @@ public class AuctionSettlementScheduler {
 
                             auction.setWinnerId(winnerId);
                             auction.setFinalPrice(highestBid.getAmount());
-                            auctionDao.updateAuctionInformation(conn, auction);
+                            auction.setStatus(Auction.Status.ENDED);
                         } else {
                             // Winner bùng tiền: tước cọc 30% sang Seller làm phạt
                             winner.commitBid(depositAmountBD);
@@ -413,9 +413,9 @@ public class AuctionSettlementScheduler {
                                     "SUCCESS",
                                     "PENALTY_" + auctionId);
 
+                            auction.setWinnerId(null);
                             auction.setFinalPrice(0.0);
                             auction.setStatus(Auction.Status.CANCELLED);
-                            auctionDao.updateAuctionInformation(conn, auction);
                         }
                     }
                 }
@@ -428,11 +428,15 @@ public class AuctionSettlementScheduler {
                                 .distinct()
                                 .filter(id -> !id.equals(winId))
                                 .collect(Collectors.toList());
+            } else {
+                // Không có ai thầu: hủy phiên đấu giá
+                auction.setWinnerId(null);
+                auction.setFinalPrice(0.0);
+                auction.setStatus(Auction.Status.CANCELLED);
             }
 
-            if (auction.getStatus() != Auction.Status.CANCELLED) {
-                auction.setStatus(Auction.Status.ENDED);
-            }
+            // Ghi nhận trạng thái cuối cùng xuống DB trước khi commit transaction
+            auctionDao.updateAuctionInformation(conn, auction);
 
             DBConnection.commitTransaction();
 
