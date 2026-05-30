@@ -123,6 +123,11 @@ public class HeaderComponentController {
     }
 
     @FXML
+    private void handleCreateListing() {
+        NavigationService.getInstance().navigateTo(SceneRegistry.CREATE_LISTING_PAGE);
+    }
+
+    @FXML
     private void handleLogout() {
         com.auction.client.service.UserSessionService.getInstance().logout();
         refreshAuthState();

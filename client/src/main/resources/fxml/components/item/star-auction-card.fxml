@@ -10,6 +10,8 @@
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.shape.Rectangle?>
 
 <!--
     star-auction-card.fxml
@@ -71,8 +73,18 @@
 
         <!-- ===== RIGHT HALF: Image ===== -->
         <StackPane fx:id="imageContainer" styleClass="sa-card-image-pane" GridPane.columnIndex="1">
-            <!-- Image placeholder — controller will set -fx-background-image via setData -->
-            <Label fx:id="imagePlaceholderLabel" text="" styleClass="sa-card-image-placeholder" />
+            <clip>
+                <Rectangle width="${imageContainer.width}" height="${imageContainer.height}" />
+            </clip>
+            <children>
+                <ImageView fx:id="imageView"
+                           fitWidth="${imageContainer.width}"
+                           fitHeight="${imageContainer.height}"
+                           preserveRatio="true"
+                           smooth="true" />
+                <!-- Image placeholder — controller will set -fx-background-image via setData -->
+                <Label fx:id="imagePlaceholderLabel" text="" styleClass="sa-card-image-placeholder" />
+            </children>
         </StackPane>
     </children>
 

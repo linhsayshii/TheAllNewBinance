@@ -37,6 +37,8 @@
             <children>
                 <Label text="Notifications" styleClass="gp-top-link" />
                 <Hyperlink fx:id="usernameLink" text="Username" styleClass="gp-top-link" />
+                <Button text="+ Create Listing" styleClass="profile-create-btn"
+                        onAction="#handleCreateListing" />
                 <Button fx:id="adminBtn" text="⚙ Admin" styleClass="gp-admin-btn"
                         onAction="#handleGoToAdmin" visible="false" managed="false" />
             </children>

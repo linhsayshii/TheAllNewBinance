@@ -103,7 +103,7 @@
 .create-listing-datepicker {
     -fx-background-color: -theme-bg-main;
     -fx-text-fill: -theme-text-main;
-    -fx-prompt-text-fill: -theme-text-muted;
+    -fx-prompt-text-fill: -theme-text-main;
     -fx-border-color: -theme-border;
     -fx-border-radius: 8;
     -fx-background-radius: 8;

@@ -134,17 +134,36 @@ public class StarAuctionCarouselController {
     // ── Data Loading ────────────────────────────────────────────────────
 
     private void fetchFeaturedAuctions() {
-        String correlationId =
-                NetworkService.getInstance()
-                        .sendRequest(
-                                EventType.GET_FEATURED_AUCTIONS, new GetFeaturedAuctionsRequest());
+        java.util.concurrent.CompletableFuture.runAsync(() -> {
+            long waited = 0;
+            long timeoutMs = 5000;
+            long stepMs = 100;
+            while (!NetworkService.getInstance().getClient().isOpen() && waited < timeoutMs) {
+                try {
+                    Thread.sleep(stepMs);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    return;
+                }
+                waited += stepMs;
+            }
 
-        NetworkService.getInstance()
-                .addCorrelationHandler(
-                        correlationId,
-                        rawJson -> {
-                            Platform.runLater(() -> handleResponse(rawJson));
-                        });
+            if (NetworkService.getInstance().getClient().isOpen()) {
+                String correlationId =
+                        NetworkService.getInstance()
+                                .sendRequest(
+                                        EventType.GET_FEATURED_AUCTIONS, new GetFeaturedAuctionsRequest());
+
+                NetworkService.getInstance()
+                        .addCorrelationHandler(
+                                correlationId,
+                                rawJson -> {
+                                    Platform.runLater(() -> handleResponse(rawJson));
+                                });
+            } else {
+                System.err.println("[StarCarousel] Cannot fetch featured auctions: Socket connection timed out.");
+            }
+        });
     }
 
     @SuppressWarnings("unchecked")

@@ -100,6 +100,9 @@
 /* ── Right pane (image) ── */
 .sa-card-image-pane {
     /* No border-radius on right side — sharp flush edge */
+    -fx-min-height: 310;
+    -fx-max-height: 310;
+    -fx-pref-height: 310;
     -fx-background-color: transparent;
     /* -fx-background-radius: 0 8 8 0; */
     /* Image set via setStyle() in controller */
