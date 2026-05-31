@@ -11,6 +11,8 @@
     </parent>
 
     <artifactId>core</artifactId>
+    <name>core</name>
+    <description>Shared domain models, DTOs, and utilities for TheAllNewBinance</description>
 
     <dependencies>
         <dependency>
