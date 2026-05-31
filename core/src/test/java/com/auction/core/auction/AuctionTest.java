@@ -71,4 +71,11 @@ class AuctionTest {
         assertThat(isExtended).isFalse();
         assertThat(auction.getEndTime()).isEqualTo(originalEndTime);
     }
+
+    @Test
+    @DisplayName("Should expose default snipe threshold and extension of 120 seconds")
+    void testSnipeSettings_Defaults() {
+        assertThat(auction.getSnipeThreshold()).isEqualTo(120);
+        assertThat(auction.getSnipeExtension()).isEqualTo(120);
+    }
 }
