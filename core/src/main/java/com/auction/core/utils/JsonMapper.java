@@ -17,6 +17,8 @@ public class JsonMapper {
     private static final DateTimeFormatter FORMATTER =
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
+    private JsonMapper() {}
+
     // Initialize Gson with unified datetime format for full system synchronization
     private static final Gson GSON =
             new GsonBuilder()
