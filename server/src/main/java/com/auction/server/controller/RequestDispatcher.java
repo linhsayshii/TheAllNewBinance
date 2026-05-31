@@ -227,7 +227,8 @@ public class RequestDispatcher {
                     GET_AUCTION_DETAILS,
                     GET_BIDS_BY_AUCTION_ID,
                     GET_PUBLIC_AUCTIONS,
-                    GET_FEATURED_AUCTIONS ->
+                    GET_FEATURED_AUCTIONS,
+                    GET_AUCTIONS_BY_SELLER ->
                 true;
             default -> false;
         };
