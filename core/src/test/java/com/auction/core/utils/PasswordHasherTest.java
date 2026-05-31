@@ -25,4 +25,18 @@ class PasswordHasherTest {
 
         assertThat(PasswordHasher.verify("wrongPassword", hashedPassword)).isFalse();
     }
+
+    @Test
+    @DisplayName("Should return false when verifying with null inputs")
+    void testVerify_NullInputs() {
+        assertThat(PasswordHasher.verify(null, "hash")).isFalse();
+        assertThat(PasswordHasher.verify("password", null)).isFalse();
+    }
+
+    @Test
+    @DisplayName("Should reject null password when hashing")
+    void testHash_NullPassword() {
+        assertThatThrownBy(() -> PasswordHasher.hash(null))
+                .isInstanceOf(IllegalArgumentException.class);
+    }
 }
