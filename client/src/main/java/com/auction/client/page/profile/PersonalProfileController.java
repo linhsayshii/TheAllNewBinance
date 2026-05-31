@@ -119,6 +119,10 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
 
     private final ProfilePageViewModel viewModel = new ProfilePageViewModel();
     private boolean dataLoaded = false;
+    private final java.util.concurrent.atomic.AtomicBoolean isLoading =
+            new java.util.concurrent.atomic.AtomicBoolean(false);
+    private final java.util.concurrent.atomic.AtomicBoolean isHistoryLoading =
+            new java.util.concurrent.atomic.AtomicBoolean(false);
 
     // ------------------------------------------------------------------ //
     //  FXML Lifecycle                                                      //
@@ -144,8 +148,8 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
                             }
                             showSection(newToggle);
                         });
+        // setSelected(true) tự kích hoạt listener ở trên, không cần gọi showSection thêm
         navDashboard.setSelected(true);
-        showSection(navDashboard);
     }
 
     private void showSection(Toggle selected) {
@@ -164,7 +168,11 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
         if (selected == navDashboard) {
             show(dashboardSection);
             loadTransactionHistoryAsync();
-            loadDataAsync();
+            if (!dataLoaded) {
+                loadDataAsync();
+            } else {
+                updateListingPieChart();
+            }
         } else if (selected == navFinance) {
             show(financeSection);
             loadTransactionHistoryAsync();
@@ -206,14 +214,18 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
         if (data == null) {
             return;
         }
-        // Reload fresh data every time this page is navigated to
+        // Tải lại dữ liệu phiên mỗi khi điều hướng tới trang này
         viewModel.loadFromSession();
         profileSidebarController.bind(viewModel);
         setupDynamicBindings();
         dataLoaded = false;
-        loadDataAsync();
-        navDashboard.setSelected(true);
-        showSection(navDashboard);
+        // Nếu Dashboard đã được chọn, kích hoạt lại showSection trực tiếp;
+        // ngược lại, setSelected(true) sẽ kích hoạt listener để gọi showSection
+        if (navDashboard.isSelected()) {
+            showSection(navDashboard);
+        } else {
+            navDashboard.setSelected(true);
+        }
     }
 
     // ------------------------------------------------------------------ //
@@ -257,15 +269,22 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
     }
 
     private void loadTransactionHistoryAsync() {
+        if (!isHistoryLoading.compareAndSet(false, true)) {
+            return;
+        }
         java.util.concurrent.CompletableFuture.runAsync(
                 () -> {
-                    java.util.List<ProfilePageViewModel.TransactionRow> rows =
-                            viewModel.fetchTransactionHistory();
-                    Platform.runLater(
-                            () -> {
-                                renderTransactionHistory(rows);
-                                updateBalanceChart(rows);
-                            });
+                    try {
+                        java.util.List<ProfilePageViewModel.TransactionRow> rows =
+                                viewModel.fetchTransactionHistory();
+                        Platform.runLater(
+                                () -> {
+                                    renderTransactionHistory(rows);
+                                    updateBalanceChart(rows);
+                                });
+                    } finally {
+                        isHistoryLoading.set(false);
+                    }
                 });
     }
 
@@ -315,14 +334,21 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
     // ------------------------------------------------------------------ //
 
     private void loadDataAsync() {
+        if (!isLoading.compareAndSet(false, true)) {
+            return;
+        }
         java.util.concurrent.CompletableFuture.runAsync(
                 () -> {
-                    viewModel.fetchMyBids();
-                    viewModel.fetchMyListings();
+                    try {
+                        viewModel.fetchMyBids();
+                        viewModel.fetchMyListings();
+                    } finally {
+                        isLoading.set(false);
+                    }
 
                     Platform.runLater(
                             () -> {
-                                dataLoaded = true; // Chỉ đánh dấu loaded khi dữ liệu thực sự đã về!
+                                dataLoaded = true;
                                 updateListingPieChart();
 
                                 Toggle current = navGroup.getSelectedToggle();

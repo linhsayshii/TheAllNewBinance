@@ -1,5 +1,15 @@
 package com.auction.client.page.profile;
 
+import java.text.DecimalFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+
 import com.auction.client.dto.ProfileAuctionCardUiModel;
 import com.auction.client.service.NetworkService;
 import com.auction.client.service.TimeSyncService;
@@ -12,15 +22,7 @@ import com.auction.core.dto.bid.GetBidByBidderIdRequest;
 import com.auction.core.protocol.EventType;
 import com.auction.core.users.User;
 import com.auction.core.utils.JsonMapper;
-import java.text.DecimalFormat;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentHashMap;
+
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -274,9 +276,6 @@ public class ProfilePageViewModel {
             return;
         }
 
-        activeBids.clear();
-        wonAuctions.clear();
-
         try {
             NetworkService ns = NetworkService.getInstance();
             if (!waitForSocket(ns)) {
@@ -288,6 +287,12 @@ public class ProfilePageViewModel {
             String rawBidsJson = ns.sendRequestAsync(EventType.GET_BIDS_BY_BIDDER_ID, req).join();
             List<Bid> rawBids = parseBids(rawBidsJson);
             if (rawBids.isEmpty()) {
+                synchronized (activeBids) {
+                    activeBids.clear();
+                }
+                synchronized (wonAuctions) {
+                    wonAuctions.clear();
+                }
                 javafx.application.Platform.runLater(() -> activeBidsCount.set(0));
                 return;
             }
@@ -308,12 +313,22 @@ public class ProfilePageViewModel {
                                         : existing);
             }
 
-            int uniqueCount = highestBidByAuction.size();
-            if (uniqueCount == 0) {
+            if (highestBidByAuction.isEmpty()) {
+                synchronized (activeBids) {
+                    activeBids.clear();
+                }
+                synchronized (wonAuctions) {
+                    wonAuctions.clear();
+                }
                 javafx.application.Platform.runLater(() -> activeBidsCount.set(0));
                 return;
             }
 
+            // Gom kết quả vào danh sách cục bộ để tránh race condition với các phiên fetch song song
+            List<ProfileAuctionCardUiModel> localActiveBids =
+                    Collections.synchronizedList(new ArrayList<>());
+            List<ProfileAuctionCardUiModel> localWonAuctions =
+                    Collections.synchronizedList(new ArrayList<>());
             List<CompletableFuture<Void>> futures = new ArrayList<>();
             java.util.concurrent.atomic.AtomicInteger activeBidsCounter =
                     new java.util.concurrent.atomic.AtomicInteger(0);
@@ -337,9 +352,9 @@ public class ProfilePageViewModel {
                                                 if (card != null) {
                                                     if ("badge-won"
                                                             .equals(card.badgeStyleClass())) {
-                                                        wonAuctions.add(card);
+                                                        localWonAuctions.add(card);
                                                     } else {
-                                                        activeBids.add(card);
+                                                        localActiveBids.add(card);
                                                         activeBidsCounter.incrementAndGet();
                                                     }
                                                 }
@@ -348,7 +363,16 @@ public class ProfilePageViewModel {
                 futures.add(future);
             }
 
+            // Đợi tất cả request hoàn thành rồi mới cập nhật nguyên tử danh sách chính
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+            synchronized (activeBids) {
+                activeBids.clear();
+                activeBids.addAll(localActiveBids);
+            }
+            synchronized (wonAuctions) {
+                wonAuctions.clear();
+                wonAuctions.addAll(localWonAuctions);
+            }
             int finalCount = activeBidsCounter.get();
             javafx.application.Platform.runLater(() -> activeBidsCount.set(finalCount));
 
@@ -371,11 +395,6 @@ public class ProfilePageViewModel {
             return;
         }
 
-        liveListings.clear();
-        pendingListings.clear();
-        soldListings.clear();
-        unsoldListings.clear();
-
         try {
             NetworkService ns = NetworkService.getInstance();
             if (!waitForSocket(ns)) {
@@ -386,6 +405,18 @@ public class ProfilePageViewModel {
             String raw = ns.sendRequestAsync(EventType.GET_AUCTIONS_BY_SELLER, req).join();
             List<Auction> auctions = parseAuctions(raw);
             if (auctions.isEmpty()) {
+                synchronized (liveListings) {
+                    liveListings.clear();
+                }
+                synchronized (pendingListings) {
+                    pendingListings.clear();
+                }
+                synchronized (soldListings) {
+                    soldListings.clear();
+                }
+                synchronized (unsoldListings) {
+                    unsoldListings.clear();
+                }
                 javafx.application.Platform.runLater(() -> {
                     totalListingsCount.set(0);
                     soldListingsCount.set(0);
@@ -395,6 +426,15 @@ public class ProfilePageViewModel {
             }
 
             int size = auctions.size();
+            // Gom kết quả vào danh sách cục bộ để tránh race condition
+            List<ProfileAuctionCardUiModel> localLiveListings =
+                    Collections.synchronizedList(new ArrayList<>());
+            List<ProfileAuctionCardUiModel> localPendingListings =
+                    Collections.synchronizedList(new ArrayList<>());
+            List<ProfileAuctionCardUiModel> localSoldListings =
+                    Collections.synchronizedList(new ArrayList<>());
+            List<ProfileAuctionCardUiModel> localUnsoldListings =
+                    Collections.synchronizedList(new ArrayList<>());
             List<CompletableFuture<Void>> futures = new ArrayList<>();
 
             for (Auction auction : auctions) {
@@ -414,11 +454,13 @@ public class ProfilePageViewModel {
                                                         buildListingCard(fullAuction, item);
                                                 if (card != null) {
                                                     switch (card.badgeStyleClass()) {
-                                                        case "badge-live" -> liveListings.add(card);
-                                                        case "badge-pending" -> pendingListings.add(
-                                                                card);
-                                                        case "badge-sold" -> soldListings.add(card);
-                                                        default -> unsoldListings.add(card);
+                                                        case "badge-live" ->
+                                                            localLiveListings.add(card);
+                                                        case "badge-pending" ->
+                                                            localPendingListings.add(card);
+                                                        case "badge-sold" ->
+                                                            localSoldListings.add(card);
+                                                        default -> localUnsoldListings.add(card);
                                                     }
                                                 }
                                             }
@@ -426,10 +468,27 @@ public class ProfilePageViewModel {
                 futures.add(future);
             }
 
+            // Đợi tất cả request hoàn thành rồi mới cập nhật nguyên tử danh sách chính
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-            int sold = soldListings.size();
-            int live = liveListings.size();
-            int pending = pendingListings.size();
+            synchronized (liveListings) {
+                liveListings.clear();
+                liveListings.addAll(localLiveListings);
+            }
+            synchronized (pendingListings) {
+                pendingListings.clear();
+                pendingListings.addAll(localPendingListings);
+            }
+            synchronized (soldListings) {
+                soldListings.clear();
+                soldListings.addAll(localSoldListings);
+            }
+            synchronized (unsoldListings) {
+                unsoldListings.clear();
+                unsoldListings.addAll(localUnsoldListings);
+            }
+            int sold = localSoldListings.size();
+            int live = localLiveListings.size();
+            int pending = localPendingListings.size();
             int total = size;
             javafx.application.Platform.runLater(() -> {
                 totalListingsCount.set(total);

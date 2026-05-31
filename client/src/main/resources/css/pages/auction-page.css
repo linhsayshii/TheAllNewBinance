@@ -24,6 +24,11 @@
 /* ---- Left Column ---- */
 
 .auction-left-col {
+    -fx-background-color: -theme-bg-surface;
+    -fx-padding: 30;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 12, 0, 0, 4);
     -fx-min-width: 500;
 }
 
@@ -99,6 +104,7 @@
 
 .auction-right-col {
     -fx-alignment: top-center;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 12, 0, 0, 4);
     -fx-min-width: 350;
     -fx-pref-width: 350;
     -fx-max-width: 350;
@@ -107,7 +113,7 @@
 /* Timer Panel */
 
 .auction-timer-panel {
-    -fx-background-color: -theme-bg-main;
+    -fx-background-color: -theme-bg-surface;
     -fx-border-color: -theme-secondary;
     -fx-border-width: 1;
     -fx-border-radius: 0 0 0 0;
@@ -161,7 +167,7 @@
 /* Bid Panel */
 
 .auction-bid-panel {
-    -fx-background-color: -theme-bg-main;
+    -fx-background-color: -theme-bg-surface;
     -fx-border-color: -theme-secondary;
     -fx-border-width: 0 1 1 1;
     -fx-border-radius: 0 0 0 0;
