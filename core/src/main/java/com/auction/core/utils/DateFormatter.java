@@ -8,6 +8,8 @@ public class DateFormatter {
     public static final String PATTERN = "yyyy-MM-dd HH:mm:ss";
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern(PATTERN);
 
+    private DateFormatter() {}
+
     // Convert LocalDateTime to String (to send to UI or JSON)
     public static String format(LocalDateTime dateTime) {
         if (dateTime == null) {
