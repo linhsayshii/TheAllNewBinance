@@ -11,4 +11,11 @@ class LoginPageViewModelTest {
         LoginPageViewModel viewModel = new LoginPageViewModel();
         Assertions.assertTrue(viewModel.validateCredentials("demo", "1234"));
     }
+
+    @Test
+    void shouldRejectBlankCredentials() {
+        LoginPageViewModel viewModel = new LoginPageViewModel();
+        Assertions.assertFalse(viewModel.validateCredentials("", "1234"));
+        Assertions.assertFalse(viewModel.validateCredentials("demo", "abc"));
+    }
 }
