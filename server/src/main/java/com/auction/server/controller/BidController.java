@@ -6,7 +6,7 @@ import com.auction.core.dto.bid.PlaceBid;
 import com.auction.core.services.IBidService;
 import java.util.concurrent.CompletableFuture;
 
-public class BidController extends BaseController {
+public final class BidController extends BaseController {
     private final IBidService bidService;
 
     public BidController(IBidService bidService) {
