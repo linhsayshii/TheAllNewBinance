@@ -4,7 +4,6 @@ import com.auction.server.dao.impl.IAuctionDao;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.LocalTime;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -27,11 +26,14 @@ public class FeaturedAuctionBatchJob {
         this.auctionDao = auctionDao;
     }
 
-    /** Khởi động job. Lần đầu chạy đúng vào 00:00 ngày hôm sau, sau đó lặp mỗi 24 tiếng. */
+    /** Khởi động job. Chạy dọn dẹp ngay lúc startup, sau đó lập lịch chạy lúc 00:00:05 hàng ngày. */
     public void start() {
+        // Chạy dọn dẹp ngay khi khởi động
+        run();
+
         long initialDelay = computeInitialDelaySeconds();
         System.out.printf(
-                "[FeaturedAuctionBatchJob] Started. First run in %d seconds (at midnight).%n",
+                "[FeaturedAuctionBatchJob] Started. First run in %d seconds (at 00:00:05).%n",
                 initialDelay);
         scheduler.scheduleAtFixedRate(
                 this::run, initialDelay, TimeUnit.DAYS.toSeconds(1), TimeUnit.SECONDS);
@@ -53,10 +55,13 @@ public class FeaturedAuctionBatchJob {
         System.out.println("[FeaturedAuctionBatchJob] Stopped.");
     }
 
-    /** Tính số giây còn lại đến 00:00 ngày hôm sau. */
+    /** Tính số giây còn lại đến 00:00:05 kế tiếp. */
     private long computeInitialDelaySeconds() {
         LocalDateTime now = LocalDateTime.now();
-        LocalDateTime nextMidnight = LocalDate.now().plusDays(1).atTime(LocalTime.MIDNIGHT);
-        return Duration.between(now, nextMidnight).getSeconds();
+        LocalDateTime target = LocalDate.now().atTime(0, 0, 5);
+        if (!now.isBefore(target)) {
+            target = target.plusDays(1);
+        }
+        return Duration.between(now, target).getSeconds();
     }
 }

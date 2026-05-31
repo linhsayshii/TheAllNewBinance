@@ -165,5 +165,5 @@ Nếu bạn muốn tự chạy cơ sở dữ liệu và máy chủ của riêng 
 
 ## 🔗 Liên kết tài liệu & Video Demo
 
-* 📘 **Báo cáo chi tiết dự án (PDF):** [Xem Báo cáo PDF](https://drive.google.com/drive/folders/1eQ-t5PZVgKDsECvdsK9akGYDwf8HDznN?fbclid=IwY2xjawSJDxdleHRuA2FlbQIxMQBzcnRjBmFwcF9pZAEwAAEeEFW74IQG6LXXtcTqmzHzbeL1Wo0HdQKzAWRhFpIMWcyvp1Y5iNg0_78ndoQ_aem_9uDF4on_K2yCMyVGbmwybQ)
-* 🎥 **Video hoạt động thực tế:** [Xem Video](https://drive.google.com/drive/folders/1eQ-t5PZVgKDsECvdsK9akGYDwf8HDznN?fbclid=IwY2xjawSJDxdleHRuA2FlbQIxMQBzcnRjBmFwcF9pZAEwAAEeEFW74IQG6LXXtcTqmzHzbeL1Wo0HdQKzAWRhFpIMWcyvp1Y5iNg0_78ndoQ_aem_9uDF4on_K2yCMyVGbmwybQ)
+* 📘 **Báo cáo chi tiết dự án (PDF):** [Xem Báo cáo PDF](./docs/project-report.pdf)
+* 🎥 **Video hoạt động thực tế:** [Xem Video](https://drive.google.com/drive/folders/17thuwnIl0uE4xxBArFNs9TjdTDpm33-M?usp=drive_link)
