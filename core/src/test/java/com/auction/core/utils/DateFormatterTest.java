@@ -32,4 +32,16 @@ class DateFormatterTest {
 
         assertThat(parsed).isEqualTo(LocalDateTime.of(2026, 5, 28, 15, 30, 45));
     }
+
+    @Test
+    @DisplayName("Should expose consistent datetime pattern")
+    void testPattern() {
+        assertThat(DateFormatter.PATTERN).isEqualTo("yyyy-MM-dd HH:mm:ss");
+    }
+
+    @Test
+    @DisplayName("Should return null for blank datetime string")
+    void testParse_Blank() {
+        assertThat(DateFormatter.parse("   ")).isNull();
+    }
 }
