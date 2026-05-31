@@ -10,6 +10,8 @@ import java.util.concurrent.CompletableFuture;
 
 public class NetworkService {
 
+    public static final String DEFAULT_SERVER_URI = "wss://binance.hnglinh.io.vn";
+
     private static NetworkService instance;
     private final AuctionClient client;
 
