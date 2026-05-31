@@ -167,3 +167,13 @@ Nếu bạn muốn tự chạy cơ sở dữ liệu và máy chủ của riêng 
 
 * 📘 **Báo cáo chi tiết dự án (PDF):** [Xem Báo cáo PDF](./docs/project-report.pdf)
 * 🎥 **Video hoạt động thực tế:** [Xem Video](https://drive.google.com/drive/folders/17thuwnIl0uE4xxBArFNs9TjdTDpm33-M?usp=drive_link)
+
+---
+
+## 🧪 Chạy kiểm thử (Unit tests)
+
+Từ thư mục gốc dự án:
+
+```bash
+mvn test
+```
