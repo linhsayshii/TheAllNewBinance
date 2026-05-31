@@ -11,6 +11,8 @@
     </parent>
 
     <artifactId>server</artifactId>
+    <name>server</name>
+    <description>WebSocket server, DAO layer, and auction business logic</description>
 
     <dependencies>
         <dependency>
