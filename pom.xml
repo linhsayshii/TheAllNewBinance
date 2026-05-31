@@ -19,6 +19,7 @@
         <maven.compiler.source>21</maven.compiler.source>
         <maven.compiler.target>21</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <!-- Keep local builds safe. Override this property on CI/CD with -Dcheckstyle.failOnViolation=true -->
         <checkstyle.failOnViolation>true</checkstyle.failOnViolation>
     </properties>
