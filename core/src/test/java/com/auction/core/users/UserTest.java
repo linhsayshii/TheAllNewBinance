@@ -85,4 +85,11 @@ class UserTest {
         assertThatThrownBy(() -> user.deposit(new BigDecimal("-100.00")))
                 .isInstanceOf(InvalidAmountException.class);
     }
+
+    @Test
+    @DisplayName("Should throw InvalidAmountException on zero deposit")
+    void testDeposit_ZeroAmount() {
+        assertThatThrownBy(() -> user.deposit(BigDecimal.ZERO))
+                .isInstanceOf(InvalidAmountException.class);
+    }
 }
