@@ -53,6 +53,10 @@ public final class AppConfig {
         return Boolean.parseBoolean(System.getProperty(MOCK_MODE_KEY, "false"));
     }
 
+    public static String appVersion() {
+        return "1.0";
+    }
+
     public static boolean shouldUseSourceResources() {
         return isDevMode() && SOURCE_RESOURCE_ROOT.isPresent();
     }
