@@ -18,12 +18,14 @@ import javafx.stage.Stage;
 
 public class ClientApp extends Application {
 
-    private static final String VERSION = "1.0";
     private HotReloadService hotReloadService;
 
     @Override
     public void start(Stage primaryStage) {
-        System.out.println("[ClientApp] TheAllNewBinance Client v" + VERSION + " starting...");
+        System.out.println(
+                "[ClientApp] TheAllNewBinance Client v"
+                        + AppConfig.appVersion()
+                        + " starting...");
         // 1. Ép JVM load lớp LuxuryAttributes an toàn với Try-Catch
         try {
             Class.forName(LuxuryAttributes.class.getName());
@@ -38,7 +40,7 @@ public class ClientApp extends Application {
         ItemFactoryProvider.initialize();
 
         // Init network FIRST — controllers register handlers on initialize()
-        NetworkService.init("wss://binance.hnglinh.io.vn");
+        NetworkService.init(NetworkService.DEFAULT_SERVER_URI);
 
         // ── Mock Mode ──────────────────────────────────────────────────
         if (AppConfig.isMockMode()) {
