@@ -205,7 +205,8 @@ CREATE TABLE IF NOT EXISTS bids (
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
 
-    CONSTRAINT ck_bids_amount_positive CHECK (amount > 0)
+    CONSTRAINT ck_bids_amount_positive CHECK (amount > 0),
+    CONSTRAINT uq_bids_auction_amount UNIQUE (auction_id, amount)
 );
 
 CREATE INDEX idx_bids_auction_id ON bids (auction_id);

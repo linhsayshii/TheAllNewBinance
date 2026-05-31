@@ -403,7 +403,9 @@ public class AuctionService implements IAuctionService {
             String status, int page, int size) {
         return CompletableFuture.supplyAsync(
                 () -> {
-                    List<String> statuses = normalizeStatuses(status);
+                    List<String> statuses = (status == null || status.isBlank())
+                            ? List.of("ACTIVE", "PENDING", "ENDED", "CANCELLED")
+                            : normalizeStatuses(status);
                     int offset = Math.max(0, (page - 1)) * size;
                     return auctionDao.getAllAuctionsForAdmin(statuses, offset, size);
                 });
