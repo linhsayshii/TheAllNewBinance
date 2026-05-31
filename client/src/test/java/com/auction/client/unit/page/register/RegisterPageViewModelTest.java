@@ -11,4 +11,10 @@ class RegisterPageViewModelTest {
         RegisterPageViewModel viewModel = new RegisterPageViewModel();
         Assertions.assertTrue(viewModel.validateRegistration("demo", "demo@mail.com", "12345678"));
     }
+
+    @Test
+    void shouldRejectInvalidEmail() {
+        RegisterPageViewModel viewModel = new RegisterPageViewModel();
+        Assertions.assertFalse(viewModel.validateRegistration("demo", "not-an-email", "12345678"));
+    }
 }
