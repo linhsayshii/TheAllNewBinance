@@ -11,15 +11,21 @@ import com.auction.client.dto.ProfileAuctionCardUiModel;
 import com.auction.client.scene.DataReceivable;
 import com.auction.client.scene.LifecycleAwareController;
 import com.auction.client.scene.NavigationService;
+import com.auction.client.service.NetworkService;
 import com.auction.client.service.UserSessionService;
 import com.auction.client.service.notification.NotificationService;
 import com.auction.client.service.notification.NotificationType;
+import com.auction.core.dto.user.UpdatePasswordRequest;
+import com.auction.core.dto.user.UpdateProfileRequest;
+import com.auction.core.protocol.EventType;
+import com.auction.core.utils.JsonMapper;
 
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.control.Toggle;
 import javafx.scene.control.ToggleButton;
@@ -53,6 +59,7 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
     @FXML private ToggleButton navFinance;
     @FXML private ToggleButton navMyBids;
     @FXML private ToggleButton navMyListings;
+    @FXML private ToggleButton navSettings;
 
     // ---- Content StackPane ----
     @FXML private StackPane contentArea;
@@ -93,6 +100,15 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
     @FXML private FlowPane listingsCardsContainer;
     @FXML private Label listingsEmptyLabel;
 
+    // ---- Settings section ----
+    @FXML private VBox settingsSection;
+    @FXML private TextField settingsUsernameField;
+    @FXML private TextField settingsFullNameField;
+    @FXML private TextField settingsEmailField;
+    @FXML private PasswordField settingsOldPasswordField;
+    @FXML private PasswordField settingsNewPasswordField;
+    @FXML private PasswordField settingsConfirmPasswordField;
+
     private final ProfilePageViewModel viewModel = new ProfilePageViewModel();
     private boolean dataLoaded = false;
 
@@ -126,7 +142,12 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
 
     private void showSection(Toggle selected) {
         List<Node> all =
-                List.of(dashboardSection, financeSection, myBidsSection, myListingsSection);
+                List.of(
+                        dashboardSection,
+                        financeSection,
+                        myBidsSection,
+                        myListingsSection,
+                        settingsSection);
         for (Node n : all) {
             n.setVisible(false);
             n.setManaged(false);
@@ -155,6 +176,9 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
                 refreshListingsStats();
                 renderActiveListingsTab();
             }
+        } else if (selected == navSettings) {
+            show(settingsSection);
+            prefillSettingsFields();
         }
     }
 
@@ -452,6 +476,11 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
     }
 
     @FXML
+    private void handleNavSettings() {
+        /* handled by ToggleGroup listener */
+    }
+
+    @FXML
     private void handleCreateListing() {
         NavigationService.getInstance().navigateTo(SceneRegistry.CREATE_LISTING_PAGE);
     }
@@ -614,6 +643,168 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
             user.withdraw(amount);
         }
         viewModel.loadFromSession();
+    }
+
+    // ------------------------------------------------------------------ //
+    //  Settings                                                            //
+    // ------------------------------------------------------------------ //
+
+    /** Pre-fills Settings fields with the current user's data when the section is shown. */
+    private void prefillSettingsFields() {
+        com.auction.core.users.User user = UserSessionService.getInstance().getCurrentUser();
+        if (user == null) {
+            return;
+        }
+        settingsUsernameField.setText(user.getUsername() != null ? user.getUsername() : "");
+        settingsFullNameField.setText(user.getFullName() != null ? user.getFullName() : "");
+        settingsEmailField.setText(user.getEmail() != null ? user.getEmail() : "");
+        settingsOldPasswordField.clear();
+        settingsNewPasswordField.clear();
+        settingsConfirmPasswordField.clear();
+    }
+
+    @FXML
+    private void handleSaveProfile() {
+        com.auction.core.users.User user = UserSessionService.getInstance().getCurrentUser();
+        if (user == null) {
+            return;
+        }
+        String username = settingsUsernameField.getText().trim();
+        String fullName = settingsFullNameField.getText().trim();
+        String email = settingsEmailField.getText().trim();
+
+        if (username.isEmpty() || fullName.isEmpty() || email.isEmpty()) {
+            NotificationService.getInstance()
+                    .show("All profile fields are required.", NotificationType.WARNING);
+            return;
+        }
+
+        UpdateProfileRequest req =
+                new UpdateProfileRequest(user.getId(), username, fullName, email);
+
+        NetworkService.getInstance()
+                .sendRequestAsync(EventType.UPDATE_PROFILE, req)
+                .thenAccept(
+                        raw ->
+                                Platform.runLater(
+                                        () -> {
+                                            try {
+                                                java.util.Map<?, ?> resp =
+                                                        JsonMapper.fromJson(
+                                                                raw, java.util.Map.class);
+                                                if (Boolean.TRUE.equals(resp.get("success"))) {
+                                                    user.setUsername(username);
+                                                    user.setFullName(fullName);
+                                                    user.setEmail(email);
+                                                    viewModel.loadFromSession();
+                                                    profileSidebarController.bind(viewModel);
+                                                    NotificationService.getInstance()
+                                                            .show(
+                                                                    "Profile updated"
+                                                                            + " successfully.",
+                                                                    NotificationType.SUCCESS);
+                                                } else {
+                                                    String msg =
+                                                            resp.get("message") != null
+                                                                    ? String.valueOf(
+                                                                            resp.get("message"))
+                                                                    : "Update failed.";
+                                                    NotificationService.getInstance()
+                                                            .show(msg, NotificationType.ERROR);
+                                                }
+                                            } catch (Exception ex) {
+                                                NotificationService.getInstance()
+                                                        .show(
+                                                                "Error: " + ex.getMessage(),
+                                                                NotificationType.ERROR);
+                                            }
+                                        }))
+                .exceptionally(
+                        ex -> {
+                            Platform.runLater(
+                                    () ->
+                                            NotificationService.getInstance()
+                                                    .show(
+                                                            "Request failed. Please try again.",
+                                                            NotificationType.ERROR));
+                            return null;
+                        });
+    }
+
+    @FXML
+    private void handleChangePassword() {
+        com.auction.core.users.User user = UserSessionService.getInstance().getCurrentUser();
+        if (user == null) {
+            return;
+        }
+        String oldPassword = settingsOldPasswordField.getText();
+        String newPassword = settingsNewPasswordField.getText();
+        String confirmPassword = settingsConfirmPasswordField.getText();
+
+        if (oldPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
+            NotificationService.getInstance()
+                    .show("All password fields are required.", NotificationType.WARNING);
+            return;
+        }
+        if (!newPassword.equals(confirmPassword)) {
+            NotificationService.getInstance()
+                    .show("New password and confirmation do not match.", NotificationType.WARNING);
+            return;
+        }
+        if (newPassword.length() < 8) {
+            NotificationService.getInstance()
+                    .show("Password must be at least 8 characters.", NotificationType.WARNING);
+            return;
+        }
+
+        UpdatePasswordRequest req =
+                new UpdatePasswordRequest(user.getId(), oldPassword, newPassword);
+
+        NetworkService.getInstance()
+                .sendRequestAsync(EventType.CHANGE_PASSWORD, req)
+                .thenAccept(
+                        raw ->
+                                Platform.runLater(
+                                        () -> {
+                                            try {
+                                                java.util.Map<?, ?> resp =
+                                                        JsonMapper.fromJson(
+                                                                raw, java.util.Map.class);
+                                                if (Boolean.TRUE.equals(resp.get("success"))) {
+                                                    settingsOldPasswordField.clear();
+                                                    settingsNewPasswordField.clear();
+                                                    settingsConfirmPasswordField.clear();
+                                                    NotificationService.getInstance()
+                                                            .show(
+                                                                    "Password changed"
+                                                                            + " successfully.",
+                                                                    NotificationType.SUCCESS);
+                                                } else {
+                                                    String msg =
+                                                            resp.get("message") != null
+                                                                    ? String.valueOf(
+                                                                            resp.get("message"))
+                                                                    : "Password change failed.";
+                                                    NotificationService.getInstance()
+                                                            .show(msg, NotificationType.ERROR);
+                                                }
+                                            } catch (Exception ex) {
+                                                NotificationService.getInstance()
+                                                        .show(
+                                                                "Error: " + ex.getMessage(),
+                                                                NotificationType.ERROR);
+                                            }
+                                        }))
+                .exceptionally(
+                        ex -> {
+                            Platform.runLater(
+                                    () ->
+                                            NotificationService.getInstance()
+                                                    .show(
+                                                            "Request failed. Please try again.",
+                                                            NotificationType.ERROR));
+                            return null;
+                        });
     }
 
     // ------------------------------------------------------------------ //

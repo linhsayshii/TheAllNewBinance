@@ -103,6 +103,7 @@ public class AdminPageController implements LifecycleAwareController {
 
         setupTableColumns();
         usersTable.setItems(userRows);
+        usersTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
 
         navGroup.selectedToggleProperty()
                 .addListener(
@@ -126,6 +127,60 @@ public class AdminPageController implements LifecycleAwareController {
         colUserStatus.setCellValueFactory(c -> new SimpleStringProperty(c.getValue().status()));
 
         // CHECKSTYLE:OFF
+        colRole.setCellFactory(
+                col ->
+                        new javafx.scene.control.TableCell<>() {
+                            private final Label lbl = new Label();
+
+                            {
+                                lbl.getStyleClass().add("role-badge");
+                            }
+
+                            @Override
+                            protected void updateItem(String item, boolean empty) {
+                                super.updateItem(item, empty);
+                                if (empty || item == null) {
+                                    setGraphic(null);
+                                } else {
+                                    lbl.setText(item);
+                                    lbl.getStyleClass().removeAll("admin", "user");
+                                    if ("Admin".equalsIgnoreCase(item)) {
+                                        lbl.getStyleClass().add("admin");
+                                    } else {
+                                        lbl.getStyleClass().add("user");
+                                    }
+                                    setGraphic(lbl);
+                                }
+                            }
+                        });
+
+        colUserStatus.setCellFactory(
+                col ->
+                        new javafx.scene.control.TableCell<>() {
+                            private final Label lbl = new Label();
+
+                            {
+                                lbl.getStyleClass().add("status-badge");
+                            }
+
+                            @Override
+                            protected void updateItem(String item, boolean empty) {
+                                super.updateItem(item, empty);
+                                if (empty || item == null) {
+                                    setGraphic(null);
+                                } else {
+                                    lbl.setText(item);
+                                    lbl.getStyleClass().removeAll("active", "banned");
+                                    if ("Active".equalsIgnoreCase(item)) {
+                                        lbl.getStyleClass().add("active");
+                                    } else {
+                                        lbl.getStyleClass().add("banned");
+                                    }
+                                    setGraphic(lbl);
+                                }
+                            }
+                        });
+
         colAction.setCellFactory(
                 col ->
                         new javafx.scene.control.TableCell<>() {
@@ -155,15 +210,19 @@ public class AdminPageController implements LifecycleAwareController {
                                         btn.setDisable(true);
                                         btn.setText("\u2014");
                                         btn.setStyle("-fx-opacity: 0.5;");
+                                        btn.getStyleClass().removeAll("danger", "success");
                                     } else {
                                         btn.setDisable(false);
                                         btn.setStyle("");
-                                        btn.setText(
-                                                row != null
-                                                                && "Active".equalsIgnoreCase(
-                                                                        row.status())
-                                                        ? "Ban"
-                                                        : "Activate");
+                                        btn.getStyleClass().removeAll("danger", "success");
+                                        if (row != null
+                                                && "Active".equalsIgnoreCase(row.status())) {
+                                            btn.setText("Ban");
+                                            btn.getStyleClass().add("danger");
+                                        } else {
+                                            btn.setText("Activate");
+                                            btn.getStyleClass().add("success");
+                                        }
                                     }
                                     setGraphic(btn);
                                 }

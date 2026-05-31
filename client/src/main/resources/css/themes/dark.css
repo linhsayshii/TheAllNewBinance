@@ -2,7 +2,8 @@
 .root {
     /* --- NỀN TẢNG (BACKGROUND & SURFACE) --- */
     -theme-bg-main:      -color-black;    /* Nền tổng: Đen */
-    -theme-bg-surface:   -color-text-800;    /* Card/Panel: Sáng hơn nền 1 tone để tạo khối */
+    -theme-bg-surface:   -color-text-800;    /* Card/Panel: Sáng hơn nền 1 tone */
+    -theme-bg-card:      -color-text-700;    /* Card nội dung: tone giữa */
     -theme-border:       -color-text-600;    /* Viền hiển thị rõ trên nền tối */
 
     /* --- VĂN BẢN (TEXT) --- */

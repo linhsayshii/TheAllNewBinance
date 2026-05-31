@@ -74,6 +74,13 @@
                                   toggleGroup="$navGroup"
                                   onAction="#handleNavMyListings"
                                   maxWidth="Infinity" />
+
+                    <ToggleButton fx:id="navSettings"
+                                  text="⚙️  Settings"
+                                  styleClass="profile-nav-btn"
+                                  toggleGroup="$navGroup"
+                                  onAction="#handleNavSettings"
+                                  maxWidth="Infinity" />
                 </VBox>
 
             </VBox>
@@ -273,6 +280,92 @@
 
                     </VBox>
                     <!-- == END MY LISTINGS == -->
+
+                    <!-- == SETTINGS SECTION == -->
+                    <VBox fx:id="settingsSection" spacing="24" visible="false" managed="false">
+
+                        <Label text="Settings" styleClass="profile-section-title" />
+                        <Label text="Manage your account information" styleClass="profile-section-subtitle" />
+                        <Region styleClass="profile-divider" maxWidth="Infinity" />
+
+                        <!-- Profile Info card -->
+                        <VBox styleClass="profile-settings-card" spacing="16">
+                            <Label text="Profile Information" styleClass="profile-section-title"
+                                   style="-fx-font-size: 16px;" />
+                            <Region styleClass="profile-settings-divider" maxWidth="Infinity" />
+
+                            <HBox spacing="16" alignment="CENTER_LEFT">
+                                <Label text="Username" styleClass="profile-form-label" />
+                                <javafx.scene.control.TextField fx:id="settingsUsernameField"
+                                        promptText="Enter username"
+                                        styleClass="profile-input-field"
+                                        HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                            </HBox>
+
+                            <HBox spacing="16" alignment="CENTER_LEFT">
+                                <Label text="Full Name" styleClass="profile-form-label" />
+                                <javafx.scene.control.TextField fx:id="settingsFullNameField"
+                                        promptText="Enter full name"
+                                        styleClass="profile-input-field"
+                                        HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                            </HBox>
+
+                            <HBox spacing="16" alignment="CENTER_LEFT">
+                                <Label text="Email" styleClass="profile-form-label" />
+                                <javafx.scene.control.TextField fx:id="settingsEmailField"
+                                        promptText="Enter email address"
+                                        styleClass="profile-input-field"
+                                        HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                            </HBox>
+
+                            <HBox alignment="CENTER_RIGHT">
+                                <padding><Insets top="8" /></padding>
+                                <Button text="Save Changes"
+                                        styleClass="profile-btn-action"
+                                        onAction="#handleSaveProfile" />
+                            </HBox>
+                        </VBox>
+
+                        <!-- Change Password card -->
+                        <VBox styleClass="profile-settings-card" spacing="16">
+                            <Label text="Change Password" styleClass="profile-section-title"
+                                   style="-fx-font-size: 16px;" />
+                            <Region styleClass="profile-settings-divider" maxWidth="Infinity" />
+
+                            <HBox spacing="16" alignment="CENTER_LEFT">
+                                <Label text="Current Password" styleClass="profile-form-label" />
+                                <javafx.scene.control.PasswordField fx:id="settingsOldPasswordField"
+                                        promptText="Enter current password"
+                                        styleClass="profile-input-field"
+                                        HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                            </HBox>
+
+                            <HBox spacing="16" alignment="CENTER_LEFT">
+                                <Label text="New Password" styleClass="profile-form-label" />
+                                <javafx.scene.control.PasswordField fx:id="settingsNewPasswordField"
+                                        promptText="Min. 8 characters"
+                                        styleClass="profile-input-field"
+                                        HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                            </HBox>
+
+                            <HBox spacing="16" alignment="CENTER_LEFT">
+                                <Label text="Confirm Password" styleClass="profile-form-label" />
+                                <javafx.scene.control.PasswordField fx:id="settingsConfirmPasswordField"
+                                        promptText="Re-enter new password"
+                                        styleClass="profile-input-field"
+                                        HBox.hgrow="ALWAYS" maxWidth="Infinity" />
+                            </HBox>
+
+                            <HBox alignment="CENTER_RIGHT">
+                                <padding><Insets top="8" /></padding>
+                                <Button text="Change Password"
+                                        styleClass="profile-btn-action-outline"
+                                        onAction="#handleChangePassword" />
+                            </HBox>
+                        </VBox>
+
+                    </VBox>
+                    <!-- == END SETTINGS == -->
 
                 </StackPane>
             </ScrollPane>

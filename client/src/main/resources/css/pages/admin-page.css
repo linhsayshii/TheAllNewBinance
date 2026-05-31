@@ -60,47 +60,136 @@
 
 /* ── TableView ── */
 .admin-table {
-    -fx-background-color: transparent;
-    -fx-border-color: -theme-secondary;
-    -fx-border-width: 1;
-    -fx-border-radius: 8;
-    -fx-background-radius: 8;
+    -fx-background-color: -theme-bg-surface;
+    -fx-border-color: -theme-border;
+    -fx-border-width: 1px;
+    -fx-border-radius: 8px;
+    -fx-background-radius: 8px;
     -fx-font-family: "Montserrat";
     -fx-font-size: 13px;
+    -fx-padding: 0;
 }
 
-.admin-table .column-header-theme-bg-main {
-    -fx-background-color: -theme-bg-main;
-    -fx-background-radius: 8 8 0 0;
+.admin-table .column-header-background {
+    -fx-background-color: derive(-theme-bg-surface, -4%);
+    -fx-border-color: transparent transparent -theme-border transparent;
+    -fx-border-width: 0 0 1px 0;
+    -fx-background-radius: 8px 8px 0 0;
+}
+
+.admin-table .column-header {
+    -fx-background-color: transparent;
+    -fx-size: 44px;
+    -fx-border-color: transparent -theme-border transparent transparent;
+    -fx-border-width: 0 1px 0 0;
+}
+
+.admin-table .column-header:last-visible {
+    -fx-border-color: transparent;
 }
 
 .admin-table .column-header .label {
     -fx-font-family: "Montserrat";
     -fx-font-size: 11px;
     -fx-font-weight: 700;
-    -fx-text-fill: -theme-accent;
+    -fx-text-fill: -theme-text-muted;
     -fx-alignment: CENTER_LEFT;
 }
 
 .admin-table .table-row-cell {
-    -fx-background-color: -theme-bg-main;
-    -fx-border-color: transparent transparent -theme-secondary transparent;
-    -fx-border-width: 0 0 1 0;
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -theme-border transparent;
+    -fx-border-width: 0 0 1px 0;
+    -fx-size: 48px;
 }
 
 .admin-table .table-row-cell:hover {
-    -fx-background-color: derive(-theme-bg-main, 5%);
+    -fx-background-color: rgba(255, 61, 104, 0.04);
 }
 
 .admin-table .table-row-cell:selected {
-    -fx-background-color: rgba(255,61,104,0.10);
+    -fx-background-color: rgba(255, 61, 104, 0.08);
 }
 
 .admin-table .table-cell {
     -fx-text-fill: -theme-text-main;
     -fx-font-family: "Montserrat";
     -fx-font-size: 13px;
-    -fx-padding: 10 8 10 8;
+    -fx-padding: 10px 8px 10px 8px;
+    -fx-alignment: CENTER_LEFT;
+}
+
+/* Slim scrollbars for table */
+.admin-table .scroll-bar:vertical,
+.admin-table .scroll-bar:horizontal {
+    -fx-background-color: transparent;
+}
+
+.admin-table .scroll-bar:vertical .thumb,
+.admin-table .scroll-bar:horizontal .thumb {
+    -fx-background-color: -theme-border;
+    -fx-background-radius: 4px;
+}
+
+.admin-table .scroll-bar:vertical .thumb:hover,
+.admin-table .scroll-bar:horizontal .thumb:hover {
+    -fx-background-color: -theme-text-muted;
+}
+
+.admin-table .scroll-bar .increment-button,
+.admin-table .scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.admin-table .scroll-bar .increment-arrow,
+.admin-table .scroll-bar .decrement-arrow {
+    -fx-shape: "";
+    -fx-padding: 0;
+}
+
+.admin-table .corner {
+    -fx-background-color: transparent;
+}
+
+/* ── Badges for Role & Status ── */
+.role-badge {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-padding: 4px 10px 4px 10px;
+    -fx-background-radius: 12px; /* Pill design */
+    -fx-text-fill: white;
+    -fx-alignment: CENTER;
+}
+
+.role-badge.admin {
+    -fx-background-color: rgba(83, 24, 44, 0.15); /* Accent themed light bg */
+    -fx-text-fill: -theme-accent;
+}
+
+.role-badge.user {
+    -fx-background-color: rgba(142, 134, 140, 0.15); /* Neutral/Muted themed light bg */
+    -fx-text-fill: -theme-text-muted;
+}
+
+.status-badge {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-padding: 4px 10px 4px 10px;
+    -fx-background-radius: 12px; /* Pill design */
+    -fx-alignment: CENTER;
+}
+
+.status-badge.active {
+    -fx-background-color: rgba(22, 163, 74, 0.12); /* light green bg */
+    -fx-text-fill: -theme-success;
+}
+
+.status-badge.banned {
+    -fx-background-color: rgba(220, 38, 38, 0.12); /* light red bg */
+    -fx-text-fill: -theme-error;
 }
 
 /* ── Admin header button ── */
@@ -161,16 +250,29 @@
     -fx-font-size: 11px;
     -fx-font-weight: 700;
     -fx-background-color: transparent;
-    -fx-border-color: -theme-primary;
-    -fx-border-width: 1;
-    -fx-border-radius: 4;
-    -fx-background-radius: 4;
-    -fx-text-fill: -theme-primary;
-    -fx-padding: 4 8 4 8;
+    -fx-border-width: 1.5px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-padding: 5px 12px 5px 12px;
     -fx-cursor: hand;
 }
 
-.admin-ban-btn:hover {
-    -fx-background-color: -theme-primary;
+.admin-ban-btn.danger {
+    -fx-border-color: -theme-error;
+    -fx-text-fill: -theme-error;
+}
+
+.admin-ban-btn.danger:hover {
+    -fx-background-color: -theme-error;
+    -fx-text-fill: white;
+}
+
+.admin-ban-btn.success {
+    -fx-border-color: -theme-success;
+    -fx-text-fill: -theme-success;
+}
+
+.admin-ban-btn.success:hover {
+    -fx-background-color: -theme-success;
     -fx-text-fill: white;
 }

@@ -208,14 +208,76 @@
    Finance Section
    ============================================================ */
 .profile-finance-card {
-    -fx-background-color: -theme-bg-main;
+    -fx-background-color: -theme-bg-card;
     -fx-border-color: -theme-secondary;
     -fx-border-width: 1;
     -fx-background-radius: 12;
     -fx-border-radius: 12;
     -fx-padding: 24 28 24 28;
     -fx-spacing: 12;
-    -fx-max-width: 500;
+    -fx-max-width: 520;
+}
+
+/* Settings section cards stretch full-width */
+.profile-settings-card {
+    -fx-background-color: -theme-bg-card;
+    -fx-border-color: -theme-secondary;
+    -fx-border-width: 1;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-padding: 28 32 28 32;
+    -fx-spacing: 16;
+    -fx-max-width: Infinity;
+}
+
+.profile-settings-card:hover {
+    -fx-border-color: -theme-primary;
+}
+
+/* ============================================================
+   Form Input Fields (Finance + Settings)
+   ============================================================ */
+.profile-input-field {
+    -fx-background-color: -theme-bg-main;
+    -fx-border-color: -theme-secondary;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: -theme-text-main;
+    -fx-prompt-text-fill: -theme-accent;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-padding: 10 14 10 14;
+    -fx-pref-height: 42;
+}
+
+.profile-input-field:focused {
+    -fx-border-color: -theme-primary;
+    -fx-effect: dropshadow(gaussian, derive(-theme-primary, -20%), 8, 0.25, 0, 0);
+}
+
+.profile-input-field:hover {
+    -fx-border-color: -theme-accent;
+}
+
+/* Form row label alignment */
+.profile-form-label {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -theme-accent;
+    -fx-min-width: 140;
+    -fx-max-width: 140;
+    -fx-pref-width: 140;
+    -fx-alignment: center-left;
+}
+
+/* Divider inside settings card */
+.profile-settings-divider {
+    -fx-background-color: -theme-secondary;
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
 }
 
 .profile-finance-row {

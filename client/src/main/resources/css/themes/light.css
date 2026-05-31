@@ -3,10 +3,11 @@
    ========================================================================== */
 .root {
     /* --- NỀN TẢNG (BACKGROUND & SURFACE) --- */
-    -theme-bg-main:          -color-neutral-400;  /* #F7F7F8: Nền tổng thể xám nhẹ, tạo chiều sâu */
+    -theme-bg-main:          -color-neutral-400;  /* Nền tổng thể xám nhẹ */
     -theme-bg-light-surface: -color-neutral-200; 
-    -theme-bg-surface:       -color-white;        /* #FFFFFF: Thẻ (Card) màu trắng tinh khiết để nổi bật */
-    -theme-border:           -color-neutral-500;  /* #F4F4F6: Đường viền mảnh, tinh tế */
+    -theme-bg-surface:       -color-white;        /* Thẻ (Card) màu trắng tinh khiết */
+    -theme-bg-card:          -color-white;        /* Card nội dung: trắng tinh */
+    -theme-border:           -color-neutral-500;  /* Đường viền mảnh, tinh tế */
 
     /* --- VĂN BẢN (TEXT) --- */
     -theme-text-main:        -color-text-500;    /* #1D0C19: Chữ chính màu tối sẫm hẳn, độ tương phản cao */
