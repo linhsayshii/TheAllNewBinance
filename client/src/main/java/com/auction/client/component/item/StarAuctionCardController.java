@@ -3,6 +3,7 @@ package com.auction.client.component.item;
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.scene.NavigationService;
 import com.auction.client.service.ImageLoader;
+import com.auction.client.service.TimeSyncService;
 import com.auction.core.dto.auction.PublicAuctionDto;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -141,7 +142,7 @@ public class StarAuctionCardController {
             return;
         }
 
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = TimeSyncService.getNow();
         LocalDateTime startTime = currentDto.getStartTime();
         LocalDateTime endTime = currentDto.getEndTime();
         String status = currentDto.getStatus();

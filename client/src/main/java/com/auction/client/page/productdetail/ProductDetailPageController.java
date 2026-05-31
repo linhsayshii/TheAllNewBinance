@@ -6,6 +6,7 @@ import com.auction.client.scene.LifecycleAwareController;
 import com.auction.client.scene.NavigationService;
 import com.auction.client.service.ImageLoader;
 import com.auction.client.service.NetworkService;
+import com.auction.client.service.TimeSyncService;
 import com.auction.client.service.notification.NotificationService;
 import com.auction.client.service.notification.NotificationType;
 import com.auction.core.auction.Bid;
@@ -19,7 +20,6 @@ import com.auction.core.protocol.EventType;
 import com.auction.core.utils.JsonMapper;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -332,7 +332,7 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
                         new KeyFrame(
                                 Duration.seconds(1),
                                 event -> {
-                                    viewModel.updateCountdown(LocalDateTime.now());
+                                    viewModel.updateCountdown(TimeSyncService.getNow());
                                     if (!viewModel.isBiddingEnabled()
                                             && countdownTimeline != null) {
                                         countdownTimeline.stop();

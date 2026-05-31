@@ -3,6 +3,7 @@ package com.auction.client.page.auction;
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
 import com.auction.core.products.Item;
+import com.auction.client.service.TimeSyncService;
 import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -54,9 +55,9 @@ public class AuctionPageViewModel {
 
     private final IntegerProperty winnerId = new SimpleIntegerProperty(0);
     private final ObjectProperty<LocalDateTime> startTime =
-            new SimpleObjectProperty<>(LocalDateTime.now());
+            new SimpleObjectProperty<>(TimeSyncService.getNow());
     private final ObjectProperty<LocalDateTime> endTime =
-            new SimpleObjectProperty<>(LocalDateTime.now());
+            new SimpleObjectProperty<>(TimeSyncService.getNow());
     private final ObjectProperty<Auction.Status> status =
             new SimpleObjectProperty<>(Auction.Status.ACTIVE);
     private final DoubleProperty currentBidAmount = new SimpleDoubleProperty(0.0);
@@ -105,14 +106,14 @@ public class AuctionPageViewModel {
                     auction.getCurrentPrice() != null ? auction.getCurrentPrice() : 0.0);
             bidIncrement.set(auction.getBidIncrement() != null ? auction.getBidIncrement() : 1.0);
             startTime.set(
-                    auction.getStartTime() != null ? auction.getStartTime() : LocalDateTime.now());
-            endTime.set(auction.getEndTime() != null ? auction.getEndTime() : LocalDateTime.now());
+                    auction.getStartTime() != null ? auction.getStartTime() : TimeSyncService.getNow());
+            endTime.set(auction.getEndTime() != null ? auction.getEndTime() : TimeSyncService.getNow());
             status.set(auction.getStatus() != null ? auction.getStatus() : Auction.Status.ACTIVE);
             winnerId.set(auction.getWinnerId() != null ? auction.getWinnerId() : 0);
 
             boolean active = auction.getStatus() == Auction.Status.ACTIVE;
             if (auction.getEndTime() != null
-                    && auction.getEndTime().isBefore(LocalDateTime.now())) {
+                    && auction.getEndTime().isBefore(TimeSyncService.getNow())) {
                 active = false;
                 status.set(Auction.Status.ENDED);
             }

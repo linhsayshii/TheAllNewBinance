@@ -2,6 +2,7 @@ package com.auction.client.page.profile;
 
 import com.auction.client.dto.ProfileAuctionCardUiModel;
 import com.auction.client.service.NetworkService;
+import com.auction.client.service.TimeSyncService;
 import com.auction.client.service.UserSessionService;
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
@@ -287,7 +288,7 @@ public class ProfilePageViewModel {
             String rawBidsJson = ns.sendRequestAsync(EventType.GET_BIDS_BY_BIDDER_ID, req).join();
             List<Bid> rawBids = parseBids(rawBidsJson);
             if (rawBids.isEmpty()) {
-                activeBidsCount.set(0);
+                javafx.application.Platform.runLater(() -> activeBidsCount.set(0));
                 return;
             }
 
@@ -309,7 +310,7 @@ public class ProfilePageViewModel {
 
             int uniqueCount = highestBidByAuction.size();
             if (uniqueCount == 0) {
-                activeBidsCount.set(0);
+                javafx.application.Platform.runLater(() -> activeBidsCount.set(0));
                 return;
             }
 
@@ -348,7 +349,8 @@ public class ProfilePageViewModel {
             }
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
-            activeBidsCount.set(activeBidsCounter.get());
+            int finalCount = activeBidsCounter.get();
+            javafx.application.Platform.runLater(() -> activeBidsCount.set(finalCount));
 
         } catch (Exception e) {
             System.err.println("Error during fetchMyBids: " + e.getMessage());
@@ -384,9 +386,11 @@ public class ProfilePageViewModel {
             String raw = ns.sendRequestAsync(EventType.GET_AUCTIONS_BY_SELLER, req).join();
             List<Auction> auctions = parseAuctions(raw);
             if (auctions.isEmpty()) {
-                totalListingsCount.set(0);
-                soldListingsCount.set(0);
-                activeListingsCount.set(0);
+                javafx.application.Platform.runLater(() -> {
+                    totalListingsCount.set(0);
+                    soldListingsCount.set(0);
+                    activeListingsCount.set(0);
+                });
                 return;
             }
 
@@ -424,9 +428,14 @@ public class ProfilePageViewModel {
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
             int sold = soldListings.size();
-            totalListingsCount.set(size);
-            soldListingsCount.set(sold);
-            activeListingsCount.set(liveListings.size() + pendingListings.size());
+            int live = liveListings.size();
+            int pending = pendingListings.size();
+            int total = size;
+            javafx.application.Platform.runLater(() -> {
+                totalListingsCount.set(total);
+                soldListingsCount.set(sold);
+                activeListingsCount.set(live + pending);
+            });
 
         } catch (Exception e) {
             System.err.println("Error during fetchMyListings: " + e.getMessage());
@@ -642,7 +651,7 @@ public class ProfilePageViewModel {
         if (endTime == null) {
             return "N/A";
         }
-        java.time.Duration remaining = java.time.Duration.between(LocalDateTime.now(), endTime);
+        java.time.Duration remaining = java.time.Duration.between(TimeSyncService.getNow(), endTime);
         if (remaining.isNegative() || remaining.isZero()) {
             return "Ended";
         }
@@ -660,7 +669,7 @@ public class ProfilePageViewModel {
         if (startTime == null) {
             return "N/A";
         }
-        if (startTime.isBefore(LocalDateTime.now())) {
+        if (startTime.isBefore(TimeSyncService.getNow())) {
             return "Starting soon";
         }
         return "Starts " + startTime.format(TIME_LEFT_FORMAT);

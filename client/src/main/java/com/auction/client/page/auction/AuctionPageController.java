@@ -33,6 +33,7 @@ import com.auction.core.exception.wallet.InsufficientBalanceException;
 import com.auction.core.protocol.EventType;
 import com.auction.core.utils.JsonMapper;
 
+import com.auction.client.service.TimeSyncService;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -480,7 +481,7 @@ public class AuctionPageController
                         new KeyFrame(
                                 javafx.util.Duration.seconds(1),
                                 event -> {
-                                    LocalDateTime now = LocalDateTime.now();
+                                    LocalDateTime now = TimeSyncService.getNow();
                                     viewModel.updateCountdown(now);
                                     updateCountdownLabels(now);
                                     if (viewModel.statusProperty().get() == Auction.Status.ENDED
@@ -491,7 +492,7 @@ public class AuctionPageController
         countdownTimeline.setCycleCount(Timeline.INDEFINITE);
         countdownTimeline.play();
         // Initial update
-        updateCountdownLabels(LocalDateTime.now());
+        updateCountdownLabels(TimeSyncService.getNow());
     }
 
     @FXML

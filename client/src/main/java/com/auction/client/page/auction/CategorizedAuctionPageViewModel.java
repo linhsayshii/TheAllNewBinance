@@ -2,6 +2,7 @@ package com.auction.client.page.auction;
 
 import com.auction.client.dto.ProductCardUiModel;
 import com.auction.client.service.NetworkService;
+import com.auction.client.service.TimeSyncService;
 import com.auction.core.dto.auction.GetPublicAuctionsRequest;
 import com.auction.core.dto.auction.PublicAuctionDto;
 import com.auction.core.protocol.EventType;
@@ -133,7 +134,7 @@ public class CategorizedAuctionPageViewModel {
         if (startTime == null) {
             return "N/A";
         }
-        if (startTime.isBefore(LocalDateTime.now())) {
+        if (startTime.isBefore(TimeSyncService.getNow())) {
             return "Soon";
         }
         return startTime.format(UPCOMING_FMT);
@@ -143,7 +144,7 @@ public class CategorizedAuctionPageViewModel {
         if (endTime == null) {
             return "N/A";
         }
-        Duration remaining = Duration.between(LocalDateTime.now(), endTime);
+        Duration remaining = Duration.between(TimeSyncService.getNow(), endTime);
         if (remaining.isNegative() || remaining.isZero()) {
             return "Ended";
         }

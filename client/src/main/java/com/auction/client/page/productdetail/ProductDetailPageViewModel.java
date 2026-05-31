@@ -3,6 +3,7 @@ package com.auction.client.page.productdetail;
 import com.auction.core.auction.Auction;
 import com.auction.core.auction.Bid;
 import com.auction.core.products.Item;
+import com.auction.client.service.TimeSyncService;
 import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -54,7 +55,7 @@ public class ProductDetailPageViewModel {
             new SimpleStringProperty("Please log in or sign up to place a bid");
 
     private final ObjectProperty<LocalDateTime> endTime =
-            new SimpleObjectProperty<>(LocalDateTime.now());
+            new SimpleObjectProperty<>(TimeSyncService.getNow());
     private final DoubleProperty currentBidAmount = new SimpleDoubleProperty(0.0);
     private final DoubleProperty bidIncrement = new SimpleDoubleProperty(1.0);
     private final BooleanProperty biddingEnabled = new SimpleBooleanProperty(true);
@@ -72,7 +73,7 @@ public class ProductDetailPageViewModel {
             currentBidAmount.set(
                     auction.getCurrentPrice() != null ? auction.getCurrentPrice() : 0.0);
             bidIncrement.set(auction.getBidIncrement() != null ? auction.getBidIncrement() : 1.0);
-            endTime.set(auction.getEndTime() != null ? auction.getEndTime() : LocalDateTime.now());
+            endTime.set(auction.getEndTime() != null ? auction.getEndTime() : TimeSyncService.getNow());
             biddingEnabled.set(
                     auction.getStatus() != Auction.Status.ENDED
                             && auction.getStatus() != Auction.Status.CANCELLED);

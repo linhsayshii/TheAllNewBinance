@@ -26,6 +26,8 @@ public class NetworkService {
             } else {
                 client = new AuctionClient(new URI(serverUri));
                 client.connect();
+                // Bắt đầu đồng bộ giờ chuẩn UTC+7 ngay sau khi kết nối server
+                TimeSyncService.syncTime();
             }
         } catch (Exception e) {
             throw new RuntimeException("Failed to initialize NetworkService", e);
