@@ -165,42 +165,107 @@
 }
 
 .profile-stat-card {
-    -fx-background-color: -theme-bg-main;
-    -fx-border-color: -theme-secondary;
+    -fx-background-color: -theme-bg-surface;
+    -fx-border-color: -theme-border;
     -fx-border-width: 1;
-    -fx-background-radius: 12;
-    -fx-border-radius: 12;
-    -fx-padding: 20 22 20 22;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-padding: 0 22 20 22;
     -fx-spacing: 8;
-    -fx-cursor: default;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 12, 0, 0, 4);
+    -fx-min-height: 120;
+    -fx-pref-height: -1;
+    -fx-max-height: 200;
+    -fx-min-width: 150;
+    -fx-pref-width: 200;
+    -fx-max-width: Infinity;
 }
 
 .profile-stat-card:hover {
     -fx-border-color: -theme-primary;
+    -fx-effect: dropshadow(gaussian, rgba(127, 21, 42, 0.15), 18, 0, 0, 6);
+}
+
+.profile-chart-card {
+    -fx-background-color: -theme-bg-surface;
+    -fx-border-color: -theme-border;
+    -fx-border-width: 1;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-padding: 24;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 12, 0, 0, 4);
+}
+
+.profile-chart-card:hover {
+    -fx-border-color: -theme-primary;
+    -fx-effect: dropshadow(gaussian, rgba(127, 21, 42, 0.12), 16, 0, 0, 6);
+}
+
+.profile-chart-title {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -theme-text-main;
+}
+
+/* Custom styling for JavaFX Charts */
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+.chart-vertical-grid-lines {
+    -fx-stroke: -theme-border;
+    -fx-stroke-dash-array: 2px, 6px;
+}
+.chart-horizontal-grid-lines {
+    -fx-stroke: -theme-border;
+    -fx-stroke-dash-array: 2px, 6px;
+}
+.chart-line-symbol {
+    -fx-background-color: -theme-primary, white;
+    -fx-background-radius: 4px;
+    -fx-padding: 4px;
+}
+.chart-series-line {
+    -fx-stroke: -theme-primary;
+    -fx-stroke-width: 3px;
+}
+.axis {
+    -fx-tick-label-font-family: "Montserrat";
+    -fx-tick-label-font-size: 10px;
+    -fx-tick-label-fill: -theme-text-muted;
+}
+.axis-label {
+    -fx-text-fill: -theme-text-main;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
 }
 
 .profile-stat-icon {
-    -fx-font-size: 22px;
+    -fx-font-size: 26px;
+    -fx-padding: 0 0 4 0;
 }
 
 .profile-stat-label {
     -fx-font-family: "Montserrat";
-    -fx-font-size: 12px;
-    -fx-font-weight: 500;
-    -fx-text-fill: -theme-accent;
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -theme-primary;
+    -fx-text-transform: uppercase;
 }
 
 .profile-stat-value {
-    -fx-font-family: "Lora";
-    -fx-font-size: 28px;
-    -fx-font-weight: 400;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 26px;
+    -fx-font-weight: 700;
     -fx-text-fill: -theme-text-main;
 }
 
 .profile-stat-value-small {
-    -fx-font-family: "Lora";
-    -fx-font-size: 22px;
-    -fx-font-weight: 400;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 26px;
+    -fx-font-weight: 700;
     -fx-text-fill: -theme-text-main;
 }
 

@@ -24,6 +24,10 @@ import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.LineChart;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.PieChart;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -71,6 +75,10 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
     @FXML private Label dashAvailableBalanceLabel;
     @FXML private Label dashActiveBidsLabel;
     @FXML private Label dashActiveListingsLabel;
+    @FXML private LineChart<String, Number> balanceChart;
+    @FXML private CategoryAxis balanceXAxis;
+    @FXML private NumberAxis balanceYAxis;
+    @FXML private PieChart listingPieChart;
 
     // ---- Finance section ----
     @FXML private VBox financeSection;
@@ -155,6 +163,8 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
 
         if (selected == navDashboard) {
             show(dashboardSection);
+            loadTransactionHistoryAsync();
+            loadDataAsync();
         } else if (selected == navFinance) {
             show(financeSection);
             loadTransactionHistoryAsync();
@@ -251,7 +261,11 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
                 () -> {
                     java.util.List<ProfilePageViewModel.TransactionRow> rows =
                             viewModel.fetchTransactionHistory();
-                    Platform.runLater(() -> renderTransactionHistory(rows));
+                    Platform.runLater(
+                            () -> {
+                                renderTransactionHistory(rows);
+                                updateBalanceChart(rows);
+                            });
                 });
     }
 
@@ -309,6 +323,7 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
                     Platform.runLater(
                             () -> {
                                 dataLoaded = true; // Chỉ đánh dấu loaded khi dữ liệu thực sự đã về!
+                                updateListingPieChart();
 
                                 Toggle current = navGroup.getSelectedToggle();
                                 if (current == navMyBids) {
@@ -805,6 +820,117 @@ public class PersonalProfileController implements DataReceivable, LifecycleAware
                                                             NotificationType.ERROR));
                             return null;
                         });
+    }
+
+    private void updateListingPieChart() {
+        if (listingPieChart == null) {
+            return;
+        }
+        int live = viewModel.getLiveListings().size();
+        int pending = viewModel.getPendingListings().size();
+        int sold = viewModel.getSoldListings().size();
+        int cancelled =
+                (int)
+                        viewModel.getUnsoldListings().stream()
+                                .filter(c -> "CANCELLED".equalsIgnoreCase(c.badgeLabel()))
+                                .count();
+        int unsold = viewModel.getUnsoldListings().size() - cancelled;
+
+        listingPieChart.getData().clear();
+        if (live == 0 && pending == 0 && sold == 0 && cancelled == 0 && unsold == 0) {
+            listingPieChart
+                    .getData()
+                    .add(new javafx.scene.chart.PieChart.Data("No Listings", 1));
+            return;
+        }
+
+        if (live > 0) {
+            listingPieChart
+                    .getData()
+                    .add(new javafx.scene.chart.PieChart.Data("Live (" + live + ")", live));
+        }
+        if (pending > 0) {
+            listingPieChart
+                    .getData()
+                    .add(
+                            new javafx.scene.chart.PieChart.Data(
+                                    "Pending (" + pending + ")", pending));
+        }
+        if (sold > 0) {
+            listingPieChart
+                    .getData()
+                    .add(new javafx.scene.chart.PieChart.Data("Sold (" + sold + ")", sold));
+        }
+        if (cancelled > 0) {
+            listingPieChart
+                    .getData()
+                    .add(
+                            new javafx.scene.chart.PieChart.Data(
+                                    "Cancelled (" + cancelled + ")", cancelled));
+        }
+        if (unsold > 0) {
+            listingPieChart
+                    .getData()
+                    .add(
+                            new javafx.scene.chart.PieChart.Data(
+                                    "Unsold (" + unsold + ")", unsold));
+        }
+    }
+
+    private void updateBalanceChart(
+            java.util.List<ProfilePageViewModel.TransactionRow> rows) {
+        if (balanceChart == null) {
+            return;
+        }
+        balanceChart.getData().clear();
+
+        double current = viewModel.availableBalanceProperty().get();
+        java.util.List<Double> balances = new java.util.ArrayList<>();
+        double running = current;
+        balances.add(running);
+
+        for (ProfilePageViewModel.TransactionRow row : rows) {
+            double amt = 0.0;
+            try {
+                String clean = row.formattedAmount().replace("$", "").replace(",", "").trim();
+                amt = Double.parseDouble(clean);
+            } catch (Exception ignored) {
+                /* ignored */
+            }
+            if (row.isDeposit()) {
+                running -= amt;
+            } else {
+                running += amt;
+            }
+            balances.add(running);
+        }
+
+        java.util.Collections.reverse(balances);
+        java.util.List<ProfilePageViewModel.TransactionRow> chronologicalRows =
+                new java.util.ArrayList<>(rows);
+        java.util.Collections.reverse(chronologicalRows);
+
+        javafx.scene.chart.XYChart.Series<String, Number> series =
+                new javafx.scene.chart.XYChart.Series<>();
+        series.setName("Balance");
+
+        if (!balances.isEmpty()) {
+            series.getData().add(new javafx.scene.chart.XYChart.Data<>("Start", balances.get(0)));
+        }
+
+        for (int i = 0; i < chronologicalRows.size(); i++) {
+            ProfilePageViewModel.TransactionRow row = chronologicalRows.get(i);
+            String dateLabel = row.date();
+            if (dateLabel.length() > 10) {
+                dateLabel = dateLabel.substring(0, 5) + " " + dateLabel.substring(11);
+            }
+            series.getData()
+                    .add(
+                            new javafx.scene.chart.XYChart.Data<>(
+                                    dateLabel, balances.get(i + 1)));
+        }
+
+        balanceChart.getData().add(series);
     }
 
     // ------------------------------------------------------------------ //

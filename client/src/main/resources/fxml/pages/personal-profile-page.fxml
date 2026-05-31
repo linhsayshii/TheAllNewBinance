@@ -12,6 +12,10 @@
 <?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.chart.PieChart?>
 
 <BorderPane xmlns="http://javafx.com/javafx/21"
             xmlns:fx="http://javafx.com/fxml/1"
@@ -93,14 +97,16 @@
                 <StackPane fx:id="contentArea" styleClass="profile-content-area">
 
                     <!-- == DASHBOARD SECTION == -->
-                    <VBox fx:id="dashboardSection" spacing="8" visible="true" managed="true">
+                    <VBox fx:id="dashboardSection" spacing="20" visible="true" managed="true">
 
-                        <Label text="Dashboard" styleClass="profile-section-title" />
-                        <Label text="Your account overview" styleClass="profile-section-subtitle" />
+                        <VBox spacing="4">
+                            <Label text="Dashboard" styleClass="profile-section-title" />
+                            <Label text="Your account overview" styleClass="profile-section-subtitle" />
+                        </VBox>
                         <Region styleClass="profile-divider" maxWidth="Infinity" />
 
-                        <!-- 2×2 stat cards -->
-                        <HBox spacing="16">
+                        <!-- 4 stat cards in 1 row -->
+                        <HBox spacing="16" maxWidth="Infinity">
                             <VBox styleClass="profile-stat-card" HBox.hgrow="ALWAYS">
                                 <Label text="💰" styleClass="profile-stat-icon" />
                                 <Label text="Total Balance" styleClass="profile-stat-label" />
@@ -113,9 +119,6 @@
                                 <Label fx:id="dashAvailableBalanceLabel" text="\$—"
                                        styleClass="profile-stat-value-small" />
                             </VBox>
-                        </HBox>
-
-                        <HBox spacing="16">
                             <VBox styleClass="profile-stat-card" HBox.hgrow="ALWAYS">
                                 <Label text="🔨" styleClass="profile-stat-icon" />
                                 <Label text="Active Bids" styleClass="profile-stat-label" />
@@ -127,6 +130,28 @@
                                 <Label text="Active Listings" styleClass="profile-stat-label" />
                                 <Label fx:id="dashActiveListingsLabel" text="0"
                                        styleClass="profile-stat-value" />
+                            </VBox>
+                        </HBox>
+
+                        <!-- Two charts side-by-side -->
+                        <HBox spacing="16" maxWidth="Infinity">
+                            <!-- Chart 1: Balance History -->
+                            <VBox styleClass="profile-chart-card" HBox.hgrow="ALWAYS" spacing="10">
+                                <Label text="📈 Balance History" styleClass="profile-chart-title" />
+                                <LineChart fx:id="balanceChart" prefHeight="260" legendVisible="false">
+                                    <xAxis>
+                                        <CategoryAxis fx:id="balanceXAxis" label="Date" />
+                                    </xAxis>
+                                    <yAxis>
+                                        <NumberAxis fx:id="balanceYAxis" label="Amount ($)" />
+                                    </yAxis>
+                                </LineChart>
+                            </VBox>
+
+                            <!-- Chart 2: Listing Status -->
+                            <VBox styleClass="profile-chart-card" HBox.hgrow="ALWAYS" spacing="10" maxWidth="400">
+                                <Label text="📊 Listing Status" styleClass="profile-chart-title" />
+                                <PieChart fx:id="listingPieChart" prefHeight="260" legendVisible="true" />
                             </VBox>
                         </HBox>
 
