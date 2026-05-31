@@ -1,5 +1,9 @@
 name: Production CD Release
 
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     tags:
