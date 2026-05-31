@@ -1,11 +1,10 @@
 package com.auction.client.component.item;
 
-import java.util.Map;
-
 import com.auction.client.config.SceneRegistry;
 import com.auction.client.dto.ProductCardUiModel;
 import com.auction.client.scene.NavigationService;
-
+import com.auction.client.service.ImageLoader;
+import java.util.Map;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseButton;
@@ -15,20 +14,17 @@ public class UpcomingAuctionCardComponentController {
 
     private static final long MAX_CLICK_DURATION_MILLIS = 250;
 
-    @FXML
-    private Label imageLabel;
+    @FXML private javafx.scene.layout.StackPane imageContainer;
 
-    @FXML
-    private Label timeStartLabel;
+    @FXML private Label imageLabel;
 
-    @FXML
-    private Label titleLabel;
+    @FXML private Label timeStartLabel;
 
-    @FXML
-    private Label priceLabel;
+    @FXML private Label titleLabel;
 
-    @FXML
-    private Label watchersLabel;
+    @FXML private Label priceLabel;
+
+    @FXML private Label watchersLabel;
 
     private long pressStartedAtNanos;
     private Integer auctionId;
@@ -47,19 +43,17 @@ public class UpcomingAuctionCardComponentController {
         }
 
         if (auctionId != null) {
-            NavigationService.getInstance().navigateTo(
-                SceneRegistry.AUCTION_PAGE,
-                Map.of("auctionId", auctionId)
-            );
+            NavigationService.getInstance()
+                    .navigateTo(SceneRegistry.AUCTION_PAGE, Map.of("auctionId", auctionId));
         }
     }
 
     private boolean isPrimaryClickOnly(MouseEvent event) {
         long pressDurationMillis = (System.nanoTime() - pressStartedAtNanos) / 1_000_000L;
         return event != null
-            && event.getButton() == MouseButton.PRIMARY
-            && event.isStillSincePress()
-            && pressDurationMillis <= MAX_CLICK_DURATION_MILLIS;
+                && event.getButton() == MouseButton.PRIMARY
+                && event.isStillSincePress()
+                && pressDurationMillis <= MAX_CLICK_DURATION_MILLIS;
     }
 
     public void setData(ProductCardUiModel model) {
@@ -68,11 +62,12 @@ public class UpcomingAuctionCardComponentController {
         }
 
         this.auctionId = model.auctionId();
-        imageLabel.setText("Item Image");
-        timeStartLabel.setText("Starts at " + model.timeLeft());
+
+        ImageLoader.loadImage(model.imageUrl(), imageContainer, imageLabel);
+
+        timeStartLabel.setText("Starts after " + model.timeLeft());
         titleLabel.setText(model.title());
         priceLabel.setText(model.currentBid());
         watchersLabel.setText("People are watching");
     }
 }
-

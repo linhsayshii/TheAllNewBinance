@@ -1,8 +1,7 @@
 package com.auction.client.scene;
 
-import java.util.Map;
-
 import com.auction.client.config.SceneRegistry;
+import java.util.Map;
 
 public class NavigationService {
 
@@ -20,6 +19,11 @@ public class NavigationService {
 
     public void navigateTo(SceneRegistry sceneRegistry) {
         sceneService.switchTo(sceneRegistry);
+    }
+
+    /** Returns the controller of the currently displayed scene, or null if none. */
+    public Object getCurrentController() {
+        return sceneService.getCurrentController();
     }
 
     public void navigateTo(SceneRegistry sceneRegistry, Map<String, Object> data) {

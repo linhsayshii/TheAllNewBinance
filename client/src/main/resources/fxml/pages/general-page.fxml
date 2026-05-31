@@ -26,11 +26,9 @@
             <content>
                 <VBox styleClass="gp-content-root">
                     <children>
-                        <StackPane prefHeight="280.0" styleClass="gp-banner-pane">
-                            <children>
-                                <Label text="Banner" styleClass="gp-banner-title" />
-                            </children>
-                        </StackPane>
+                        <!-- ★ Star Auction Carousel — replaces static banner placeholder -->
+                        <fx:include source="../components/shell/star-auction-carousel.fxml" />
+
                         <VBox styleClass="page-content-inset">
                             <children>
 

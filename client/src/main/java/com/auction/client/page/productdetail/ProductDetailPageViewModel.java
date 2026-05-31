@@ -1,15 +1,14 @@
 package com.auction.client.page.productdetail;
 
+import com.auction.core.auction.Auction;
+import com.auction.core.auction.Bid;
+import com.auction.core.products.Item;
+import com.auction.client.service.TimeSyncService;
 import java.text.DecimalFormat;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.List;
-
-import com.auction.core.auction.Auction;
-import com.auction.core.auction.Bid;
-import com.auction.core.products.Item;
-
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.IntegerProperty;
@@ -37,7 +36,9 @@ public class ProductDetailPageViewModel {
         return safe(value, fallback).toUpperCase();
     }
 
-    private static final DecimalFormat MONEY_FORMAT = new DecimalFormat("#,##0.00");
+    private static final DecimalFormat MONEY_FORMAT = new DecimalFormat(
+            "#,##0.00",
+            java.text.DecimalFormatSymbols.getInstance(java.util.Locale.US));
 
     private final IntegerProperty auctionId = new SimpleIntegerProperty(0);
     private final IntegerProperty bidderId = new SimpleIntegerProperty(0);
@@ -45,33 +46,53 @@ public class ProductDetailPageViewModel {
     private final StringProperty title = new SimpleStringProperty("Product detail placeholder");
     private final StringProperty description = new SimpleStringProperty("No description");
     private final StringProperty imageText = new SimpleStringProperty("Item Image");
+    private final StringProperty imageUrl = new SimpleStringProperty(null);
     private final StringProperty sellerName = new SimpleStringProperty("Unknown Seller");
     private final StringProperty currentBidDisplay = new SimpleStringProperty("$0.00");
     private final StringProperty bidderCountText = new SimpleStringProperty("0 people bidding");
     private final StringProperty countdownText = new SimpleStringProperty("00d 00h 00m 00s");
-    private final StringProperty loginPrompt = new SimpleStringProperty("Please log in or sign up to place a bid");
+    private final StringProperty loginPrompt =
+            new SimpleStringProperty("Please log in or sign up to place a bid");
 
-    private final ObjectProperty<LocalDateTime> endTime = new SimpleObjectProperty<>(LocalDateTime.now());
+    private final ObjectProperty<LocalDateTime> endTime =
+            new SimpleObjectProperty<>(TimeSyncService.getNow());
     private final DoubleProperty currentBidAmount = new SimpleDoubleProperty(0.0);
     private final DoubleProperty bidIncrement = new SimpleDoubleProperty(1.0);
     private final BooleanProperty biddingEnabled = new SimpleBooleanProperty(true);
 
     private final ObservableList<Bid> bids = FXCollections.observableArrayList();
 
-    public void applyAuctionData(Auction auction, Item item, String seller, Integer currentBidderId, List<Bid> bidHistory) {
+    public void applyAuctionData(
+            Auction auction,
+            Item item,
+            String seller,
+            Integer currentBidderId,
+            List<Bid> bidHistory) {
         if (auction != null) {
             auctionId.set(auction.getId() != null ? auction.getId() : 0);
-            currentBidAmount.set(auction.getCurrentPrice() != null ? auction.getCurrentPrice() : 0.0);
+            currentBidAmount.set(
+                    auction.getCurrentPrice() != null ? auction.getCurrentPrice() : 0.0);
             bidIncrement.set(auction.getBidIncrement() != null ? auction.getBidIncrement() : 1.0);
-            endTime.set(auction.getEndTime() != null ? auction.getEndTime() : LocalDateTime.now());
-            biddingEnabled.set(auction.getStatus() != Auction.Status.ENDED && auction.getStatus() != Auction.Status.CANCELLED);
+            endTime.set(auction.getEndTime() != null ? auction.getEndTime() : TimeSyncService.getNow());
+            biddingEnabled.set(
+                    auction.getStatus() != Auction.Status.ENDED
+                            && auction.getStatus() != Auction.Status.CANCELLED);
         }
 
         if (item != null) {
-            category.set(safeUpper(item.getCategory(), "CATEGORY"));
+            category.set(
+                    item.getCategory() != null
+                            ? item.getCategory().getDisplayName().toUpperCase()
+                            : "CATEGORY");
             title.set(safe(item.getName(), "Product detail placeholder"));
             description.set(safe(item.getDescription(), "No description"));
-            imageText.set(item.getImageUrl() != null && !item.getImageUrl().isBlank() ? item.getImageUrl() : "Item Image");
+            if (item.getImageUrl() != null && !item.getImageUrl().isBlank()) {
+                imageUrl.set(item.getImageUrl());
+                imageText.set("");
+            } else {
+                imageUrl.set(null);
+                imageText.set("Item Image");
+            }
         }
 
         sellerName.set(safe(seller, "Unknown Seller"));
@@ -89,8 +110,12 @@ public class ProductDetailPageViewModel {
         }
 
         bidHistory.stream()
-            .sorted(Comparator.comparing(Bid::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())).reversed())
-            .forEach(bids::add);
+                .sorted(
+                        Comparator.comparing(
+                                        Bid::getCreatedAt,
+                                        Comparator.nullsLast(Comparator.naturalOrder()))
+                                .reversed())
+                .forEach(bids::add);
 
         bidderCountText.set(bids.size() + " people bidding");
         Bid latest = bids.get(0);
@@ -194,4 +219,11 @@ public class ProductDetailPageViewModel {
         return biddingEnabled.get();
     }
 
+    public String imageUrl() {
+        return imageUrl.get();
+    }
+
+    public StringProperty imageUrlProperty() {
+        return imageUrl;
+    }
 }

@@ -1,5 +1,7 @@
 package com.auction.server.dao;
 
+import com.auction.core.auction.Bid;
+import com.auction.server.dao.impl.IBidDao;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,16 +11,15 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.auction.core.auction.Bid;
-import com.auction.server.dao.impl.IBidDao;
-
 public class BidDao implements IBidDao {
     @Override
     public boolean saveBid(Bid bid) {
-        String sql = "INSERT INTO bids (auction_id, bidder_id, amount, created_at) VALUES (?, ?, ?, ?)";
+        String sql =
+                "INSERT INTO bids (auction_id, bidder_id, amount, created_at) VALUES (?, ?, ?, ?)";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
-            
+                PreparedStatement stmt =
+                        conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+
             stmt.setInt(1, bid.getAuctionId());
             stmt.setInt(2, bid.getBidderId());
             stmt.setDouble(3, bid.getAmount());
@@ -43,17 +44,11 @@ public class BidDao implements IBidDao {
         String sql = "SELECT * FROM bids WHERE bidder_id = ? ORDER BY amount DESC";
         List<Bid> bids = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, bidderId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    Bid bid = new Bid(
-                        rs.getInt("bid_id"),
-                        rs.getInt("auction_id"),
-                        rs.getInt("bidder_id"),
-                        rs.getDouble("amount")
-                    );
-                    bids.add(bid);  
+                    bids.add(mapBid(rs));
                 }
             }
         } catch (SQLException e) {
@@ -67,17 +62,11 @@ public class BidDao implements IBidDao {
         String sql = "SELECT * FROM bids WHERE auction_id = ? ORDER BY amount DESC";
         List<Bid> bids = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, auctionId);
             try (ResultSet rs = stmt.executeQuery()) {
                 while (rs.next()) {
-                    Bid bid = new Bid(
-                        rs.getInt("bid_id"),
-                        rs.getInt("auction_id"),
-                        rs.getInt("bidder_id"),
-                        rs.getDouble("amount")
-                    );
-                    bids.add(bid);  
+                    bids.add(mapBid(rs));
                 }
             }
         } catch (SQLException e) {
@@ -90,7 +79,7 @@ public class BidDao implements IBidDao {
     public boolean hasBid(Integer auctionId, Integer bidderId) {
         String sql = "SELECT 1 FROM bids WHERE auction_id = ? AND bidder_id = ? LIMIT 1";
         try (Connection conn = DBConnection.getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+                PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, auctionId);
             stmt.setInt(2, bidderId);
             try (ResultSet rs = stmt.executeQuery()) {
@@ -100,5 +89,69 @@ public class BidDao implements IBidDao {
             System.err.println("Error: Cannot check hasBid!" + e.getMessage());
         }
         return false;
+    }
+
+    @Override
+    public boolean saveBid(Connection conn, Bid bid) throws SQLException {
+        String sql =
+                "INSERT INTO bids (auction_id, bidder_id, amount, created_at) VALUES (?, ?, ?, ?)";
+        try (PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+            stmt.setInt(1, bid.getAuctionId());
+            stmt.setInt(2, bid.getBidderId());
+            stmt.setDouble(3, bid.getAmount());
+            stmt.setTimestamp(4, Timestamp.valueOf(bid.getCreatedAt()));
+            int rowsInserted = stmt.executeUpdate();
+            if (rowsInserted > 0) {
+                try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                    if (generatedKeys.next()) {
+                        bid.setId(generatedKeys.getInt(1));
+                    }
+                }
+            }
+            return true;
+        }
+    }
+
+    @Override
+    public boolean hasBid(Connection conn, Integer auctionId, Integer bidderId)
+            throws SQLException {
+        String sql = "SELECT 1 FROM bids WHERE auction_id = ? AND bidder_id = ? LIMIT 1";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, auctionId);
+            stmt.setInt(2, bidderId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                return rs.next();
+            }
+        }
+    }
+
+    @Override
+    public List<Bid> findByAuctionId(Connection conn, Integer auctionId) throws SQLException {
+        String sql = "SELECT * FROM bids WHERE auction_id = ? ORDER BY amount DESC";
+        List<Bid> bids = new ArrayList<>();
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, auctionId);
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    bids.add(mapBid(rs));
+                }
+            }
+        }
+        return bids;
+    }
+
+    private Bid mapBid(ResultSet rs) throws SQLException {
+        Bid bid =
+                new Bid(
+                        rs.getInt("bid_id"),
+                        rs.getInt("auction_id"),
+                        rs.getInt("bidder_id"),
+                        rs.getDouble("amount"));
+        Timestamp createdAt = rs.getTimestamp("created_at");
+        if (createdAt != null) {
+            bid.setCreatedAt(createdAt.toLocalDateTime());
+            bid.setUpdatedAt(createdAt.toLocalDateTime());
+        }
+        return bid;
     }
 }

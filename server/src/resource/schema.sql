@@ -48,6 +48,16 @@ CREATE TABLE IF NOT EXISTS items (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
 
+    -- Polymorphic product attributes
+    brand VARCHAR(255) DEFAULT NULL,
+    item_condition VARCHAR(255) DEFAULT NULL,
+    warranty_months INT DEFAULT NULL,
+    custom_attributes TEXT DEFAULT NULL,
+    has_certificate BOOLEAN DEFAULT NULL,
+    artist VARCHAR(255) DEFAULT NULL,
+    year_created INT DEFAULT NULL,
+    model VARCHAR(255) DEFAULT NULL,
+
     CONSTRAINT fk_items_seller
         FOREIGN KEY (seller_id) REFERENCES users(user_id)
         ON UPDATE CASCADE
@@ -72,8 +82,8 @@ CREATE TABLE IF NOT EXISTS auctions (
     bid_increment DECIMAL(15,2) NOT NULL DEFAULT 1.00,
     start_time TIMESTAMP NOT NULL,
     original_end_time TIMESTAMP NOT NULL,
-    end_time TIMESTAMP NULL,
-    extended_end_time TIMESTAMP NULL,
+    end_time TIMESTAMP NULL DEFAULT NULL,
+    extended_end_time TIMESTAMP NULL DEFAULT NULL,
     status VARCHAR(20) NOT NULL DEFAULT 'PENDING',
     winner_id INT NULL,
     final_price DECIMAL(15,2) NULL,
@@ -82,6 +92,11 @@ CREATE TABLE IF NOT EXISTS auctions (
     is_deleted BOOLEAN NOT NULL DEFAULT FALSE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    -- Featured & Promoted auction features
+    is_featured BOOLEAN NOT NULL DEFAULT FALSE,
+    featured_until DATETIME DEFAULT NULL,
+    promoted_description TEXT DEFAULT NULL,
 
     CONSTRAINT fk_auctions_item
         FOREIGN KEY (item_id) REFERENCES items(item_id)
@@ -108,6 +123,7 @@ CREATE INDEX idx_auctions_item_id ON auctions (item_id);
 CREATE INDEX idx_auctions_seller_id ON auctions (seller_id);
 CREATE INDEX idx_auctions_status ON auctions (status);
 CREATE INDEX idx_auctions_end_time ON auctions (end_time);
+CREATE INDEX idx_auctions_is_featured ON auctions (is_featured, status, end_time);
 
 -- Keep data compatible with current DAO behavior.
 DROP TRIGGER IF EXISTS trg_auctions_before_insert;
@@ -189,10 +205,37 @@ CREATE TABLE IF NOT EXISTS bids (
         ON UPDATE CASCADE
         ON DELETE RESTRICT,
 
-    CONSTRAINT ck_bids_amount_positive CHECK (amount > 0)
+    CONSTRAINT ck_bids_amount_positive CHECK (amount > 0),
+    CONSTRAINT uq_bids_auction_amount UNIQUE (auction_id, amount)
 );
 
 CREATE INDEX idx_bids_auction_id ON bids (auction_id);
 CREATE INDEX idx_bids_bidder_id ON bids (bidder_id);
 CREATE INDEX idx_bids_amount ON bids (amount);
 CREATE INDEX idx_bids_created_at ON bids (created_at);
+
+-- =========================
+-- Table: wallet_transactions
+-- =========================
+CREATE TABLE IF NOT EXISTS wallet_transactions (
+    transaction_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    transaction_type VARCHAR(20) NOT NULL,
+    amount DECIMAL(15,2) NOT NULL,
+    status VARCHAR(20) NOT NULL,
+    reference_id VARCHAR(100) DEFAULT NULL,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    CONSTRAINT fk_transactions_user
+        FOREIGN KEY (user_id) REFERENCES users(user_id)
+        ON UPDATE CASCADE
+        ON DELETE RESTRICT,
+
+    CONSTRAINT ck_transaction_type CHECK (transaction_type IN ('DEPOSIT', 'WITHDRAW', 'HOLD', 'REFUND', 'COMMIT')),
+    CONSTRAINT ck_transaction_status CHECK (status IN ('PENDING', 'SUCCESS', 'FAILED')),
+    CONSTRAINT ck_transaction_amount_positive CHECK (amount > 0)
+);
+
+CREATE INDEX idx_wallet_transactions_user_id ON wallet_transactions (user_id);
+CREATE INDEX idx_wallet_transactions_created_at ON wallet_transactions (created_at);

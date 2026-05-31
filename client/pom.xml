@@ -15,8 +15,10 @@
 
     <properties>
         <javafx.version>21.0.4</javafx.version>
+        <javafx.platform>linux</javafx.platform> <!-- Default fallback platform -->
         <app.devMode>false</app.devMode>
         <app.hotReload>false</app.hotReload>
+        <app.mockMode>false</app.mockMode>
     </properties>
 
     <dependencies>
@@ -30,24 +32,28 @@
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-fxml</artifactId>
             <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-graphics</artifactId>
             <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
 
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-base</artifactId>
             <version>${javafx.version}</version>
+            <classifier>${javafx.platform}</classifier>
         </dependency>
 
         <dependency>
@@ -84,6 +90,65 @@
             <artifactId>junit-jupiter-params</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- Mockito: Giả lập NetworkService và AuctionClient Singleton trong unit tests -->
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- TestFX: Kiểm thử UI JavaFX tự động (click, type, assert node state) -->
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-core</artifactId>
+            <version>4.0.17</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>testfx-junit5</artifactId>
+            <version>4.0.17</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Monocle 21.0.2: Headless JavaFX renderer tương thích Java 21 -->
+        <!-- QUAN TRỌNG: Phiên bản jdk-12.0.1+2 gây IncompatibleClassChangeError trên Java 21 -->
+        <dependency>
+            <groupId>org.testfx</groupId>
+            <artifactId>openjfx-monocle</artifactId>
+            <version>21.0.2</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Testcontainers: Tự động spin-up Toxiproxy Docker container cho Half-Open Network tests -->
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>testcontainers</artifactId>
+            <version>1.19.7</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>toxiproxy</artifactId>
+            <version>1.19.7</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.testcontainers</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>1.19.7</version>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -93,6 +158,24 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.5.4</version>
                 <configuration>
+                    <!--
+                        jdk.tracePinnedThreads=short: In log cảnh báo khi Virtual Thread bị ghim
+                        vào Carrier Thread do synchronized block / blocking I/O bên trong.
+                        Kích hoạt bằng systemPropertyVariables thay vì -XX flag (không tồn tại).
+                    -->
+                    <systemPropertyVariables>
+                        <jdk.tracePinnedThreads>short</jdk.tracePinnedThreads>
+                    </systemPropertyVariables>
+                    <!--
+                        Monocle Headless: Cho phép chạy UI tests JavaFX không cần màn hình
+                        (CI/CD environments, GitHub Actions).
+                        prism.order=sw: Sử dụng software renderer thay vì GPU.
+                    -->
+                    <argLine>
+                        -Dglass.platform=Monocle
+                        -Dmonocle.platform=Headless
+                        -Dprism.order=sw
+                    </argLine>
                     <useModulePath>false</useModulePath>
                 </configuration>
             </plugin>
@@ -106,18 +189,109 @@
                     <options>
                         <option>-Dapp.devMode=${app.devMode}</option>
                         <option>-Dapp.hotReload=${app.hotReload}</option>
+                        <option>-Dapp.mockMode=${app.mockMode}</option>
                     </options>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-shade-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>shade</goal>
+                        </goals>
+                        <configuration>
+                            <transformers>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
+                                    <mainClass>com.auction.client.app.Launcher</mainClass>
+                                </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
+                            </transformers>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>
 
     <profiles>
+        <!-- Detect Windows -->
+        <profile>
+            <id>javafx-win</id>
+            <activation>
+                <os>
+                    <family>windows</family>
+                </os>
+            </activation>
+            <properties>
+                <javafx.platform>win</javafx.platform>
+            </properties>
+        </profile>
+        <!-- Detect Linux x86_64 -->
+        <profile>
+            <id>javafx-linux</id>
+            <activation>
+                <os>
+                    <family>unix</family>
+                    <name>linux</name>
+                </os>
+            </activation>
+            <properties>
+                <javafx.platform>linux</javafx.platform>
+            </properties>
+        </profile>
+        <!-- Detect macOS Intel (x86_64) -->
+        <profile>
+            <id>javafx-mac-x64</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                    <arch>x86_64</arch>
+                </os>
+            </activation>
+            <properties>
+                <javafx.platform>mac</javafx.platform>
+            </properties>
+        </profile>
+        <!-- Detect macOS ARM64 (Apple Silicon) -->
+        <profile>
+            <id>javafx-mac-arm64</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                    <arch>aarch64</arch>
+                </os>
+            </activation>
+            <properties>
+                <javafx.platform>mac-aarch64</javafx.platform>
+            </properties>
+        </profile>
+
         <profile>
             <id>dev</id>
             <properties>
                 <app.devMode>true</app.devMode>
                 <app.hotReload>true</app.hotReload>
+            </properties>
+        </profile>
+        <profile>
+            <id>mock</id>
+            <properties>
+                <app.mockMode>true</app.mockMode>
             </properties>
         </profile>
     </profiles>

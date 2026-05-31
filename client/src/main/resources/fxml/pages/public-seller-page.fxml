@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.control.ToggleGroup?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/21"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.auction.client.page.profile.PublicSellerController"
+            styleClass="profile-page-root">
+
+    <!-- ======================== TOP: Header + Navbar ======================== -->
+    <top>
+        <VBox>
+            <fx:include source="../components/shell/header.fxml" />
+            <fx:include source="../components/shell/navbar.fxml" />
+        </VBox>
+    </top>
+
+    <!-- ======================== CENTER: 2-Panel Layout ======================== -->
+    <center>
+        <HBox styleClass="profile-layout">
+
+            <!-- ============ LEFT PANEL: Sidebar ============ -->
+            <VBox styleClass="profile-sidebar">
+
+                <!-- Public banner at the top of sidebar -->
+                <!-- <VBox styleClass="profile-public-banner">
+                    <padding><Insets top="10" right="16" bottom="10" left="16" /></padding>
+                    <Label text="Viewing public profile" styleClass="profile-public-banner-label" />
+                </VBox> -->
+
+                <!-- Shared user-card: avatar + name -->
+                <fx:include fx:id="profileSidebar"
+                            source="../components/profile/profile-sidebar.fxml" />
+
+                <!-- Toggle group for nav -->
+                <fx:define>
+                    <ToggleGroup fx:id="navGroup" />
+                </fx:define>
+
+                <VBox styleClass="profile-nav-menu" VBox.vgrow="ALWAYS">
+                    <Label text="SELLER" styleClass="profile-nav-section-label" />
+
+                    <ToggleButton fx:id="navListings"
+                                  text="📦  Listings"
+                                  styleClass="profile-nav-btn"
+                                  toggleGroup="$navGroup"
+                                  selected="true"
+                                  onAction="#handleNavListings"
+                                  maxWidth="Infinity" />
+                </VBox>
+
+            </VBox>
+            <!-- ============ END SIDEBAR ============ -->
+
+            <!-- ============ RIGHT PANEL: Main Content ============ -->
+            <ScrollPane styleClass="profile-cards-scroll"
+                        fitToWidth="true"
+                        HBox.hgrow="ALWAYS">
+                <StackPane fx:id="contentArea" styleClass="profile-content-area">
+
+                    <!-- == LISTINGS SECTION == -->
+                    <VBox fx:id="listingsSection" spacing="8" visible="true" managed="true">
+
+                        <Label text="Listings" styleClass="profile-section-title" />
+                        <Label fx:id="listingsStatsLabel"
+                               text="Loading…"
+                               styleClass="profile-section-subtitle" />
+                        <Region styleClass="profile-divider" maxWidth="Infinity" />
+
+                        <!-- Sub-tab bar: Live + Sold only (public view) -->
+                        <fx:define>
+                            <ToggleGroup fx:id="listingsTabGroup" />
+                        </fx:define>
+                        <HBox styleClass="profile-tab-bar" spacing="4">
+                            <ToggleButton fx:id="listingsTabLive"
+                                          text="Live"
+                                          styleClass="profile-tab-btn"
+                                          toggleGroup="$listingsTabGroup"
+                                          selected="true"
+                                          onAction="#handleListingsTabLive" />
+                            <ToggleButton fx:id="listingsTabSold"
+                                          text="Sold"
+                                          styleClass="profile-tab-btn"
+                                          toggleGroup="$listingsTabGroup"
+                                          onAction="#handleListingsTabSold" />
+                        </HBox>
+
+                        <FlowPane fx:id="listingsCardsContainer"
+                                  styleClass="profile-cards-flow"
+                                  hgap="16" vgap="16" />
+
+                        <Label fx:id="listingsEmptyLabel"
+                               text="This seller has no listings in this category."
+                               styleClass="profile-empty-state"
+                               maxWidth="Infinity"
+                               visible="true" managed="true" />
+
+                    </VBox>
+                    <!-- == END LISTINGS == -->
+
+                </StackPane>
+            </ScrollPane>
+            <!-- ============ END MAIN CONTENT ============ -->
+
+        </HBox>
+    </center>
+
+    <!-- ======================== BOTTOM: Footer ======================== -->
+    <bottom>
+        <fx:include source="../components/shell/footer.fxml" />
+    </bottom>
+
+</BorderPane>

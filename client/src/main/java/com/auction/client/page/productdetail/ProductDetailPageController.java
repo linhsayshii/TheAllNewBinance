@@ -1,8 +1,25 @@
 package com.auction.client.page.productdetail;
 
+import com.auction.client.config.SceneRegistry;
+import com.auction.client.network.ClientExceptionFactory;
+import com.auction.client.scene.LifecycleAwareController;
+import com.auction.client.scene.NavigationService;
+import com.auction.client.service.ImageLoader;
+import com.auction.client.service.NetworkService;
+import com.auction.client.service.TimeSyncService;
+import com.auction.client.service.notification.NotificationService;
+import com.auction.client.service.notification.NotificationType;
+import com.auction.core.auction.Bid;
+import com.auction.core.dto.bid.PlaceBid;
+import com.auction.core.exception.DomainException;
+import com.auction.core.exception.auction.AuctionClosedException;
+import com.auction.core.exception.auction.InvalidBidException;
+import com.auction.core.exception.auction.ShillBiddingForbiddenException;
+import com.auction.core.exception.wallet.InsufficientBalanceException;
+import com.auction.core.protocol.EventType;
+import com.auction.core.utils.JsonMapper;
 import java.net.URL;
 import java.text.DecimalFormat;
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,16 +27,6 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
-
-import com.auction.client.config.SceneRegistry;
-import com.auction.client.scene.LifecycleAwareController;
-import com.auction.client.scene.NavigationService;
-import com.auction.client.service.NetworkService;
-import com.auction.core.auction.Bid;
-import com.auction.core.dto.bid.PlaceBid;
-import com.auction.core.protocol.EventType;
-import com.auction.core.utils.JsonMapper;
-
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -29,7 +36,6 @@ import javafx.scene.chart.CategoryAxis;
 import javafx.scene.chart.LineChart;
 import javafx.scene.chart.NumberAxis;
 import javafx.scene.chart.XYChart;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
@@ -47,7 +53,8 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
     @FXML private NumberAxis yAxisPrice;
     @FXML private Label categoryLabel;
     @FXML private Label titleLabel;
-    @FXML private Label imagePlaceholderLabel;
+    @FXML private javafx.scene.layout.StackPane imageContainer;
+    @FXML private Label imageLabel;
     @FXML private Label descriptionLabel;
     @FXML private Label countdownLabel;
     @FXML private Label currentBidLabel;
@@ -91,13 +98,20 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
 
         if (networkReady && viewModel.getAuctionId() > 0) {
             fetchBidHistoryFromServer(viewModel.getAuctionId());
+            // Đăng ký nhận broadcast cho phiên đấu giá này
+            NetworkService.getInstance()
+                    .sendRequest(
+                            EventType.SUBSCRIBE_AUCTION,
+                            Map.of("auctionId", viewModel.getAuctionId()));
         }
     }
 
     private void handleSocketResponse(String rawJson) {
         try {
             Map<?, ?> response = JsonMapper.fromJson(rawJson, Map.class);
-            if (response == null || !response.containsKey("data") || !(response.get("data") instanceof List)) {
+            if (response == null
+                    || !response.containsKey("data")
+                    || !(response.get("data") instanceof List)) {
                 return;
             }
             String dataJson = JsonMapper.toJson(response.get("data"));
@@ -107,15 +121,34 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
                 Platform.runLater(() -> updateBidViews(bids));
             }
         } catch (Exception e) {
-            System.err.println("Error processing socket response in ProductDetail: " + e.getMessage());
+            System.err.println(
+                    "Error processing socket response in ProductDetail: " + e.getMessage());
         }
     }
 
     private void handlePlaceBidResponse(String rawJson) {
         try {
             Map<?, ?> response = JsonMapper.fromJson(rawJson, Map.class);
-            Object success = response != null ? response.get("success") : null;
+            if (response == null) {
+                return;
+            }
+
+            Object success = response.get("success");
+
+            // Handle error response: parse errorCode and dispatch to typed UI handler
             if (!(success instanceof Boolean) || !((Boolean) success)) {
+                Object errCodeObj = response.get("errorCode");
+                String message =
+                        response.get("message") instanceof String msg
+                                ? msg
+                                : "An error occurred. Please try again.";
+
+                if (errCodeObj instanceof Number errNum) {
+                    DomainException ex = ClientExceptionFactory.create(errNum.intValue(), message);
+                    Platform.runLater(() -> dispatchBidError(ex));
+                } else {
+                    Platform.runLater(() -> showInfo("Bid Failed", message));
+                }
                 return;
             }
 
@@ -128,17 +161,61 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
             if (incomingBid == null) {
                 return;
             }
-            Platform.runLater(() -> mergeSingleBid(incomingBid));
+            // Chỉ xóa ô nhập liệu khi gói tin là của chính mình (có correlationId)
+            boolean isOwnBid = response.containsKey("correlationId");
+
+            // Kiểm tra auctionId bằng .equals() (tránh so sánh reference của Integer với !=)
+            Integer incomingAuctionId = incomingBid.getAuctionId();
+            if (incomingAuctionId != null && !incomingAuctionId.equals(viewModel.getAuctionId())) {
+                return;
+            }
+            Platform.runLater(
+                    () -> {
+                        mergeSingleBid(incomingBid, isOwnBid);
+                        if (isOwnBid) {
+                            NotificationService.getInstance()
+                                    .show(
+                                            "Your bid of $"
+                                                    + MONEY_FORMAT.format(incomingBid.getAmount())
+                                                    + " has been placed successfully!",
+                                            NotificationType.SUCCESS);
+                        }
+                    });
         } catch (Exception e) {
-            System.err.println("Error processing place bid response in ProductDetail: " + e.getMessage());
+            System.err.println(
+                    "Error processing place bid response in ProductDetail: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Routes a typed DomainException to the appropriate UI action. Uses Java 21 Pattern Matching
+     * switch inside Platform.runLater() to guarantee thread safety and eliminate MatchException
+     * crashes from unhandled subtypes.
+     */
+    private void dispatchBidError(DomainException ex) {
+        switch (ex) {
+            case AuctionClosedException e -> {
+                viewModel.biddingEnabledProperty().set(false);
+                showInfo("Auction Closed", e.getMessage());
+            }
+            case InsufficientBalanceException e -> {
+                showInfo(
+                        "Insufficient Balance",
+                        "Your balance is too low to hold the 30% deposit. Please top up.");
+            }
+            case ShillBiddingForbiddenException e -> {
+                showInfo("Not Allowed", "You cannot bid on your own auction.");
+            }
+            case InvalidBidException e -> {
+                showInfo("Invalid Bid", e.getMessage());
+            }
+            default -> showInfo("Bid Failed", ex.getMessage());
         }
     }
 
     private void fetchBidHistoryFromServer(int auctionId) {
-        Map<String, Integer> payload = Map.of(
-            "auctionId", auctionId,
-            "userId", viewModel.getBidderId()
-        );
+        Map<String, Integer> payload =
+                Map.of("auctionId", auctionId, "userId", viewModel.getBidderId());
         NetworkService.getInstance().sendRequest(EventType.GET_BIDS_BY_AUCTION_ID, payload);
     }
 
@@ -147,16 +224,27 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         series.setName("Lịch sử giá");
 
-        List<Bid> sorted = bids == null ? List.of() : bids.stream()
-            .sorted(Comparator.comparing(Bid::getCreatedAt, Comparator.nullsLast(Comparator.naturalOrder())))
-            .toList();
+        List<Bid> sorted =
+                bids == null
+                        ? List.of()
+                        : bids.stream()
+                                .sorted(
+                                        Comparator.comparing(
+                                                Bid::getCreatedAt,
+                                                Comparator.nullsLast(Comparator.naturalOrder())))
+                                .toList();
 
         for (Bid bid : sorted) {
-            String timeLabel = bid.getCreatedAt() != null
-                ? bid.getCreatedAt().format(TIME_FORMAT) : "Unknown";
+            String timeLabel =
+                    bid.getCreatedAt() != null ? bid.getCreatedAt().format(TIME_FORMAT) : "Unknown";
             series.getData().add(new XYChart.Data<>(timeLabel, bid.getAmount()));
         }
         bidHistoryChart.getData().add(series);
+    }
+
+    /** Returns the bid history ListView for testability (Scene Graph attachment assertions). */
+    public ListView<String> bidHistoryList() {
+        return bidHistoryList;
     }
 
     @FXML
@@ -178,7 +266,9 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
         }
 
         if (!networkReady) {
-            showInfo("Network unavailable", "Cannot place bid because server connection is unavailable.");
+            showInfo(
+                    "Network unavailable",
+                    "Cannot place bid because server connection is unavailable.");
             return;
         }
 
@@ -188,14 +278,18 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
 
     @FXML
     private void handleSetAutoBid() {
-        showInfo("Auto Bid", "Auto Bid popup will be implemented next. Local state strategy is ready.");
+        showInfo(
+                "Auto Bid",
+                "Auto Bid popup will be implemented next. Local state strategy is ready.");
     }
 
     private void setupBindings() {
         categoryLabel.textProperty().bind(viewModel.categoryProperty());
         titleLabel.textProperty().bind(viewModel.titleProperty());
         descriptionLabel.textProperty().bind(viewModel.descriptionProperty());
-        imagePlaceholderLabel.textProperty().bind(viewModel.imageTextProperty());
+
+        ImageLoader.loadImage(viewModel.imageUrl(), imageContainer, imageLabel, 800);
+
         countdownLabel.textProperty().bind(viewModel.countdownTextProperty());
         currentBidLabel.textProperty().bind(viewModel.currentBidDisplayProperty());
         bidderCountLabel.textProperty().bind(viewModel.bidderCountTextProperty());
@@ -213,10 +307,16 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
 
     private void registerNetworkHandlers() {
         try {
-            NetworkService.getInstance().getClient()
-                .addResponseHandler(EventType.GET_BIDS_BY_AUCTION_ID, HANDLER_ID, this::handleSocketResponse);
-            NetworkService.getInstance().getClient()
-                .addResponseHandler(EventType.PLACE_BID, HANDLER_ID, this::handlePlaceBidResponse);
+            NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            EventType.GET_BIDS_BY_AUCTION_ID,
+                            HANDLER_ID,
+                            this::handleSocketResponse);
+            NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            EventType.PLACE_BID, HANDLER_ID, this::handlePlaceBidResponse);
             networkReady = true;
         } catch (IllegalStateException ex) {
             networkReady = false;
@@ -227,12 +327,17 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
         if (countdownTimeline != null) {
             countdownTimeline.stop();
         }
-        countdownTimeline = new Timeline(new KeyFrame(Duration.seconds(1), event -> {
-            viewModel.updateCountdown(LocalDateTime.now());
-            if (!viewModel.isBiddingEnabled() && countdownTimeline != null) {
-                countdownTimeline.stop();
-            }
-        }));
+        countdownTimeline =
+                new Timeline(
+                        new KeyFrame(
+                                Duration.seconds(1),
+                                event -> {
+                                    viewModel.updateCountdown(TimeSyncService.getNow());
+                                    if (!viewModel.isBiddingEnabled()
+                                            && countdownTimeline != null) {
+                                        countdownTimeline.stop();
+                                    }
+                                }));
         countdownTimeline.setCycleCount(Timeline.INDEFINITE);
         countdownTimeline.play();
     }
@@ -243,20 +348,39 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
         refreshBidHistoryList(viewModel.bids());
     }
 
-    private void mergeSingleBid(Bid bid) {
+    private void mergeSingleBid(Bid bid, boolean isOwnBid) {
         List<Bid> merged = new ArrayList<>(viewModel.bids());
         merged.add(bid);
         updateBidViews(merged);
-        bidAmountInput.clear();
+        // Chỉ xóa ô nhập liệu khi gói tin là của chính mình để không làm gián đoạn
+        // người dùng khác đang gõ số tiền
+        if (isOwnBid) {
+            bidAmountInput.clear();
+        }
     }
 
     private void refreshBidHistoryList(List<Bid> bids) {
-        List<String> rows = bids.stream().map(bid -> {
-            String time = bid.getCreatedAt() == null ? "Unknown" : bid.getCreatedAt().format(TIME_FORMAT);
-            String bidder = bid.getBidderId() == null ? "#-" : "#" + bid.getBidderId();
-            String amount = "$" + MONEY_FORMAT.format(bid.getAmount() == null ? 0.0 : bid.getAmount());
-            return time + "  |  Bidder " + bidder + "  |  " + amount;
-        }).toList();
+        List<String> rows =
+                bids.stream()
+                        .map(
+                                bid -> {
+                                    String time =
+                                            bid.getCreatedAt() == null
+                                                    ? "Unknown"
+                                                    : bid.getCreatedAt().format(TIME_FORMAT);
+                                    String bidder =
+                                            bid.getBidderId() == null
+                                                    ? "#-"
+                                                    : "#" + bid.getBidderId();
+                                    String amount =
+                                            "$"
+                                                    + MONEY_FORMAT.format(
+                                                            bid.getAmount() == null
+                                                                    ? 0.0
+                                                                    : bid.getAmount());
+                                    return time + "  |  Bidder " + bidder + "  |  " + amount;
+                                })
+                        .toList();
         bidHistoryList.getItems().setAll(rows);
     }
 
@@ -274,11 +398,23 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
     }
 
     private void showInfo(String title, String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle(title);
-        alert.setHeaderText(null);
-        alert.setContentText(message);
-        alert.show();
+        NotificationType type = NotificationType.INFO;
+        if (title != null) {
+            String lower = title.toLowerCase();
+            if (lower.contains("failed")
+                    || lower.contains("error")
+                    || lower.contains("closed")
+                    || lower.contains("not allowed")) {
+                type = NotificationType.ERROR;
+            } else if (lower.contains("invalid")
+                    || lower.contains("low")
+                    || lower.contains("unavailable")) {
+                type = NotificationType.WARNING;
+            } else if (lower.contains("success")) {
+                type = NotificationType.SUCCESS;
+            }
+        }
+        NotificationService.getInstance().show(message, type);
     }
 
     @Override
@@ -289,7 +425,18 @@ public class ProductDetailPageController implements Initializable, LifecycleAwar
         if (!networkReady) {
             return;
         }
-        NetworkService.getInstance().getClient().removeResponseHandler(EventType.GET_BIDS_BY_AUCTION_ID, HANDLER_ID);
-        NetworkService.getInstance().getClient().removeResponseHandler(EventType.PLACE_BID, HANDLER_ID);
+        // Hủy đăng ký broadcast room khi rời trang (tránh nhận data rác)
+        if (viewModel.getAuctionId() > 0) {
+            NetworkService.getInstance()
+                    .sendRequest(
+                            EventType.UNSUBSCRIBE_AUCTION,
+                            Map.of("auctionId", viewModel.getAuctionId()));
+        }
+        NetworkService.getInstance()
+                .getClient()
+                .removeResponseHandler(EventType.GET_BIDS_BY_AUCTION_ID, HANDLER_ID);
+        NetworkService.getInstance()
+                .getClient()
+                .removeResponseHandler(EventType.PLACE_BID, HANDLER_ID);
     }
 }

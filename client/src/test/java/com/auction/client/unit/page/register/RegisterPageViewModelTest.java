@@ -9,6 +9,6 @@ class RegisterPageViewModelTest {
     @Test
     void shouldValidateRegistration() {
         RegisterPageViewModel viewModel = new RegisterPageViewModel();
-        Assertions.assertTrue(viewModel.validateRegistration("demo", "demo@mail.com", "123456"));
+        Assertions.assertTrue(viewModel.validateRegistration("demo", "demo@mail.com", "12345678"));
     }
 }

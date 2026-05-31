@@ -10,10 +10,10 @@ public final class AppConfig {
 
     private static final String DEV_MODE_KEY = "app.devMode";
     private static final String HOT_RELOAD_KEY = "app.hotReload";
+    private static final String MOCK_MODE_KEY = "app.mockMode";
     private static final Optional<Path> SOURCE_RESOURCE_ROOT = detectSourceResourceRoot();
 
-    private AppConfig() {
-    }
+    private AppConfig() {}
 
     public static double defaultWidth() {
         return 1280;
@@ -43,6 +43,16 @@ public final class AppConfig {
         return isDevMode() && Boolean.parseBoolean(System.getProperty(HOT_RELOAD_KEY, "false"));
     }
 
+    /**
+     * Mock mode — replaces the WebSocket client with a local mock that returns pre-built JSON
+     * responses from resources/mockdata/*.json files. Activate via Maven profile: -Pmock or JVM
+     * argument: -Dapp.mockMode=true Can be combined with devMode for hot-reload + offline data
+     * simultaneously.
+     */
+    public static boolean isMockMode() {
+        return Boolean.parseBoolean(System.getProperty(MOCK_MODE_KEY, "false"));
+    }
+
     public static boolean shouldUseSourceResources() {
         return isDevMode() && SOURCE_RESOURCE_ROOT.isPresent();
     }
@@ -53,10 +63,10 @@ public final class AppConfig {
 
     private static Optional<Path> detectSourceResourceRoot() {
         Path cwd = Paths.get(System.getProperty("user.dir", ".")).toAbsolutePath().normalize();
-        Path[] candidates = new Path[] {
-            cwd.resolve("src/main/resources"),
-            cwd.resolve("client/src/main/resources")
-        };
+        Path[] candidates =
+                new Path[] {
+                    cwd.resolve("src/main/resources"), cwd.resolve("client/src/main/resources")
+                };
 
         for (Path candidate : candidates) {
             if (Files.isDirectory(candidate)) {

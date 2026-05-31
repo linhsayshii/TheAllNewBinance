@@ -14,7 +14,7 @@
     onMouseClicked="#handleOpenProductDetail"
       spacing="10.0" styleClass="auction-card-root">
     <children>
-        <StackPane styleClass="auction-card-image">
+        <StackPane fx:id="imageContainer" styleClass="auction-card-image">
             <children>
                 <Label fx:id="imageLabel" text="Item Image" styleClass="auction-card-image-label" />
             </children>
@@ -22,7 +22,7 @@
 
         <HBox alignment="CENTER_LEFT" spacing="10.0">
             <children>
-                <Label fx:id="timeStartLabel" text="Starts at 02h 31m" styleClass="auction-card-time-start" />
+                <Label fx:id="timeStartLabel" text="Starts after 02h 31m" styleClass="auction-card-time-start" />
                 <Region HBox.hgrow="ALWAYS" />
             </children>
         </HBox>

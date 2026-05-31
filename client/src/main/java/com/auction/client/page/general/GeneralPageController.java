@@ -1,13 +1,11 @@
 package com.auction.client.page.general;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import com.auction.client.component.item.AuctionCardComponentController;
 import com.auction.client.component.item.UpcomingAuctionCardComponentController;
 import com.auction.client.dto.ProductCardUiModel;
-
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import javafx.animation.PauseTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -19,29 +17,24 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
-public class GeneralPageController {
+public class GeneralPageController implements com.auction.client.scene.LifecycleAwareController {
 
     private static final String AUCTION_CARD_FXML = "/fxml/components/item/auction-card.fxml";
-    private static final String UPCOMING_AUCTION_CARD_FXML = "/fxml/components/item/upcoming-auction-card.fxml";
-    private static final double TARGET_CARD_WIDTH = 300.0;
+    private static final String UPCOMING_AUCTION_CARD_FXML =
+            "/fxml/components/item/upcoming-auction-card.fxml";
+    private static final double TARGET_CARD_WIDTH = 400.0;
 
-    @FXML
-    private HBox liveAuctionCards;
+    @FXML private HBox liveAuctionCards;
 
-    @FXML
-    private ScrollPane liveCardsScrollPane;
+    @FXML private ScrollPane liveCardsScrollPane;
 
-    @FXML
-    private HBox liveBlockIndicators;
+    @FXML private HBox liveBlockIndicators;
 
-    @FXML
-    private HBox upcomingAuctionCards;
+    @FXML private HBox upcomingAuctionCards;
 
-    @FXML
-    private ScrollPane upcomingCardsScrollPane;
+    @FXML private ScrollPane upcomingCardsScrollPane;
 
-    @FXML
-    private HBox upcomingBlockIndicators;
+    @FXML private HBox upcomingBlockIndicators;
 
     private final GeneralPageViewModel viewModel = new GeneralPageViewModel();
     private final CarouselState liveCarousel = new CarouselState();
@@ -49,21 +42,109 @@ public class GeneralPageController {
 
     @FXML
     private void initialize() {
-        liveAuctionCards.getChildren().clear();
-        upcomingAuctionCards.getChildren().clear();
+        com.auction.client.service.AuctionQueryService.clearCache();
+        refreshFeaturedAuctions();
+        registerNetworkHandlers();
+    }
 
-        List<ProductCardUiModel> liveCards = viewModel.loadLiveFeaturedAuctions();
-        for (ProductCardUiModel card : liveCards) {
-            liveAuctionCards.getChildren().add(loadAuctionCard(card));
+    private void registerNetworkHandlers() {
+        try {
+            com.auction.client.service.NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            com.auction.core.protocol.EventType.AUCTION_ACTIVATED,
+                            "GeneralPage",
+                            message -> {
+                                com.auction.client.service.AuctionQueryService.clearCache();
+                                refreshFeaturedAuctions();
+                            });
+            com.auction.client.service.NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            com.auction.core.protocol.EventType.AUCTION_CLOSED,
+                            "GeneralPage",
+                            message -> {
+                                com.auction.client.service.AuctionQueryService.clearCache();
+                                refreshFeaturedAuctions();
+                            });
+            com.auction.client.service.NetworkService.getInstance()
+                    .getClient()
+                    .addResponseHandler(
+                            com.auction.core.protocol.EventType.PROMOTE_AUCTION,
+                            "GeneralPage",
+                            message -> {
+                                com.auction.client.service.AuctionQueryService.clearCache();
+                                refreshFeaturedAuctions();
+                            });
+
+            // Đăng ký nhận thông báo từ Lobby Room (Room ID = 0)
+            com.auction.client.service.NetworkService.getInstance()
+                    .sendRequest(
+                            com.auction.core.protocol.EventType.SUBSCRIBE_AUCTION,
+                            java.util.Map.of("auctionId", 0));
+        } catch (Exception e) {
+            System.err.println(
+                    "[GeneralPage] Failed to register network handlers: " + e.getMessage());
         }
+    }
 
-        List<ProductCardUiModel> upcomingCards = viewModel.loadUpcomingFeaturedAuctions();
-        for (ProductCardUiModel card : upcomingCards) {
-            upcomingAuctionCards.getChildren().add(loadUpcomingAuctionCard(card));
+    private void refreshFeaturedAuctions() {
+        java.util.concurrent.CompletableFuture.runAsync(
+                () -> {
+                    List<ProductCardUiModel> liveCards = viewModel.loadLiveFeaturedAuctions();
+                    List<ProductCardUiModel> upcomingCards =
+                            viewModel.loadUpcomingFeaturedAuctions();
+
+                    Platform.runLater(
+                            () -> {
+                                liveAuctionCards.getChildren().clear();
+                                upcomingAuctionCards.getChildren().clear();
+
+                                for (ProductCardUiModel card : liveCards) {
+                                    liveAuctionCards.getChildren().add(loadAuctionCard(card));
+                                }
+
+                                for (ProductCardUiModel card : upcomingCards) {
+                                    upcomingAuctionCards
+                                            .getChildren()
+                                            .add(loadUpcomingAuctionCard(card));
+                                }
+
+                                setupCarousel(
+                                        liveCarousel,
+                                        liveCardsScrollPane,
+                                        liveAuctionCards,
+                                        liveBlockIndicators);
+                                setupCarousel(
+                                        upcomingCarousel,
+                                        upcomingCardsScrollPane,
+                                        upcomingAuctionCards,
+                                        upcomingBlockIndicators);
+                            });
+                });
+    }
+
+    @Override
+    public void onUnload() {
+        try {
+            com.auction.client.service.NetworkService.getInstance()
+                    .sendRequest(
+                            com.auction.core.protocol.EventType.UNSUBSCRIBE_AUCTION,
+                            java.util.Map.of("auctionId", 0));
+            com.auction.client.service.NetworkService.getInstance()
+                    .getClient()
+                    .removeResponseHandler(
+                            com.auction.core.protocol.EventType.AUCTION_ACTIVATED, "GeneralPage");
+            com.auction.client.service.NetworkService.getInstance()
+                    .getClient()
+                    .removeResponseHandler(
+                            com.auction.core.protocol.EventType.AUCTION_CLOSED, "GeneralPage");
+            com.auction.client.service.NetworkService.getInstance()
+                    .getClient()
+                    .removeResponseHandler(
+                            com.auction.core.protocol.EventType.PROMOTE_AUCTION, "GeneralPage");
+        } catch (Exception ignored) {
         }
-
-        setupCarousel(liveCarousel, liveCardsScrollPane, liveAuctionCards, liveBlockIndicators);
-        setupCarousel(upcomingCarousel, upcomingCardsScrollPane, upcomingAuctionCards, upcomingBlockIndicators);
     }
 
     @FXML
@@ -86,7 +167,11 @@ public class GeneralPageController {
         moveToNextBlock(upcomingCarousel);
     }
 
-    private void setupCarousel(CarouselState state, ScrollPane scrollPane, HBox cardsContainer, HBox indicatorsContainer) {
+    private void setupCarousel(
+            CarouselState state,
+            ScrollPane scrollPane,
+            HBox cardsContainer,
+            HBox indicatorsContainer) {
         state.scrollPane = scrollPane;
         state.cardsContainer = cardsContainer;
         state.indicatorsContainer = indicatorsContainer;
@@ -96,29 +181,39 @@ public class GeneralPageController {
         // Disable pannable to prevent click events from being consumed
         scrollPane.setPannable(false);
 
-        scrollPane.viewportBoundsProperty().addListener((obs, oldBounds, newBounds) -> {
-            double newWidth = newBounds.getWidth();
-            // Only recalculate when the viewport width changes significantly (real window resize).
-            // Minor fluctuations (scrollbar, popup, focus) should not trigger relayout.
-            if (state.lastLayoutWidth > 0 && Math.abs(newWidth - state.lastLayoutWidth) < 20.0) {
-                return;
-            }
-            state.lastLayoutWidth = newWidth;
-            updateCarouselLayout(state);
-            snapToCurrentBlock(state);
-        });
+        scrollPane
+                .viewportBoundsProperty()
+                .addListener(
+                        (obs, oldBounds, newBounds) -> {
+                            double newWidth = newBounds.getWidth();
+                            // Only recalculate when the viewport width changes significantly (real
+                            // window resize).
+                            // Minor fluctuations (scrollbar, popup, focus) should not trigger
+                            // relayout.
+                            if (state.lastLayoutWidth > 0
+                                    && Math.abs(newWidth - state.lastLayoutWidth) < 20.0) {
+                                return;
+                            }
+                            state.lastLayoutWidth = newWidth;
+                            updateCarouselLayout(state);
+                            snapToCurrentBlock(state);
+                        });
 
-        scrollPane.hvalueProperty().addListener((obs, oldValue, newValue) -> {
-            if (state.programmaticScroll) {
-                return;
-            }
-            state.snapDelay.playFromStart();
-        });
+        scrollPane
+                .hvalueProperty()
+                .addListener(
+                        (obs, oldValue, newValue) -> {
+                            if (state.programmaticScroll) {
+                                return;
+                            }
+                            state.snapDelay.playFromStart();
+                        });
 
-        Platform.runLater(() -> {
-            updateCarouselLayout(state);
-            snapToCurrentBlock(state);
-        });
+        Platform.runLater(
+                () -> {
+                    updateCarouselLayout(state);
+                    snapToCurrentBlock(state);
+                });
     }
 
     private void moveToPreviousBlock(CarouselState state) {
@@ -133,7 +228,8 @@ public class GeneralPageController {
         if (state.blockStarts.isEmpty()) {
             return;
         }
-        state.currentBlockIndex = Math.min(state.blockStarts.size() - 1, state.currentBlockIndex + 1);
+        state.currentBlockIndex =
+                Math.min(state.blockStarts.size() - 1, state.currentBlockIndex + 1);
         snapToCurrentBlock(state);
     }
 
@@ -149,7 +245,12 @@ public class GeneralPageController {
             return;
         }
 
-        int itemsPerView = Math.max(1, (int) Math.floor((carouselWidth + spacing) / (TARGET_CARD_WIDTH + spacing)));
+        int itemsPerView =
+                Math.max(
+                        1,
+                        (int)
+                                Math.floor(
+                                        (carouselWidth + spacing) / (TARGET_CARD_WIDTH + spacing)));
         state.itemsPerBlock = itemsPerView;
 
         double actualCardWidth = (carouselWidth - spacing * (itemsPerView - 1)) / itemsPerView;
@@ -164,16 +265,18 @@ public class GeneralPageController {
 
         rebuildBlockStarts(state, totalItems);
         rebuildBlockIndicators(state);
-        state.currentBlockIndex = Math.min(state.currentBlockIndex, Math.max(0, state.blockStarts.size() - 1));
+        state.currentBlockIndex =
+                Math.min(state.currentBlockIndex, Math.max(0, state.blockStarts.size() - 1));
         updateIndicatorState(state);
     }
 
     private double resolveVisibleCarouselWidth(ScrollPane scrollPane) {
         Node viewport = scrollPane.lookup(".viewport");
         if (viewport instanceof Region viewportRegion) {
-            double width = viewportRegion.getWidth()
-                    - viewportRegion.getInsets().getLeft()
-                    - viewportRegion.getInsets().getRight();
+            double width =
+                    viewportRegion.getWidth()
+                            - viewportRegion.getInsets().getLeft()
+                            - viewportRegion.getInsets().getRight();
             if (width > 0) {
                 return width;
             }
@@ -207,7 +310,8 @@ public class GeneralPageController {
             state.blockStarts.add(start);
         }
 
-        if (state.blockStarts.isEmpty() || state.blockStarts.get(state.blockStarts.size() - 1) != maxStart) {
+        if (state.blockStarts.isEmpty()
+                || state.blockStarts.get(state.blockStarts.size() - 1) != maxStart) {
             state.blockStarts.add(maxStart);
         }
     }
@@ -219,10 +323,11 @@ public class GeneralPageController {
             final int blockIndex = index;
             Region indicator = new Region();
             indicator.getStyleClass().add("gp-block-indicator");
-            indicator.setOnMouseClicked(event -> {
-                state.currentBlockIndex = blockIndex;
-                snapToCurrentBlock(state);
-            });
+            indicator.setOnMouseClicked(
+                    event -> {
+                        state.currentBlockIndex = blockIndex;
+                        snapToCurrentBlock(state);
+                    });
             state.indicatorsContainer.getChildren().add(indicator);
         }
     }

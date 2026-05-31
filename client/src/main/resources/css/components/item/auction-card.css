@@ -1,76 +1,88 @@
 .auction-card-root {
-    -fx-min-height: 400;
-    -fx-pref-height: 400;
-    -fx-max-height: 400;
+    -fx-min-height: 450;
+    -fx-pref-height: 450;
+    -fx-max-height: 450;
     -fx-cursor: hand;
-    -fx-background-color: -surface-bg;
+    -fx-padding: 20;
+
+    -fx-background-color: -theme-bg-surface;
+    -fx-background-radius: 12;
+    -fx-border-color: -theme-border;
+    -fx-border-radius: 12;
     -fx-border-width: 1;
-    -fx-background-radius: 8;
-    -fx-border-radius: 8;
-    -fx-padding: 10;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.05), 12, 0, 0, 4);
+}
+
+.auction-card-root:hover {
+    -fx-border-color: -theme-primary;
+    -fx-border-width: 1.5;
 }
 
 .auction-card-image {
-    -fx-background-color: -panel-bg;
-    -fx-min-height: 200;
-    -fx-pref-height: 200;
+    -fx-background-color: -theme-;
+    -fx-min-height: 250;
+    -fx-pref-height: 250;
 }
 
 .auction-card-image-label {
-    -fx-font-family: "Inria Serif";
+    -fx-font-family: "Lora";
     -fx-font-size: 20px;
-    -fx-font-weight: 700;
-    -fx-text-fill: -text-primary;
+    -fx-font-weight: 400;
+    -fx-text-fill: -theme-text-main;
 }
 
 .auction-card-time-left {
     -fx-font-family: "Montserrat";
-    -fx-font-size: 14px;
-    -fx-text-fill: -text-secondary;
+    -fx-font-size: 16px;
+    -fx-text-fill: -theme-accent;
 }
 
 .auction-card-time-start {
     -fx-font-family: "Montserrat";
-    -fx-font-size: 14px;
-    -fx-text-fill: -text-secondary;
+    -fx-font-size: 16px;
+    -fx-text-fill: -theme-accent;
 }
 
 .auction-card-progress-track {
-    -fx-pref-height: 2;
-    -fx-background-color: -text-primary;
+    -fx-pref-height: 3;
+    -fx-min-height: 3;
+    -fx-max-height: 3;
+    -fx-background-color: -theme-text-main;
 }
 
 .auction-card-progress-fill {
-    -fx-pref-height: 2;
-    -fx-background-color: -brand;
+    -fx-min-height: 3;
+    -fx-pref-height: 3;
+    -fx-max-height: 3;
+    -fx-background-color: -theme-primary;
 }
 
 .auction-card-item-name {
-    -fx-font-family: "Inria Serif";
-    -fx-font-size: 30px;
-    -fx-font-weight: 700;
-    -fx-text-fill: -text-primary;
-    -fx-padding: 0 0 10 0;
+    -fx-font-family: "Lora";
+    -fx-font-size: 28px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -theme-text-main;
+    -fx-padding: 0 0 5 0;
 }
 
 .auction-card-price-caption {
     -fx-font-family: "Montserrat";
     -fx-font-size: 13px;
     -fx-font-weight: 500;
-    -fx-text-fill: -text-secondary;
+    -fx-text-fill: -theme-accent;
 }
 
 .auction-card-price {
-    -fx-font-family: "Inria Serif";
+    -fx-font-family: "Lora";
     -fx-font-size: 30px;
-    -fx-font-weight: 700;
+    -fx-font-weight: 400;
     -fx-padding: 3 0 0 0;
-    -fx-text-fill: -text-primary;
+    -fx-text-fill: -theme-primary;
 }
 
 .auction-card-bidders {
     -fx-font-family: "Montserrat";
     -fx-font-size: 12px;
-    -fx-text-fill: -text-secondary;
+    -fx-text-fill: -theme-accent;
 }
 

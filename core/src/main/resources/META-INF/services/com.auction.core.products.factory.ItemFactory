@@ -1,0 +1,3 @@
+com.auction.core.products.factory.LuxuryCollectibleFactory
+com.auction.core.products.factory.ArtisticCreationFactory
+com.auction.core.products.factory.PrecisionMechanicalFactory

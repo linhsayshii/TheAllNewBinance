@@ -3,8 +3,7 @@ package com.auction.core.dto.auction;
 public class GetAuctionDetailsRequest {
     private Integer auctionId;
 
-    public GetAuctionDetailsRequest() {
-    }
+    public GetAuctionDetailsRequest() {}
 
     public GetAuctionDetailsRequest(Integer auctionId) {
         this.auctionId = auctionId;

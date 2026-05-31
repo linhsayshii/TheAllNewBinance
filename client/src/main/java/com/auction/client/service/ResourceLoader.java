@@ -1,12 +1,11 @@
 package com.auction.client.service;
 
+import com.auction.client.config.AppConfig;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Objects;
-
-import com.auction.client.config.AppConfig;
 
 public class ResourceLoader {
 
@@ -28,10 +27,10 @@ public class ResourceLoader {
 
     private URL fromSourceResources(String classpathPath) {
         return AppConfig.sourceResourceRoot()
-            .map(root -> root.resolve(trimLeadingSlash(classpathPath)))
-            .filter(Files::exists)
-            .map(this::toUrl)
-            .orElse(null);
+                .map(root -> root.resolve(trimLeadingSlash(classpathPath)))
+                .filter(Files::exists)
+                .map(this::toUrl)
+                .orElse(null);
     }
 
     private URL toUrl(Path file) {

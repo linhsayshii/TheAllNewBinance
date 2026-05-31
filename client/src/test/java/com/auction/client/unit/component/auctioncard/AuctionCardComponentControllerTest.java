@@ -1,9 +1,8 @@
 package com.auction.client.unit.component.auctioncard;
 
+import com.auction.client.component.item.AuctionCardComponentController;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-
-import com.auction.client.component.item.AuctionCardComponentController;
 
 class AuctionCardComponentControllerTest {
 

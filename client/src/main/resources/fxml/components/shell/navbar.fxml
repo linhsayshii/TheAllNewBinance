@@ -12,7 +12,6 @@
     </padding>
     <children>
         <Button text="AUCTIONS" styleClass="gp-nav-item" onAction="#handleGoToAuctions" />
-        <Button text="ALL ITEMS" styleClass="gp-nav-item" onAction="#handleGoToAllItems" />
-        <Button text="SELLERS" styleClass="gp-nav-item" onAction="#handleGoToSellers" />
+        <Button text="CATEGORIES" styleClass="gp-nav-item" onAction="#handleGoToCategories" />
     </children>
 </HBox>
