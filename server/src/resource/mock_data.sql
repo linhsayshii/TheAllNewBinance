@@ -1,5 +1,6 @@
 -- Mock Data Setup for TheAllNewBinance
 -- Target: MySQL 8+ / MariaDB
+-- Safe to re-run: uses IF NOT EXISTS / INSERT IGNORE where applicable.
 -- This script applies migrations and populates the database with default test users, items, auctions, and bids.
 
 USE theallnewbinance;
