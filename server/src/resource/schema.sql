@@ -1,5 +1,6 @@
 -- Schema for TheAllNewBinance server module
 -- Target: MySQL 8+
+-- Apply after creating the database user (see README CÁCH 3).
 
 CREATE DATABASE IF NOT EXISTS theallnewbinance
   CHARACTER SET utf8mb4
