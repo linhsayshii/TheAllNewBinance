@@ -30,6 +30,7 @@ import java.util.logging.Logger;
 public class ServerApp {
 
     private static final Logger LOGGER = Logger.getLogger(ServerApp.class.getName());
+    private static final String VERSION = "1.0";
 
     public static void main(String[] args) {
         // Đồng bộ múi giờ JVM hệ thống về UTC+7 trước khi bất kỳ class nào khởi tạo
@@ -107,6 +108,9 @@ public class ServerApp {
                                 }));
 
         System.out.println(
-                "TheAllNewBinance Auction Server is warming up and binding to port " + port);
+                "TheAllNewBinance Auction Server v"
+                        + VERSION
+                        + " is warming up and binding to port "
+                        + port);
     }
 }
