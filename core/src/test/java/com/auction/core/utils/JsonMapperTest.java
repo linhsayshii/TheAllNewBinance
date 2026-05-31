@@ -63,4 +63,18 @@ class JsonMapperTest {
         assertThat(parsedUser).isInstanceOf(com.auction.core.users.StandardUser.class);
         assertThat(parsedUser.getUsername()).isEqualTo("attacker");
     }
+
+    @Test
+    @DisplayName("Should round-trip a simple key-value map")
+    void testMapSerialization() {
+        java.util.Map<String, Object> payload =
+                java.util.Map.of("success", true, "message", "ok");
+
+        String json = JsonMapper.toJson(payload);
+        @SuppressWarnings("unchecked")
+        java.util.Map<String, Object> parsed = JsonMapper.fromJson(json, java.util.Map.class);
+
+        assertThat(parsed.get("success")).isEqualTo(true);
+        assertThat(parsed.get("message")).isEqualTo("ok");
+    }
 }
