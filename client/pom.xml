@@ -12,6 +12,8 @@
 
     <artifactId>client</artifactId>
     <packaging>jar</packaging>
+    <name>client</name>
+    <description>JavaFX desktop client for TheAllNewBinance</description>
 
     <properties>
         <javafx.version>21.0.4</javafx.version>
