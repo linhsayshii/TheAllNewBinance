@@ -1,5 +1,9 @@
 name: Java CI with Maven
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 on:
   push:
     branches: [ "main", "develop", "feature/ui-base-structure" ] 
