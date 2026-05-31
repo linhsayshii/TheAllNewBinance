@@ -177,3 +177,23 @@ Từ thư mục gốc dự án:
 ```bash
 mvn test
 ```
+
+---
+
+## ✅ Kiểm tra mã nguồn (Checkstyle)
+
+Chạy phân tích tĩnh trước khi push:
+
+```bash
+mvn validate
+```
+
+---
+
+## 🎨 Định dạng mã nguồn (Spotless)
+
+Tự động format code theo chuẩn Google AOSP:
+
+```bash
+mvn spotless:apply
+```
