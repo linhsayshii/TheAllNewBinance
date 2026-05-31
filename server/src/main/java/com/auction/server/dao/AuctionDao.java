@@ -564,7 +564,7 @@ public class AuctionDao implements IAuctionDao {
                     + " seller_display_name, a.is_featured, a.featured_until,"
                     + " a.promoted_description, i.description as item_description FROM auctions a"
                     + " JOIN items i ON a.item_id = i.item_id JOIN users u ON i.seller_id ="
-                    + " u.user_id WHERE a.is_featured = true AND a.status = 'ACTIVE' AND a.end_time"
+                    + " u.user_id WHERE a.is_featured = true AND a.status IN ('ACTIVE', 'PENDING') AND a.end_time"
                     + " > NOW() AND a.is_deleted = false ORDER BY a.end_time ASC LIMIT ?";
         List<com.auction.core.dto.auction.PublicAuctionDto> result = new ArrayList<>();
         try (Connection conn = DBConnection.getConnection();
@@ -768,10 +768,14 @@ public class AuctionDao implements IAuctionDao {
     @Override
     public boolean updateAuctionForBidWithConnection(Connection conn, Bid bid, Auction auction)
             throws SQLException {
-        String sql = "UPDATE auctions SET current_price = ? WHERE auction_id = ?";
+        // Atomic: chỉ update nếu giá đặt >= current_price + bid_increment
+        String sql =
+                "UPDATE auctions SET current_price = ? WHERE auction_id = ?"
+                        + " AND current_price + bid_increment <= ?";
         try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setDouble(1, bid.getAmount());
             stmt.setInt(2, auction.getId());
+            stmt.setDouble(3, bid.getAmount());
             return stmt.executeUpdate() > 0;
         }
     }
