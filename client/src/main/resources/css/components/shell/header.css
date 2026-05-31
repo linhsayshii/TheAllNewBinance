@@ -1,5 +1,5 @@
 .gp-top-bar {
-    -fx-background-color: -theme-bg-main;
+    -fx-background-color: -theme-bg-surface;
     -fx-border-color: transparent transparent -theme-primary transparent;
     -fx-border-width: 0 0 1 0;
 }

@@ -1,5 +1,5 @@
 .app-footer {
-    -fx-background-color: -theme-bg-main;
+    -fx-background-color: -theme-bg-surface;
     -fx-border-color: -theme-primary transparent transparent transparent;
     -fx-border-width: 0 0 0 0;
     -fx-padding: 40 32 40 32;
