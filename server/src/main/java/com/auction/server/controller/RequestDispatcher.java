@@ -6,7 +6,7 @@ import com.auction.server.dao.impl.IUserDao;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public class RequestDispatcher {
+public final class RequestDispatcher {
     private final UserController userCtrl;
     private final AuctionController auctionCtrl;
     private final BidController bidCtrl;
