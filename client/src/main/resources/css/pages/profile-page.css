@@ -1,0 +1,554 @@
+/* ============================================================
+   Profile Page — Layout
+   ============================================================ */
+.profile-page-root {
+    -fx-background-color: -theme-bg-main;
+}
+
+.profile-layout {
+    -fx-spacing: 0;
+    -fx-fill-height: true;
+    -fx-min-height: 0;
+}
+
+/* ============================================================
+   Sidebar
+   ============================================================ */
+.profile-sidebar {
+    -fx-background-color: -theme-bg-main;
+    -fx-border-color: transparent -theme-secondary transparent transparent;
+    -fx-border-width: 0 1 0 0;
+    -fx-min-width: 260;
+    -fx-pref-width: 260;
+    -fx-max-width: 260;
+    -fx-spacing: 0;
+    -fx-padding: 0;
+}
+
+/* ----  User Card  ---- */
+.profile-user-card,
+.profile-sidebar-user-card {
+    -fx-background-color: -theme-bg-main;
+    -fx-padding: 28 20 24 20;
+    -fx-spacing: 6;
+    -fx-alignment: center;
+    -fx-border-color: transparent transparent -theme-secondary transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+.profile-avatar-circle {
+    -fx-background-color: -theme-primary;
+    -fx-background-radius: 40;
+    -fx-min-width: 80;
+    -fx-pref-width: 80;
+    -fx-max-width: 80;
+    -fx-min-height: 80;
+    -fx-pref-height: 80;
+    -fx-max-height: 80;
+}
+
+.profile-avatar-initial {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 32px;
+    -fx-font-weight: 700;
+    -fx-text-fill: white;
+}
+
+.profile-user-name {
+    -fx-font-family: "Lora";
+    -fx-font-size: 18px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -theme-text-main;
+    -fx-padding: 6 0 0 0;
+}
+
+.profile-user-id-tag {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-text-fill: -theme-accent;
+    -fx-background-color: -theme-accent;
+    /* -fx-background-radius: 4; */
+    -fx-padding: 2 6 2 6;
+}
+
+.profile-user-join-date {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-text-fill: -theme-accent;
+    -fx-padding: 4 0 0 0;
+}
+
+.profile-user-email {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-text-fill: -theme-accent;
+}
+
+/* ----  Navigation Menu  ---- */
+.profile-nav-menu {
+    -fx-spacing: 4;
+    -fx-padding: 12 8 12 8;
+    -fx-fill-width: true;
+}
+
+.profile-nav-section-label {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 10px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -theme-accent;
+    -fx-padding: 12 12 4 12;
+}
+
+.profile-nav-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: -theme-text-main;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+    -fx-cursor: hand;
+    -fx-padding: 10 16 10 16;
+    -fx-background-radius: 8;
+    -fx-border-width: 0;
+    -fx-alignment: center-left;
+    -fx-max-width: Infinity;
+}
+
+.profile-nav-btn:hover {
+    -fx-background-color: -theme-accent;
+    -fx-text-fill: -theme-bg-main;
+}
+
+.profile-nav-btn:selected {
+    -fx-background-color: -theme-primary;
+    -fx-text-fill: -theme-bg-main;
+    -fx-font-weight: 700;
+}
+
+/* ============================================================
+   Main Content Area
+   ============================================================ */
+.profile-content-area {
+    -fx-background-color: -theme-bg-main;
+    -fx-padding: 32 36 32 36;
+}
+
+.profile-section-title {
+    -fx-font-family: "Lora";
+    -fx-font-size: 26px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -theme-text-main;
+    -fx-padding: 0 0 4 0;
+}
+
+.profile-section-subtitle {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-text-fill: -theme-accent;
+    -fx-padding: 0 0 20 0;
+}
+
+.profile-divider {
+    -fx-background-color: -theme-secondary;
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-margin: 0 0 20 0;
+}
+
+/* ============================================================
+   Dashboard — Stat Cards
+   ============================================================ */
+.profile-stats-grid {
+    -fx-hgap: 16;
+    -fx-vgap: 16;
+    -fx-padding: 0 0 24 0;
+}
+
+.profile-stat-card {
+    -fx-background-color: -theme-bg-surface;
+    -fx-border-color: -theme-border;
+    -fx-border-width: 1;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-padding: 0 22 20 22;
+    -fx-spacing: 8;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 12, 0, 0, 4);
+    -fx-min-height: 120;
+    -fx-pref-height: -1;
+    -fx-max-height: 200;
+    -fx-min-width: 150;
+    -fx-pref-width: 200;
+    -fx-max-width: Infinity;
+}
+
+.profile-stat-card:hover {
+    -fx-border-color: -theme-primary;
+    -fx-effect: dropshadow(gaussian, rgba(127, 21, 42, 0.15), 18, 0, 0, 6);
+}
+
+.profile-chart-card {
+    -fx-background-color: -theme-bg-surface;
+    -fx-border-color: -theme-border;
+    -fx-border-width: 1;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-padding: 24;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.04), 12, 0, 0, 4);
+}
+
+.profile-chart-card:hover {
+    -fx-border-color: -theme-primary;
+    -fx-effect: dropshadow(gaussian, rgba(127, 21, 42, 0.12), 16, 0, 0, 6);
+}
+
+.profile-chart-title {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -theme-text-main;
+}
+
+/* Custom styling for JavaFX Charts */
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+.chart-vertical-grid-lines {
+    -fx-stroke: -theme-border;
+    -fx-stroke-dash-array: 2px, 6px;
+}
+.chart-horizontal-grid-lines {
+    -fx-stroke: -theme-border;
+    -fx-stroke-dash-array: 2px, 6px;
+}
+.chart-line-symbol {
+    -fx-background-color: -theme-primary, white;
+    -fx-background-radius: 4px;
+    -fx-padding: 4px;
+}
+.chart-series-line {
+    -fx-stroke: -theme-primary;
+    -fx-stroke-width: 3px;
+}
+.axis {
+    -fx-tick-label-font-family: "Montserrat";
+    -fx-tick-label-font-size: 10px;
+    -fx-tick-label-fill: -theme-text-muted;
+}
+.axis-label {
+    -fx-text-fill: -theme-text-main;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+}
+
+.profile-stat-icon {
+    -fx-font-size: 26px;
+    -fx-padding: 0 0 4 0;
+}
+
+.profile-stat-label {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -theme-primary;
+    -fx-text-transform: uppercase;
+}
+
+.profile-stat-value {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 26px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -theme-text-main;
+}
+
+.profile-stat-value-small {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 26px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -theme-text-main;
+}
+
+/* ============================================================
+   Finance Section
+   ============================================================ */
+.profile-finance-card {
+    -fx-background-color: -theme-bg-card;
+    -fx-border-color: -theme-secondary;
+    -fx-border-width: 1;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-padding: 24 28 24 28;
+    -fx-spacing: 12;
+    -fx-max-width: 520;
+}
+
+/* Settings section cards stretch full-width */
+.profile-settings-card {
+    -fx-background-color: -theme-bg-card;
+    -fx-border-color: -theme-secondary;
+    -fx-border-width: 1;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-padding: 28 32 28 32;
+    -fx-spacing: 16;
+    -fx-max-width: Infinity;
+}
+
+.profile-settings-card:hover {
+    -fx-border-color: -theme-primary;
+}
+
+/* ============================================================
+   Form Input Fields (Finance + Settings)
+   ============================================================ */
+.profile-input-field {
+    -fx-background-color: -theme-bg-main;
+    -fx-border-color: -theme-secondary;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-text-fill: -theme-text-main;
+    -fx-prompt-text-fill: -theme-accent;
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-padding: 10 14 10 14;
+    -fx-pref-height: 42;
+}
+
+.profile-input-field:focused {
+    -fx-border-color: -theme-primary;
+    -fx-effect: dropshadow(gaussian, derive(-theme-primary, -20%), 8, 0.25, 0, 0);
+}
+
+.profile-input-field:hover {
+    -fx-border-color: -theme-accent;
+}
+
+/* Form row label alignment */
+.profile-form-label {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -theme-accent;
+    -fx-min-width: 140;
+    -fx-max-width: 140;
+    -fx-pref-width: 140;
+    -fx-alignment: center-left;
+}
+
+/* Divider inside settings card */
+.profile-settings-divider {
+    -fx-background-color: -theme-secondary;
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+}
+
+.profile-finance-row {
+    -fx-spacing: 0;
+    -fx-padding: 6 0 6 0;
+}
+
+.profile-finance-label {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-font-weight: 500;
+    -fx-text-fill: -theme-accent;
+}
+
+.profile-finance-value {
+    -fx-font-family: "Lora";
+    -fx-font-size: 18px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -theme-text-main;
+}
+
+.profile-finance-value-available {
+    -fx-font-family: "Lora";
+    -fx-font-size: 22px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -theme-success;
+}
+
+.profile-finance-value-locked {
+    -fx-text-fill: -theme-warning;
+}
+
+.profile-finance-separator {
+    -fx-background-color: -theme-secondary;
+    -fx-min-height: 1;
+    -fx-pref-height: 1;
+    -fx-max-height: 1;
+    -fx-padding: 4 0 4 0;
+}
+
+.profile-btn-action {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-background-color: -theme-primary;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-padding: 10 24 10 24;
+}
+
+.profile-btn-action:hover {
+    -fx-opacity: 0.85;
+}
+
+.profile-btn-action-outline {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-background-color: transparent;
+    -fx-text-fill: -theme-primary;
+    -fx-border-color: -theme-primary;
+    -fx-border-width: 1.5;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-padding: 10 24 10 24;
+}
+
+.profile-btn-action-outline:hover {
+    -fx-background-color: -theme-accent;
+}
+
+.profile-btn-disabled {
+    -fx-opacity: 0.45;
+    -fx-cursor: default;
+}
+
+.profile-coming-soon-label {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-text-fill: -theme-accent;
+    -fx-font-style: italic;
+}
+
+/* ============================================================
+   Tab Bar (My Bids / My Listings sub-tabs)
+   ============================================================ */
+.profile-tab-bar {
+    -fx-spacing: 4;
+    -fx-padding: 0 0 16 0;
+}
+
+.profile-tab-btn {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-background-color: transparent;
+    -fx-text-fill: -theme-accent;
+    -fx-border-color: transparent;
+    -fx-border-width: 0 0 2 0;
+    -fx-cursor: hand;
+    -fx-padding: 8 16 8 16;
+    -fx-background-radius: 0;
+    -fx-border-radius: 0;
+}
+
+.profile-tab-btn:hover {
+    -fx-text-fill: -theme-text-main;
+    -fx-background-color: -theme-accent;
+}
+
+.profile-tab-btn:selected {
+    -fx-text-fill: -theme-primary;
+    -fx-border-color: transparent transparent -theme-primary transparent;
+    -fx-font-weight: 700;
+}
+
+/* ============================================================
+   Cards Container (FlowPane / HBox scroller)
+   ============================================================ */
+.profile-cards-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 0;
+    -fx-hbar-policy: never;
+    -fx-vbar-policy: as-needed;
+}
+
+.profile-cards-scroll .viewport {
+    -fx-background-color: transparent;
+}
+
+.profile-cards-flow {
+    -fx-hgap: 16;
+    -fx-vgap: 16;
+    -fx-padding: 4;
+}
+
+.profile-empty-state {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-text-fill: -theme-accent;
+    -fx-padding: 40;
+    -fx-alignment: center;
+}
+
+/* ============================================================
+   Seller Stats bar (top of My Listings)
+   ============================================================ */
+.profile-seller-stats-bar {
+    -fx-spacing: 24;
+    -fx-padding: 0 0 16 0;
+}
+
+.profile-seller-stat-chip {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-text-fill: -theme-accent;
+    -fx-background-color: -theme-accent;
+    -fx-background-radius: 20;
+    -fx-padding: 5 12 5 12;
+}
+
+.profile-seller-stat-chip-value {
+    -fx-font-weight: 700;
+    -fx-text-fill: -theme-text-main;
+}
+
+/* ============================================================
+   Create Listing Button
+   ============================================================ */
+.profile-create-btn {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-background-color: -theme-primary;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-border-width: 0;
+    -fx-cursor: hand;
+    -fx-padding: 11 28 11 28;
+}
+
+.profile-create-btn:hover {
+    -fx-opacity: 0.85;
+}
+
+/* ============================================================
+   Public View banner (shown when viewing someone else's profile)
+   ============================================================ */
+.profile-public-banner {
+    -fx-background-color: -theme-accent;
+    -fx-border-color: -theme-secondary;
+    -fx-border-width: 1;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-padding: 10 16 10 16;
+    -fx-spacing: 6;
+}
+
+.profile-public-banner-label {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-text-fill: -theme-accent;
+    -fx-font-style: italic;
+}

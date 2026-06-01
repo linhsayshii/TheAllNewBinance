@@ -1,0 +1,159 @@
+.product-detail-page-root {
+    -fx-background-color: -theme-bg-main; /* Màu nền chính của theme */
+}
+
+.pdp-scroll {
+    -fx-background-color: -theme-bg-main;
+    -fx-background: -theme-bg-main;
+}
+
+.pdp-scroll > .viewport {
+    -fx-background-color: -theme-bg-main;
+}
+
+.pdp-content-root {
+    -fx-background-color: -theme-bg-main;
+}
+
+.pdp-main-grid {
+    -fx-alignment: top-left;
+}
+
+.pdp-left-column {
+    -fx-min-width: 620;
+}
+
+.pdp-right-column-items {
+    -fx-alignment: top-center;
+}
+
+.pdp-category {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -theme-accent;
+}
+
+.pdp-title {
+    -fx-font-family: "Lora";
+    -fx-font-size: 34px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -theme-text-main;
+}
+
+.pdp-image-placeholder {
+    -fx-min-height: 380;
+    -fx-pref-height: 420;
+    -fx-background-color: #d4d4d8;
+    -fx-background-radius: 16;
+    -fx-border-color: rgba(93, 45, 57, 0.18);
+    -fx-border-radius: 16;
+}
+
+.pdp-image-theme-text-main {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 18px;
+    -fx-font-weight: 600;
+    -fx-text-fill: rgba(93, 45, 57, 0.75);
+}
+
+.pdp-card {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 14;
+    -fx-padding: 14;
+    -fx-border-color: rgba(93, 45, 57, 0.15);
+    -fx-border-radius: 14;
+}
+
+.pdp-section-title {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 16px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -theme-text-main;
+}
+
+.pdp-description {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 13px;
+    -fx-text-fill: rgba(40, 40, 44, 0.9);
+    -fx-line-spacing: 4px;
+}
+
+.bidding-panel {
+    -fx-background-color: #ffffff;
+    -fx-background-radius: 14;
+    -fx-padding: 14;
+    -fx-border-color: rgba(93, 45, 57, 0.18);
+    -fx-border-radius: 14;
+}
+
+.pdp-timer-box {
+    -fx-background-color: -theme-bg-main;
+    -fx-background-radius: 10;
+    -fx-padding: 10;
+}
+
+.pdp-subtle-caption {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-text-fill: rgba(93, 45, 57, 0.8);
+}
+
+.pdp-countdown {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 22px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -theme-text-main;
+}
+
+.pdp-current-bid {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 24px;
+    -fx-font-weight: 800;
+    -fx-text-fill: -theme-primary;
+}
+
+.pdp-seller-box {
+    -fx-background-color: rgba(255, 61, 104, 0.08);
+    -fx-background-radius: 8;
+    -fx-padding: 8;
+}
+
+.pdp-seller-name {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -theme-text-main;
+}
+
+.pdp-bid-input {
+    -fx-font-family: "Montserrat";
+}
+
+.pdp-btn-theme-primary {
+    -fx-background-color: -theme-primary;
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Montserrat";
+    -fx-font-weight: 700;
+}
+
+.pdp-btn-theme-secondary {
+    -fx-background-color: -theme-text-main;
+    -fx-text-fill: #ffffff;
+    -fx-font-family: "Montserrat";
+    -fx-font-weight: 700;
+}
+
+.pdp-login-prompt {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 12px;
+    -fx-text-fill: rgba(40, 40, 44, 0.75);
+}
+
+.pdp-bid-list {
+    -fx-background-insets: 0;
+}
+
+.bid-history-chart {
+    -fx-background-color: transparent;
+}

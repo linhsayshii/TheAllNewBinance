@@ -1,0 +1,134 @@
+.general-page-root {
+    -fx-background-color: -theme-bg-main;
+}
+
+.gp-scroll {
+    -fx-background-color: -theme-bg-main;
+    -fx-background: -theme-bg-main;
+}
+
+.gp-scroll > .viewport {
+    -fx-background-color: -theme-bg-main;
+}
+
+.gp-content-root {
+    -fx-background-color: -theme-bg-main;
+}
+
+.gp-banner-pane {
+    -fx-background-color: -theme-bg-main;
+}
+
+.gp-section-wrap {
+    -fx-padding: 0 0 0 0;
+}
+
+.gp-section-title {
+    -fx-font-family: "Lora";
+    -fx-font-size: 40px;
+    -fx-font-weight: 400;
+    -fx-text-fill: -theme-primary;
+    -fx-padding: 0 0 0 0;
+}
+
+.gp-section-divider {
+    -fx-background-color: -theme-text-main;
+    -fx-padding: 0 0 0 0;
+}
+
+.gp-cards-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 0 0 40 0;
+    -fx-fit-to-height: true;
+    -fx-pannable: false;
+}
+
+.gp-cards-scroll > .viewport {
+    -fx-background-color: transparent;
+}
+
+.gp-cards-carousel-wrap {
+    -fx-alignment: center;
+}
+
+.gp-cards-nav-btn {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+    -fx-cursor: hand;
+    -fx-min-width: 36;
+    -fx-pref-width: 36;
+    -fx-max-width: 36;
+    -fx-min-height: 36;
+    -fx-pref-height: 36;
+    -fx-max-height: 36;
+}
+
+.gp-cards-nav-icon {
+    -fx-icon-color: -theme-primary;
+}
+
+.gp-cards-nav-btn:disabled {
+    -fx-opacity: 0.28;
+}
+
+.gp-block-indicators {
+    -fx-padding: 4 0 8 0;
+}
+
+.gp-block-indicator {
+    -fx-min-width: 38;
+    -fx-pref-width: 38;
+    -fx-max-width: 38;
+    -fx-min-height: 6;
+    -fx-pref-height: 6;
+    -fx-max-height: 6;
+    -fx-background-color: rgba(29, 12, 25, 0.25);
+    -fx-background-radius: 999;
+    -fx-cursor: hand;
+}
+
+.gp-block-indicator-active {
+    -fx-background-color: -theme-primary;
+}
+
+/* ── Category Selector Tabs ─────────────────────────────────────────── */
+.gp-category-tabs-wrap {
+    -fx-alignment: center;
+    -fx-border-color: rgba(255, 255, 255, 0.08);
+    -fx-border-width: 0 0 1 0;
+}
+
+.gp-category-tab-btn {
+    -fx-background-color: rgba(255, 255, 255, 0.03);
+    -fx-border-color: rgba(255, 255, 255, 0.12);
+    -fx-border-width: 1;
+    -fx-border-radius: 20;
+    -fx-background-radius: 20;
+    -fx-font-family: "Outfit";
+    -fx-font-size: 16px;
+    -fx-font-weight: 500;
+    -fx-text-fill: -theme-text-main;
+    -fx-padding: 10 24;
+    -fx-cursor: hand;
+}
+
+.gp-category-tab-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-border-color: -theme-primary;
+}
+
+.gp-category-tab-btn-active {
+    -fx-background-color: -theme-primary;
+    -fx-border-color: -theme-primary;
+    -fx-text-fill: -theme-bg-main;
+    -fx-font-weight: 600;
+}
+
+.gp-empty-state-label {
+    -fx-font-family: "Outfit";
+    -fx-font-size: 14px;
+    -fx-text-fill: -theme-text-secondary;
+    -fx-padding: 24 0;
+}
